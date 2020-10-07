@@ -34,7 +34,39 @@ init _ =
 
 view : model -> Html Msg
 view _ =
-    Html.text "Hello, world!"
+    Html.div
+        []
+        [ textList
+            [ "Name"
+            , "Avatar"
+            , "LV: 1"
+            , "EXP: 0"
+            , "States: []"
+            , "Satiety: 10 / 10"
+            , "HP: 10 / 10"
+            , "MP: 5 / 5"
+            ]
+        , textList
+            [ "Player"
+            , "Home"
+            , "Shop"
+            , "Town"
+            , "Explore"
+            , "Battle"
+            ]
+        ]
+
+textList : List String -> Html Msg
+textList items =
+    let
+        itemFn item =
+            Html.li
+                []
+                [ Html.text item ]
+    in
+    Html.ul
+        []
+        ( List.map itemFn items )
 
 -- UPDATE
 

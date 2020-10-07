@@ -2,7 +2,9 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes
 import Html.Events
+import Json.Decode
 
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
@@ -14,18 +16,12 @@ import Build exposing (Build)
 -- MODEL
 
 type alias Model =
-    { scene : Scene
-    , phase : Phase
-    , characterCreationSettings : CharacterCreationSettings
+    { phase : Phase
     }
 
-type Scene
-    = PlayerScene
-    | HomeScene
-
 type Phase
-    = CharacterCreationPhase
-    | MainPhase
+    = CharacterCreationPhase CharacterCreationSettings
+    | ScenePhase SceneModel
 
 type alias CharacterCreationSettings =
     { name : Maybe String
@@ -37,12 +33,41 @@ type alias CharacterCreationSettings =
     , build : Maybe Build
     }
 
+type alias SceneModel =
+    { scene : Scene
+    , name : String
+    , avatar : Avatar
+    }
+
+type Scene
+    = PlayerScene
+    | HomeScene
+
+type alias Avatar =
+    { hairStyle : HairStyle
+    , hairColor : HairColor
+    , eyeColor : EyeColor
+    , complexion : Complexion
+    , height : Height
+    , build : Build
+    }
+
 -- MSG
 
 type Msg
     = NoOp
     | UserSelectedPlayerScene
     | UserSelectedHomeScene
+    | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
+
+type CharacterCreationSettingSelection
+    = NameSelection String
+    | HairStyleSelection HairStyle
+    | HairColorSelection HairColor
+    | EyeColorSelection EyeColor
+    | ComplexionSelection Complexion
+    | HeightSelection Height
+    | BuildSelection Build
 
 -- MAIN
 
@@ -71,9 +96,7 @@ init _ =
             }
         
         initModel =
-            { scene = PlayerScene
-            , phase = CharacterCreationPhase
-            , characterCreationSettings = initCharacterCreationSettings
+            { phase = CharacterCreationPhase initCharacterCreationSettings
             }
     in
     ( initModel, Cmd.none )
@@ -83,35 +106,56 @@ init _ =
 view : Model -> Html Msg
 view model =
     case model.phase of
-        CharacterCreationPhase ->
-            viewCharacterCreationPhase model
+        CharacterCreationPhase characterCreationSettings ->
+            viewCharacterCreationPhase characterCreationSettings
         
-        MainPhase ->
-            viewMainPhase model
+        ScenePhase sceneModel ->
+            viewScenePhase sceneModel
 
-viewCharacterCreationPhase : Model -> Html Msg
-viewCharacterCreationPhase model =
+viewCharacterCreationPhase : CharacterCreationSettings -> Html Msg
+viewCharacterCreationPhase settings =
     Html.div
         []
         [ Html.text "Create Character"
         , formList
-            [ ( "Name", Html.input [] [ Html.text <| Maybe.withDefault "" model.characterCreationSettings.name ] )
-            , ( "Hair Style", Html.select [] (List.map (Html.text << HairStyle.toString) HairStyle.all) )
-            , ( "Hair Color", Html.select [] (List.map (Html.text << HairColor.toString) HairColor.all) )
-            , ( "Eye Color", Html.select [] (List.map (Html.text << EyeColor.toString) EyeColor.all) )
-            , ( "Complexion", Html.select [] (List.map (Html.text << Complexion.toString) Complexion.all) )
-            , ( "Height", Html.select [] (List.map (Html.text << Height.toString) Height.all) )
-            , ( "Build", Html.select [] (List.map (Html.text << Build.toString) Build.all) )
+            [ ( "Name"
+              , Html.input [ Html.Events.onInput (UserSelectedCharacterCreationSettingSelection << NameSelection) ] []
+              , Maybe.withDefault "" settings.name 
+              )
+            , ( "Hair Style"
+              , radioButtons HairStyle.toString (UserSelectedCharacterCreationSettingSelection << HairStyleSelection) HairStyle.all settings.hairStyle
+              , Maybe.withDefault "" (Maybe.map HairStyle.toString settings.hairStyle)
+              )
+            , ( "Hair Color"
+              , radioButtons HairColor.toString (UserSelectedCharacterCreationSettingSelection << HairColorSelection) HairColor.all settings.hairColor
+              , Maybe.withDefault "" (Maybe.map HairColor.toString settings.hairColor)
+              )
+            , ( "Eye Color"
+              , radioButtons EyeColor.toString (UserSelectedCharacterCreationSettingSelection << EyeColorSelection) EyeColor.all settings.eyeColor
+              , Maybe.withDefault "" (Maybe.map EyeColor.toString settings.eyeColor)
+              )
+            , ( "Complexion"
+              , radioButtons Complexion.toString (UserSelectedCharacterCreationSettingSelection << ComplexionSelection) Complexion.all settings.complexion
+              , Maybe.withDefault "" (Maybe.map Complexion.toString settings.complexion)
+              )
+            , ( "Height"
+              , radioButtons Height.toString (UserSelectedCharacterCreationSettingSelection << HeightSelection) Height.all settings.height
+              , Maybe.withDefault "" (Maybe.map Height.toString settings.height)
+              )
+            , ( "Build"
+              , radioButtons Build.toString (UserSelectedCharacterCreationSettingSelection << BuildSelection) Build.all settings.build
+              , Maybe.withDefault "" (Maybe.map Build.toString settings.build)
+              )
             ]
         , Html.button [] [ Html.text "Create" ]
         ]
 
-viewMainPhase : Model -> Html Msg
-viewMainPhase model =
+viewScenePhase : SceneModel -> Html Msg
+viewScenePhase sceneModel =
     Html.div
         []
         [ textList
-            [ "Name"
+            [ sceneModel.name
             , "Avatar"
             , "LV: 1"
             , "EXP: 0"
@@ -128,7 +172,7 @@ viewMainPhase model =
             , ( "Explore", NoOp )
             , ( "Battle", NoOp )
             ]
-        , viewScene model.scene
+        , viewScene sceneModel.scene
         ]
 
 textList : List String -> Html Msg
@@ -158,20 +202,41 @@ buttonList items =
         []
         ( List.map itemFn items )
 
-formList : List ( String, Html Msg ) -> Html Msg
+formList : List ( String, Html Msg, String ) -> Html Msg
 formList items =
     let
-        itemFn ( label, form ) =
+        itemFn ( label, form, selectedLabel ) =
             Html.li
                 []
                 [ Html.text label
                 , form
+                , Html.text selectedLabel
                 ]
     in
     Html.ul
         []
         ( List.map itemFn items )
+
+radioButtons : (a -> String) -> (a -> Msg) -> List a -> Maybe a -> Html Msg
+radioButtons toString toMsg items currentItem =
+    let     
+        itemFn item =
+            Html.div
+                []
+                [ Html.input
+                    [ Html.Attributes.type_ "radio"
+                    , Html.Attributes.checked (Just item == currentItem)
+                    , Html.Events.on "change" (Json.Decode.succeed <| toMsg item)
+                    ]
+                    []
+                , Html.text <| toString item
+                ]
+    in
+    Html.div
+        []
+        ( List.map itemFn items )
     
+
 viewScene : Scene -> Html Msg
 viewScene scene =
     case scene of
@@ -191,15 +256,57 @@ viewScene scene =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        UserSelectedPlayerScene ->
-            ( { model | scene = PlayerScene }, Cmd.none )
+    case ( msg, model.phase ) of
+        ( UserSelectedPlayerScene, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | scene = PlayerScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
-        UserSelectedHomeScene ->
-            ( { model | scene = HomeScene }, Cmd.none )
+        ( UserSelectedHomeScene, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | scene = HomeScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase settings ) ->
+            updateCharacterCreationSettingSelection model settings selection
         
         _ ->
             ( model, Cmd.none )
+
+updateCharacterCreationSettingSelection : Model -> CharacterCreationSettings -> CharacterCreationSettingSelection -> ( Model, Cmd Msg )
+updateCharacterCreationSettingSelection model settings selection =
+    let
+        newSettings =
+            case selection of
+                NameSelection name ->
+                    { settings | name = Just name }
+                
+                HairStyleSelection hairStyle ->
+                    { settings | hairStyle = Just hairStyle }
+                
+                HairColorSelection hairColor ->
+                    { settings | hairColor = Just hairColor }
+                
+                EyeColorSelection eyeColor ->
+                    { settings | eyeColor = Just eyeColor }
+                
+                ComplexionSelection complexion ->
+                    { settings | complexion = Just complexion }
+                
+                HeightSelection height ->
+                    { settings | height = Just height }
+                
+                BuildSelection build ->
+                    { settings | build = Just build }
+    
+        newModel =
+            { model | phase = CharacterCreationPhase newSettings }
+    in
+    ( newModel, Cmd.none )
 
 -- SUBSCRIPTIONS
 

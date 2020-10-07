@@ -2,16 +2,22 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (Html)
+import Html.Events
 
 -- MODEL
 
 type alias Model =
-    {}
+    { scene : Scene
+    }
+
+type Scene
+    = PlayerScene
 
 -- MSG
 
 type Msg
     = NoOp
+    | UserSelectedPlayerScene
 
 -- MAIN
 
@@ -28,12 +34,17 @@ main =
 
 init : flags -> ( Model, Cmd Msg )
 init _ =
-    ( {}, Cmd.none )
+    let
+        initModel =
+            { scene = PlayerScene
+            }
+    in
+    ( initModel, Cmd.none )
 
 -- VIEW
 
-view : model -> Html Msg
-view _ =
+view : Model -> Html Msg
+view model =
     Html.div
         []
         [ textList
@@ -46,14 +57,15 @@ view _ =
             , "HP: 10 / 10"
             , "MP: 5 / 5"
             ]
-        , textList
-            [ "Player"
-            , "Home"
-            , "Shop"
-            , "Town"
-            , "Explore"
-            , "Battle"
+        , buttonList
+            [ ( "Player", UserSelectedPlayerScene )
+            , ( "Home", NoOp )
+            , ( "Shop", NoOp )
+            , ( "Town", NoOp )
+            , ( "Explore", NoOp )
+            , ( "Battle", NoOp )
             ]
+        , viewScene model.scene
         ]
 
 textList : List String -> Html Msg
@@ -67,6 +79,31 @@ textList items =
     Html.ul
         []
         ( List.map itemFn items )
+
+buttonList : List ( String, Msg ) -> Html Msg
+buttonList items =
+    let
+        itemFn ( label, msg ) =
+            Html.li
+                []
+                [ Html.button
+                    [ Html.Events.onClick msg ]
+                    [ Html.text label ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map itemFn items )
+
+viewScene : Scene -> Html Msg
+viewScene scene =
+    case scene of
+        PlayerScene ->
+            textList
+                [ "STR: 1"
+                , "DEF: 1"
+                , "AGL: 1"
+                ]
 
 -- UPDATE
 

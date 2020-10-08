@@ -20,8 +20,12 @@ type alias Model =
     }
 
 type Phase
-    = CharacterCreationPhase CharacterCreationSettings
+    = CharacterCreationPhase CharacterCreationModel
     | ScenePhase SceneModel
+
+type alias CharacterCreationModel =
+    { settings : CharacterCreationSettings
+    }
 
 type alias CharacterCreationSettings =
     { name : Maybe String
@@ -38,6 +42,50 @@ type alias SceneModel =
     , name : String
     , avatar : Avatar
     }
+
+type CharacterCreationError
+    = MissingName
+    | MissingHairStyle
+    | MissingHairColor
+    | MissingEyeColor
+    | MissingComplexion
+    | MissingHeight
+    | MissingBuild
+
+characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError) SceneModel
+characterCreationSettingsToSceneModel settings =
+    maybeToValidation MissingName settings.name
+        |> Result.andThen (\name -> maybeToValidation MissingHairStyle settings.hairStyle
+        |> Result.andThen (\hairStyle -> maybeToValidation MissingHairColor settings.hairColor
+        |> Result.andThen (\hairColor -> maybeToValidation MissingEyeColor settings.eyeColor
+        |> Result.andThen (\eyeColor -> maybeToValidation MissingComplexion settings.complexion
+        |> Result.andThen (\complexion -> maybeToValidation MissingHeight settings.height
+        |> Result.andThen (\height -> maybeToValidation MissingBuild settings.build
+        |> Result.andThen (\build -> Ok <|
+            let
+                avatar =
+                    { hairStyle = hairStyle
+                    , hairColor = hairColor
+                    , eyeColor = eyeColor
+                    , complexion = complexion
+                    , height = height
+                    , build = build
+                    }
+            in
+            { scene = PlayerScene
+            , name = name
+            , avatar = avatar
+            }
+        )))))))
+
+maybeToValidation : e -> Maybe a -> Result (List e) a
+maybeToValidation error maybe =
+    case maybe of
+        Just x ->
+            Ok x
+        
+        Nothing ->
+            Err <| List.singleton error
 
 type Scene
     = PlayerScene
@@ -96,8 +144,12 @@ init _ =
             , build = Nothing
             }
         
+        initCharacterCreationModel =
+            { settings = initCharacterCreationSettings
+            }
+        
         initModel =
-            { phase = CharacterCreationPhase initCharacterCreationSettings
+            { phase = CharacterCreationPhase initCharacterCreationModel
             }
     in
     ( initModel, Cmd.none )
@@ -107,45 +159,45 @@ init _ =
 view : Model -> Html Msg
 view model =
     case model.phase of
-        CharacterCreationPhase characterCreationSettings ->
-            viewCharacterCreationPhase characterCreationSettings
+        CharacterCreationPhase characterCreationModel ->
+            viewCharacterCreationPhase characterCreationModel
         
         ScenePhase sceneModel ->
             viewScenePhase sceneModel
 
-viewCharacterCreationPhase : CharacterCreationSettings -> Html Msg
-viewCharacterCreationPhase settings =
+viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
+viewCharacterCreationPhase model =
     Html.div
         []
         [ Html.text "Create Character"
         , formList
             [ ( "Name"
               , Html.input [ Html.Events.onInput (UserSelectedCharacterCreationSettingSelection << NameSelection) ] []
-              , Maybe.withDefault "" settings.name 
+              , Maybe.withDefault "" model.settings.name 
               )
             , ( "Hair Style"
-              , radioButtons HairStyle.toString (UserSelectedCharacterCreationSettingSelection << HairStyleSelection) HairStyle.all settings.hairStyle
-              , Maybe.withDefault "" (Maybe.map HairStyle.toString settings.hairStyle)
+              , radioButtons HairStyle.toString (UserSelectedCharacterCreationSettingSelection << HairStyleSelection) HairStyle.all model.settings.hairStyle
+              , Maybe.withDefault "" (Maybe.map HairStyle.toString model.settings.hairStyle)
               )
             , ( "Hair Color"
-              , radioButtons HairColor.toString (UserSelectedCharacterCreationSettingSelection << HairColorSelection) HairColor.all settings.hairColor
-              , Maybe.withDefault "" (Maybe.map HairColor.toString settings.hairColor)
+              , radioButtons HairColor.toString (UserSelectedCharacterCreationSettingSelection << HairColorSelection) HairColor.all model.settings.hairColor
+              , Maybe.withDefault "" (Maybe.map HairColor.toString model.settings.hairColor)
               )
             , ( "Eye Color"
-              , radioButtons EyeColor.toString (UserSelectedCharacterCreationSettingSelection << EyeColorSelection) EyeColor.all settings.eyeColor
-              , Maybe.withDefault "" (Maybe.map EyeColor.toString settings.eyeColor)
+              , radioButtons EyeColor.toString (UserSelectedCharacterCreationSettingSelection << EyeColorSelection) EyeColor.all model.settings.eyeColor
+              , Maybe.withDefault "" (Maybe.map EyeColor.toString model.settings.eyeColor)
               )
             , ( "Complexion"
-              , radioButtons Complexion.toString (UserSelectedCharacterCreationSettingSelection << ComplexionSelection) Complexion.all settings.complexion
-              , Maybe.withDefault "" (Maybe.map Complexion.toString settings.complexion)
+              , radioButtons Complexion.toString (UserSelectedCharacterCreationSettingSelection << ComplexionSelection) Complexion.all model.settings.complexion
+              , Maybe.withDefault "" (Maybe.map Complexion.toString model.settings.complexion)
               )
             , ( "Height"
-              , radioButtons Height.toString (UserSelectedCharacterCreationSettingSelection << HeightSelection) Height.all settings.height
-              , Maybe.withDefault "" (Maybe.map Height.toString settings.height)
+              , radioButtons Height.toString (UserSelectedCharacterCreationSettingSelection << HeightSelection) Height.all model.settings.height
+              , Maybe.withDefault "" (Maybe.map Height.toString model.settings.height)
               )
             , ( "Build"
-              , radioButtons Build.toString (UserSelectedCharacterCreationSettingSelection << BuildSelection) Build.all settings.build
-              , Maybe.withDefault "" (Maybe.map Build.toString settings.build)
+              , radioButtons Build.toString (UserSelectedCharacterCreationSettingSelection << BuildSelection) Build.all model.settings.build
+              , Maybe.withDefault "" (Maybe.map Build.toString model.settings.build)
               )
             ]
         , Html.button [] [ Html.text "Create" ]
@@ -272,15 +324,21 @@ update msg model =
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
-        ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase settings ) ->
-            updateCharacterCreationSettingSelection model settings selection
+        ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
+            updateCharacterCreationSettingSelection model characterCreationModel selection
+        
+        ( UserSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
+            updateCharacterCreationConfirmation model characterCreationModel
         
         _ ->
             ( model, Cmd.none )
 
-updateCharacterCreationSettingSelection : Model -> CharacterCreationSettings -> CharacterCreationSettingSelection -> ( Model, Cmd Msg )
-updateCharacterCreationSettingSelection model settings selection =
+updateCharacterCreationSettingSelection : Model -> CharacterCreationModel -> CharacterCreationSettingSelection -> ( Model, Cmd Msg )
+updateCharacterCreationSettingSelection model characterCreationModel selection =
     let
+        settings =
+            characterCreationModel.settings
+        
         newSettings =
             case selection of
                 NameSelection name ->
@@ -304,8 +362,29 @@ updateCharacterCreationSettingSelection model settings selection =
                 BuildSelection build ->
                     { settings | build = Just build }
     
+        newCharacterCreationModel =
+            { settings = newSettings
+            }
+        
         newModel =
-            { model | phase = CharacterCreationPhase newSettings }
+            { model | phase = CharacterCreationPhase newCharacterCreationModel }
+    in
+    ( newModel, Cmd.none )
+
+updateCharacterCreationConfirmation : Model -> CharacterCreationModel -> ( Model, Cmd Msg )
+updateCharacterCreationConfirmation model characterCreationModel =
+    let
+        sceneModelResult =
+            characterCreationSettingsToSceneModel characterCreationModel.settings
+        
+        newModel =
+            case sceneModelResult of
+                Ok sceneModel ->
+                    { model | phase = ScenePhase sceneModel }
+                
+                Err _ ->
+                    model
+
     in
     ( newModel, Cmd.none )
 

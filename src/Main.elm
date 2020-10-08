@@ -59,6 +59,7 @@ type Msg
     | UserSelectedPlayerScene
     | UserSelectedHomeScene
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
+    | UserSelectedCharacterCreationConfirmation
 
 type CharacterCreationSettingSelection
     = NameSelection String

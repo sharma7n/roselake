@@ -6,6 +6,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode
 
+import FormResult exposing (FormResult)
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
 import EyeColor exposing (EyeColor)
@@ -28,13 +29,13 @@ type alias CharacterCreationModel =
     }
 
 type alias CharacterCreationSettings =
-    { name : Maybe String
-    , hairStyle : Maybe HairStyle
-    , hairColor : Maybe HairColor
-    , eyeColor : Maybe EyeColor
-    , complexion : Maybe Complexion
-    , height : Maybe Height
-    , build : Maybe Build
+    { name : FormResult CharacterCreationError String
+    , hairStyle : FormResult CharacterCreationError HairStyle
+    , hairColor : FormResult CharacterCreationError HairColor
+    , eyeColor : FormResult CharacterCreationError EyeColor
+    , complexion : FormResult CharacterCreationError Complexion
+    , height : FormResult CharacterCreationError Height
+    , build : FormResult CharacterCreationError Build
     }
 
 type alias SceneModel =
@@ -52,15 +53,39 @@ type CharacterCreationError
     | MissingHeight
     | MissingBuild
 
+characterCreationErrorToString : CharacterCreationError -> String
+characterCreationErrorToString e =
+    case e of
+        MissingName ->
+            "Missing name"
+        
+        MissingHairStyle ->
+            "Missing hair style"
+        
+        MissingHairColor ->
+            "Missing hair color"
+        
+        MissingEyeColor ->
+            "Missing eye color"
+        
+        MissingComplexion ->
+            "Missing complexion"
+        
+        MissingHeight ->
+            "Missing height"
+        
+        MissingBuild ->
+            "Missing build"
+
 characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError) SceneModel
 characterCreationSettingsToSceneModel settings =
-    maybeToValidation MissingName settings.name
-        |> Result.andThen (\name -> maybeToValidation MissingHairStyle settings.hairStyle
-        |> Result.andThen (\hairStyle -> maybeToValidation MissingHairColor settings.hairColor
-        |> Result.andThen (\hairColor -> maybeToValidation MissingEyeColor settings.eyeColor
-        |> Result.andThen (\eyeColor -> maybeToValidation MissingComplexion settings.complexion
-        |> Result.andThen (\complexion -> maybeToValidation MissingHeight settings.height
-        |> Result.andThen (\height -> maybeToValidation MissingBuild settings.build
+    FormResult.toValidation settings.name
+        |> Result.andThen (\name -> FormResult.toValidation settings.hairStyle
+        |> Result.andThen (\hairStyle -> FormResult.toValidation settings.hairColor
+        |> Result.andThen (\hairColor -> FormResult.toValidation settings.eyeColor
+        |> Result.andThen (\eyeColor -> FormResult.toValidation settings.complexion
+        |> Result.andThen (\complexion -> FormResult.toValidation settings.height
+        |> Result.andThen (\height -> FormResult.toValidation settings.build
         |> Result.andThen (\build -> Ok <|
             let
                 avatar =
@@ -77,15 +102,6 @@ characterCreationSettingsToSceneModel settings =
             , avatar = avatar
             }
         )))))))
-
-maybeToValidation : e -> Maybe a -> Result (List e) a
-maybeToValidation error maybe =
-    case maybe of
-        Just x ->
-            Ok x
-        
-        Nothing ->
-            Err <| List.singleton error
 
 type Scene
     = PlayerScene
@@ -135,13 +151,13 @@ init : flags -> ( Model, Cmd Msg )
 init _ =
     let
         initCharacterCreationSettings =
-            { name = Nothing
-            , hairStyle = Nothing
-            , hairColor = Nothing
-            , eyeColor = Nothing
-            , complexion = Nothing
-            , height = Nothing
-            , build = Nothing
+            { name = FormResult.FRBlank MissingName
+            , hairStyle = FormResult.FRBlank MissingHairStyle
+            , hairColor = FormResult.FRBlank MissingHairColor
+            , eyeColor = FormResult.FRBlank MissingEyeColor
+            , complexion = FormResult.FRBlank MissingComplexion
+            , height = FormResult.FRBlank MissingHeight
+            , build = FormResult.FRBlank MissingBuild
             }
         
         initCharacterCreationModel =
@@ -167,37 +183,50 @@ view model =
 
 viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
 viewCharacterCreationPhase model =
+    let
+        settingToInfo : (a -> String) -> FormResult CharacterCreationError a -> Html Msg
+        settingToInfo aToString x =
+            case x of
+                FormResult.FRBlank _ ->
+                    Html.text <| ""
+                
+                FormResult.FROk a ->
+                    Html.text <| aToString a
+                
+                FormResult.FRErr e ->
+                    Html.text <| characterCreationErrorToString e
+    in
     Html.div
         []
         [ Html.text "Create Character"
         , formList
             [ ( "Name"
               , Html.input [ Html.Events.onInput (UserSelectedCharacterCreationSettingSelection << NameSelection) ] []
-              , Maybe.withDefault "" model.settings.name 
+              , settingToInfo (\a -> a) model.settings.name 
               )
             , ( "Hair Style"
               , radioButtons HairStyle.toString (UserSelectedCharacterCreationSettingSelection << HairStyleSelection) HairStyle.all model.settings.hairStyle
-              , Maybe.withDefault "" (Maybe.map HairStyle.toString model.settings.hairStyle)
+              , settingToInfo HairStyle.toString model.settings.hairStyle
               )
             , ( "Hair Color"
               , radioButtons HairColor.toString (UserSelectedCharacterCreationSettingSelection << HairColorSelection) HairColor.all model.settings.hairColor
-              , Maybe.withDefault "" (Maybe.map HairColor.toString model.settings.hairColor)
+              , settingToInfo HairColor.toString model.settings.hairColor
               )
             , ( "Eye Color"
               , radioButtons EyeColor.toString (UserSelectedCharacterCreationSettingSelection << EyeColorSelection) EyeColor.all model.settings.eyeColor
-              , Maybe.withDefault "" (Maybe.map EyeColor.toString model.settings.eyeColor)
+              , settingToInfo EyeColor.toString model.settings.eyeColor
               )
             , ( "Complexion"
               , radioButtons Complexion.toString (UserSelectedCharacterCreationSettingSelection << ComplexionSelection) Complexion.all model.settings.complexion
-              , Maybe.withDefault "" (Maybe.map Complexion.toString model.settings.complexion)
+              , settingToInfo Complexion.toString model.settings.complexion
               )
             , ( "Height"
               , radioButtons Height.toString (UserSelectedCharacterCreationSettingSelection << HeightSelection) Height.all model.settings.height
-              , Maybe.withDefault "" (Maybe.map Height.toString model.settings.height)
+              , settingToInfo Height.toString model.settings.height
               )
             , ( "Build"
               , radioButtons Build.toString (UserSelectedCharacterCreationSettingSelection << BuildSelection) Build.all model.settings.build
-              , Maybe.withDefault "" (Maybe.map Build.toString model.settings.build)
+              , settingToInfo Build.toString model.settings.build
               )
             ]
         , Html.button [] [ Html.text "Create" ]
@@ -255,22 +284,22 @@ buttonList items =
         []
         ( List.map itemFn items )
 
-formList : List ( String, Html Msg, String ) -> Html Msg
+formList : List ( String, Html Msg, Html Msg ) -> Html Msg
 formList items =
     let
-        itemFn ( label, form, selectedLabel ) =
+        itemFn ( label, form, info ) =
             Html.li
                 []
                 [ Html.text label
                 , form
-                , Html.text selectedLabel
+                , info
                 ]
     in
     Html.ul
         []
         ( List.map itemFn items )
 
-radioButtons : (a -> String) -> (a -> Msg) -> List a -> Maybe a -> Html Msg
+radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Html Msg
 radioButtons toString toMsg items currentItem =
     let     
         itemFn item =
@@ -278,7 +307,7 @@ radioButtons toString toMsg items currentItem =
                 []
                 [ Html.input
                     [ Html.Attributes.type_ "radio"
-                    , Html.Attributes.checked (Just item == currentItem)
+                    , Html.Attributes.checked (FormResult.FROk item == currentItem)
                     , Html.Events.on "change" (Json.Decode.succeed <| toMsg item)
                     ]
                     []
@@ -342,25 +371,25 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
         newSettings =
             case selection of
                 NameSelection name ->
-                    { settings | name = Just name }
+                    { settings | name = FormResult.FROk name }
                 
                 HairStyleSelection hairStyle ->
-                    { settings | hairStyle = Just hairStyle }
+                    { settings | hairStyle = FormResult.FROk hairStyle }
                 
                 HairColorSelection hairColor ->
-                    { settings | hairColor = Just hairColor }
+                    { settings | hairColor = FormResult.FROk hairColor }
                 
                 EyeColorSelection eyeColor ->
-                    { settings | eyeColor = Just eyeColor }
+                    { settings | eyeColor = FormResult.FROk eyeColor }
                 
                 ComplexionSelection complexion ->
-                    { settings | complexion = Just complexion }
+                    { settings | complexion = FormResult.FROk complexion }
                 
                 HeightSelection height ->
-                    { settings | height = Just height }
+                    { settings | height = FormResult.FROk height }
                 
                 BuildSelection build ->
-                    { settings | build = Just build }
+                    { settings | build = FormResult.FROk build }
     
         newCharacterCreationModel =
             { settings = newSettings

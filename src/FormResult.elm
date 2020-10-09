@@ -4,6 +4,7 @@ module FormResult exposing
     , andThen
     , toValidation
     , fold
+    , check
     )
 
 type FormResult e a
@@ -58,3 +59,12 @@ fold frBlankCase frOkCase frErrCase x =
         
         FRErr e ->
             frErrCase e
+
+check : FormResult e a -> FormResult e a
+check x =
+    case x of
+        FRBlank e ->
+            FRErr e
+        
+        _ ->
+            x

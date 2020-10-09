@@ -38,10 +38,34 @@ type alias CharacterCreationSettings =
     , build : FormResult CharacterCreationError Build
     }
 
+checkCharacterCreationSettings : CharacterCreationSettings -> CharacterCreationSettings
+checkCharacterCreationSettings settings =
+    let
+        checkName name =
+            case name of
+                FormResult.FROk okName ->
+                    if okName == "" then 
+                        FormResult.FRErr MissingName 
+                    else   
+                        FormResult.FROk okName
+                
+                _ ->
+                    FormResult.FRErr MissingName
+    in
+    { name = checkName settings.name
+    , hairStyle = FormResult.check settings.hairStyle
+    , hairColor = FormResult.check settings.hairColor
+    , eyeColor = FormResult.check settings.eyeColor
+    , complexion = FormResult.check settings.complexion
+    , height = FormResult.check settings.height
+    , build = FormResult.check settings.build
+    }
 type alias SceneModel =
     { scene : Scene
     , name : String
     , avatar : Avatar
+    , level : Int
+    , experience : Int
     }
 
 type CharacterCreationError
@@ -100,6 +124,8 @@ characterCreationSettingsToSceneModel settings =
             { scene = PlayerScene
             , name = name
             , avatar = avatar
+            , level = 1
+            , experience = 0
             }
         )))))))
 
@@ -116,6 +142,21 @@ type alias Avatar =
     , build : Build
     }
 
+avatarDescription : Avatar -> String
+avatarDescription a =
+    (Height.toString a.height) 
+    ++ " and " 
+    ++ (Build.toString a.build) 
+    ++ " frame | "
+    ++ (Complexion.toString a.complexion)
+    ++ " complexion | "
+    ++ (HairColor.toString a.hairColor) 
+    ++ ", " 
+    ++ (HairStyle.toString a.hairStyle)
+    ++ " hair | "
+    ++ (EyeColor.toString a.eyeColor)
+    ++ " eyes"
+
 -- MSG
 
 type Msg
@@ -124,6 +165,7 @@ type Msg
     | UserSelectedHomeScene
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
+    | DevSelectedCharacterCreationConfirmation
 
 type CharacterCreationSettingSelection
     = NameSelection String
@@ -229,7 +271,8 @@ viewCharacterCreationPhase model =
               , settingToInfo Build.toString model.settings.build
               )
             ]
-        , Html.button [] [ Html.text "Create" ]
+        , Html.button [ Html.Events.onClick UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
+        , Html.button [ Html.Events.onClick DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
         ]
 
 viewScenePhase : SceneModel -> Html Msg
@@ -238,9 +281,9 @@ viewScenePhase sceneModel =
         []
         [ textList
             [ sceneModel.name
-            , "Avatar"
-            , "LV: 1"
-            , "EXP: 0"
+            , avatarDescription sceneModel.avatar
+            , "LV: " ++ String.fromInt sceneModel.level
+            , "EXP: " ++ String.fromInt sceneModel.experience
             , "States: []"
             , "Satiety: 10 / 10"
             , "HP: 10 / 10"
@@ -303,7 +346,7 @@ radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Html M
 radioButtons toString toMsg items currentItem =
     let     
         itemFn item =
-            Html.div
+            Html.span
                 []
                 [ Html.input
                     [ Html.Attributes.type_ "radio"
@@ -359,6 +402,30 @@ update msg model =
         ( UserSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationConfirmation model characterCreationModel
         
+        ( DevSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
+            let
+                avatar =
+                    { hairStyle = HairStyle.Plain
+                    , hairColor = HairColor.Brown
+                    , complexion = Complexion.Medium
+                    , eyeColor = EyeColor.Brown
+                    , height = Height.Average
+                    , build = Build.Sturdy
+                    }
+                
+                sceneModel =
+                    { scene = PlayerScene
+                    , name = "Dev"
+                    , avatar = avatar
+                    , level = 1
+                    , experience = 0
+                    }
+                
+                newModel =
+                    { model | phase = ScenePhase sceneModel } 
+            in
+            ( newModel, Cmd.none )
+        
         _ ->
             ( model, Cmd.none )
 
@@ -403,8 +470,11 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
 updateCharacterCreationConfirmation : Model -> CharacterCreationModel -> ( Model, Cmd Msg )
 updateCharacterCreationConfirmation model characterCreationModel =
     let
+        newSettings =
+            checkCharacterCreationSettings characterCreationModel.settings
+        
         sceneModelResult =
-            characterCreationSettingsToSceneModel characterCreationModel.settings
+            characterCreationSettingsToSceneModel newSettings
         
         newModel =
             case sceneModelResult of
@@ -412,7 +482,7 @@ updateCharacterCreationConfirmation model characterCreationModel =
                     { model | phase = ScenePhase sceneModel }
                 
                 Err _ ->
-                    model
+                    { model | phase = CharacterCreationPhase { settings = newSettings }}
 
     in
     ( newModel, Cmd.none )

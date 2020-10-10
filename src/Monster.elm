@@ -17,6 +17,6 @@ byId id =
             }
         
         _ ->
-            { name = "Missingno"
+            { name = "Null Monster"
             , hitPoints = 0
             }

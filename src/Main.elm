@@ -14,6 +14,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Action exposing (Action)
 import Monster exposing (Monster)
 
 -- MODEL
@@ -181,6 +182,7 @@ type Msg
     | UserSelectedHomeScene
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
+    | UserSelectedBattleAction Monster Action
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
     | DevSelectedCharacterCreationConfirmation
@@ -400,8 +402,21 @@ viewScene scene =
                 ]
         
         BattleMonsterScene monster ->
-            textList
-                [ monster.name
+            Html.div
+                []
+                [ textList
+                    [ monster.name
+                    , "HP: " ++ String.fromInt monster.hitPoints
+                    ]
+                , Html.ul
+                    []
+                    [ Html.li
+                        []
+                        [ Html.button
+                            [ Html.Events.onClick <| UserSelectedBattleAction monster (Action.byId "attack") ]
+                            [ Html.text "Attack" ]
+                        ]
+                    ]
                 ]
 
 monsterTable : List Monster -> Html Msg
@@ -451,6 +466,16 @@ update msg model =
             let
                 newSceneModel =
                     { sceneModel | scene = BattleMonsterScene monster }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedBattleAction monster action, ScenePhase sceneModel ) ->
+            let
+                newMonster =
+                    { monster | hitPoints = monster.hitPoints - 1 }
+                
+                newSceneModel =
+                    { sceneModel | scene = BattleMonsterScene newMonster }
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         

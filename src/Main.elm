@@ -14,6 +14,8 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Monster exposing (Monster)
+
 -- MODEL
 
 type alias Model =
@@ -66,6 +68,12 @@ type alias SceneModel =
     , avatar : Avatar
     , level : Int
     , experience : Int
+    , satiety : Int
+    , maxSatiety : Int
+    , hitPoints : Int
+    , maxHitPoints : Int
+    , magicPoints : Int
+    , maxMagicPoints : Int
     }
 
 type CharacterCreationError
@@ -126,12 +134,20 @@ characterCreationSettingsToSceneModel settings =
             , avatar = avatar
             , level = 1
             , experience = 0
+            , satiety = 10
+            , maxSatiety = 10
+            , hitPoints = 10
+            , maxHitPoints = 10
+            , magicPoints = 5
+            , maxMagicPoints = 5
             }
         )))))))
 
 type Scene
     = PlayerScene
     | HomeScene
+    | BattleScene
+    | BattleMonsterScene Monster
 
 type alias Avatar =
     { hairStyle : HairStyle
@@ -163,6 +179,8 @@ type Msg
     = NoOp
     | UserSelectedPlayerScene
     | UserSelectedHomeScene
+    | UserSelectedBattleScene
+    | UserSelectedBattleMonsterScene Monster
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
     | DevSelectedCharacterCreationConfirmation
@@ -284,10 +302,9 @@ viewScenePhase sceneModel =
             , avatarDescription sceneModel.avatar
             , "LV: " ++ String.fromInt sceneModel.level
             , "EXP: " ++ String.fromInt sceneModel.experience
-            , "States: []"
-            , "Satiety: 10 / 10"
-            , "HP: 10 / 10"
-            , "MP: 5 / 5"
+            , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
+            , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
         , buttonList
             [ ( "Player", UserSelectedPlayerScene )
@@ -295,7 +312,7 @@ viewScenePhase sceneModel =
             , ( "Shop", NoOp )
             , ( "Town", NoOp )
             , ( "Explore", NoOp )
-            , ( "Battle", NoOp )
+            , ( "Battle", UserSelectedBattleScene )
             ]
         , viewScene sceneModel.scene
         ]
@@ -376,6 +393,33 @@ viewScene scene =
             textList
                 [ "Rest"
                 ]
+        
+        BattleScene ->
+            monsterTable
+                [ Monster.byId "gremlin"
+                ]
+        
+        BattleMonsterScene monster ->
+            textList
+                [ monster.name
+                ]
+
+monsterTable : List Monster -> Html Msg
+monsterTable monsters =
+    let
+        monsterFn monster =
+            Html.span
+                []
+                [ Html.text <| monster.name
+                , Html.text <| String.fromInt monster.hitPoints
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedBattleMonsterScene monster ]
+                    [ Html.text "Fight" ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map monsterFn monsters )
 
 -- UPDATE
 
@@ -393,6 +437,20 @@ update msg model =
             let
                 newSceneModel =
                     { sceneModel | scene = HomeScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedBattleScene, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | scene = BattleScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedBattleMonsterScene monster, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | scene = BattleMonsterScene monster }
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
@@ -419,6 +477,12 @@ update msg model =
                     , avatar = avatar
                     , level = 1
                     , experience = 0
+                    , satiety = 10
+                    , maxSatiety = 10
+                    , hitPoints = 10
+                    , maxHitPoints = 10
+                    , magicPoints = 5
+                    , maxMagicPoints = 5
                     }
                 
                 newModel =

@@ -15,6 +15,7 @@ import Height exposing (Height)
 import Build exposing (Build)
 
 import Action exposing (Action)
+import Effect exposing (Effect)
 import Monster exposing (Monster)
 
 -- MODEL
@@ -75,8 +76,43 @@ type alias SceneModel =
     , maxHitPoints : Int
     , magicPoints : Int
     , maxMagicPoints : Int
+    , attack : Int
     }
 
+applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
+applyEffectToSceneModel effect m =
+    case effect of
+        Effect.ChangeLevel dLevel ->
+            { m | level = m.level + dLevel }
+        
+        Effect.ChangeExperience dExperience ->
+            { m | experience = m.experience + dExperience }
+        
+        Effect.ChangeSatiety dSatiety ->
+            { m | satiety = m.satiety + dSatiety }
+        
+        Effect.ChangeMaxSatiety dMaxSatiety ->
+            { m | maxSatiety = m.maxSatiety + dMaxSatiety }
+        
+        Effect.ChangeHitPoints dHitPoints ->
+            { m | hitPoints = m.hitPoints + dHitPoints }
+        
+        Effect.ChangeMaxHitPoints dMaxHitPoints ->
+            { m | maxHitPoints = m.maxHitPoints + dMaxHitPoints }
+        
+        Effect.ChangeMagicPoints dMagicPoints ->
+            { m | magicPoints = m.magicPoints + dMagicPoints }
+        
+        Effect.ChangeMaxMagicPoints dMaxMagicPoints ->
+            { m | maxMagicPoints = m.maxMagicPoints + dMaxMagicPoints }
+        
+        Effect.ChangeAttack dAttack ->
+            { m | attack = m.attack + dAttack }
+
+applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
+applyEffectsToSceneModel effects m =
+    List.foldl applyEffectToSceneModel m effects
+ 
 type CharacterCreationError
     = MissingName
     | MissingHairStyle
@@ -141,6 +177,7 @@ characterCreationSettingsToSceneModel settings =
             , maxHitPoints = 10
             , magicPoints = 5
             , maxMagicPoints = 5
+            , attack = 1
             }
         )))))))
 
@@ -308,15 +345,21 @@ viewScenePhase sceneModel =
             , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
             , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
-        , buttonList
-            [ ( "Player", UserSelectedPlayerScene )
-            , ( "Home", UserSelectedHomeScene )
-            , ( "Shop", NoOp )
-            , ( "Town", NoOp )
-            , ( "Explore", NoOp )
-            , ( "Battle", UserSelectedBattleScene )
-            ]
-        , viewScene sceneModel.scene
+        , case sceneModel.scene of
+            BattleMonsterScene _ ->
+                Html.div
+                    []
+                    []
+            _ ->
+                 buttonList
+                    [ ( "Player", UserSelectedPlayerScene )
+                    , ( "Home", UserSelectedHomeScene )
+                    , ( "Shop", NoOp )
+                    , ( "Town", NoOp )
+                    , ( "Explore", NoOp )
+                    , ( "Battle", UserSelectedBattleScene )
+                    ]
+        , viewSceneModel sceneModel
         ]
 
 textList : List String -> Html Msg
@@ -381,9 +424,9 @@ radioButtons toString toMsg items currentItem =
         ( List.map itemFn items )
     
 
-viewScene : Scene -> Html Msg
-viewScene scene =
-    case scene of
+viewSceneModel : SceneModel -> Html Msg
+viewSceneModel sceneModel =
+    case sceneModel.scene of
         PlayerScene ->
             textList
                 [ "STR: 1"
@@ -407,14 +450,16 @@ viewScene scene =
                 [ textList
                     [ monster.name
                     , "HP: " ++ String.fromInt monster.hitPoints
+                    , "Intent: Attack " ++ String.fromInt monster.attack
                     ]
                 , Html.ul
                     []
                     [ Html.li
                         []
-                        [ Html.button
+                        [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
+                        , Html.button
                             [ Html.Events.onClick <| UserSelectedBattleAction monster (Action.byId "attack") ]
-                            [ Html.text "Attack" ]
+                            [ Html.text "Go" ]
                         ]
                     ]
                 ]
@@ -475,7 +520,7 @@ update msg model =
                     { monster | hitPoints = monster.hitPoints - 1 }
                 
                 newSceneModel =
-                    { sceneModel | scene = BattleMonsterScene newMonster }
+                    applyEffectsToSceneModel action.effects sceneModel
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
@@ -508,6 +553,7 @@ update msg model =
                     , maxHitPoints = 10
                     , magicPoints = 5
                     , maxMagicPoints = 5
+                    , attack = 1
                     }
                 
                 newModel =

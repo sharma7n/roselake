@@ -14,6 +14,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Dungeon exposing (Dungeon)
 import Action exposing (Action)
 import BattleEffect exposing (BattleEffect)
 import Monster exposing (Monster)
@@ -84,6 +85,30 @@ type alias Battle =
     { monster : Monster
     , player : SceneModel
     }
+
+type alias Delve =
+    { dungeon : Dungeon
+    , floor : Int
+    , scene : DungeonScene
+    }
+
+type DungeonScene
+    = DungeonEntrance
+    | DungeonTrap
+    | DungeonBattle
+    | DungeonTreasure
+    | DungeonEvent
+    | DungeonRestArea
+    | DungeonShop
+
+dungeonSceneName : DungeonScene -> String
+dungeonSceneName s =
+    case s of
+        DungeonEntrance ->
+            "Entrance"
+        
+        _ ->
+            "Unknown"
 
 applyEffectToBattle : BattleEffect -> Battle -> Battle
 applyEffectToBattle effect b =
@@ -195,6 +220,8 @@ characterCreationSettingsToSceneModel settings =
 type Scene
     = PlayerScene
     | HomeScene
+    | ExploreScene
+    | ExploreDungeonScene Delve
     | BattleScene
     | BattleMonsterScene Monster
     | VictoryScene Monster Reward
@@ -230,6 +257,9 @@ type Msg
     = NoOp
     | UserSelectedPlayerScene
     | UserSelectedHomeScene
+    | UserSelectedHomeRest
+    | UserSelectedExploreScene
+    | UserSelectedExploreDungeonScene Dungeon
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Monster Action
@@ -363,13 +393,19 @@ viewScenePhase sceneModel =
                 Html.div
                     []
                     []
+            
+            ExploreDungeonScene _ ->
+                Html.div
+                    []
+                    []
+            
             _ ->
                  buttonList
                     [ ( "Player", UserSelectedPlayerScene )
                     , ( "Home", UserSelectedHomeScene )
                     , ( "Shop", NoOp )
                     , ( "Town", NoOp )
-                    , ( "Explore", NoOp )
+                    , ( "Explore", UserSelectedExploreScene )
                     , ( "Battle", UserSelectedBattleScene )
                     ]
         , viewSceneModel sceneModel
@@ -446,34 +482,25 @@ viewSceneModel sceneModel =
                 ]
         
         HomeScene ->
-            textList
-                [ "TODO"
+            buttonList
+                [ ( "Rest", UserSelectedHomeRest )
                 ]
         
+        ExploreScene ->
+            dungeonTable
+                [ Dungeon.byId "beginnerscave"
+                ]
+        
+        ExploreDungeonScene delve ->
+            viewExploreDungeonScene sceneModel delve
+
         BattleScene ->
             monsterTable
                 [ Monster.byId "gremlin"
                 ]
         
         BattleMonsterScene monster ->
-            Html.div
-                []
-                [ textList
-                    [ monster.name
-                    , "HP: " ++ String.fromInt monster.hitPoints
-                    , "Intent: Attack " ++ String.fromInt monster.attack
-                    ]
-                , Html.ul
-                    []
-                    [ Html.li
-                        []
-                        [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
-                        , Html.button
-                            [ Html.Events.onClick <| UserSelectedBattleAction monster (Action.byId "attack") ]
-                            [ Html.text "Go" ]
-                        ]
-                    ]
-                ]
+            viewBattleMonsterScene sceneModel monster
         
         VictoryScene monster reward ->
             textList
@@ -487,9 +514,60 @@ viewSceneModel sceneModel =
                 [ "Defeated..."
                 ]
 
+viewExploreDungeonScene : SceneModel -> Delve -> Html Msg
+viewExploreDungeonScene sceneModel delve =
+    Html.div
+        []
+        [ textList
+            [ "Exploring: " ++ delve.dungeon.name
+            , "Floor: " ++ String.fromInt delve.floor
+            , "Location: " ++ dungeonSceneName delve.scene
+            ]
+        , Html.ul
+            []
+            []
+        ]
+viewBattleMonsterScene : SceneModel -> Monster -> Html Msg
+viewBattleMonsterScene sceneModel monster =
+    Html.div
+        []
+        [ textList
+            [ monster.name
+            , "HP: " ++ String.fromInt monster.hitPoints
+            , "Intent: Attack " ++ String.fromInt monster.attack
+            ]
+        , Html.ul
+            []
+            [ Html.li
+                []
+                [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedBattleAction monster (Action.byId "attack") ]
+                    [ Html.text "Go" ]
+                ]
+            ]
+        ]
+
 levelUpExperience : Int -> Int
 levelUpExperience n =
     10 * n * n
+
+dungeonTable : List Dungeon -> Html Msg
+dungeonTable dungeons =
+    let
+        dungeonFn dungeon =
+            Html.span
+                []
+                [ Html.text <| dungeon.name
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedExploreDungeonScene dungeon ]
+                    [ Html.text "Explore" ]
+                ]
+        
+    in
+    Html.ul
+        []
+        ( List.map dungeonFn dungeons )
 
 monsterTable : List Monster -> Html Msg
 monsterTable monsters =
@@ -525,6 +603,33 @@ update msg model =
             let
                 newSceneModel =
                     { sceneModel | scene = HomeScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedHomeRest, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | hitPoints = sceneModel.maxHitPoints }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedExploreScene, ScenePhase sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel | scene = ExploreScene }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedExploreDungeonScene dungeon, ScenePhase sceneModel ) ->
+            let
+                delve =
+                    { dungeon = dungeon
+                    , floor = 1
+                    , scene = DungeonEntrance
+                    }
+                
+                newSceneModel =
+                    { sceneModel | scene = ExploreDungeonScene delve }
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         

@@ -3,11 +3,11 @@ module Action exposing
     , byId
     )
 
-import Effect exposing (Effect)
+import BattleEffect exposing (BattleEffect)
 
 type alias Action =
     { name : String
-    , effects : List Effect
+    , effects : List BattleEffect
     }
 
 byId : String -> Action
@@ -15,7 +15,9 @@ byId id =
     case id of
         "attack" ->
             { name = "Attack"
-            , effects = []
+            , effects = 
+                [ BattleEffect.ChangeMonsterHitPoints -1
+                ]
             }
         
         _ ->

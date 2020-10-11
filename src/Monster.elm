@@ -5,7 +5,9 @@ module Monster exposing
 
 type alias Monster =
     { name : String
+    , experience : Int
     , hitPoints : Int
+    , maxHitPoints : Int
     , attack : Int
     }
 
@@ -14,12 +16,16 @@ byId id =
     case id of
         "gremlin" ->
             { name = "Gremlin"
-            , hitPoints = 5
+            , experience = 1
+            , hitPoints = 10
+            , maxHitPoints = 10
             , attack = 1
             }
         
         _ ->
             { name = "Null Monster"
+            , experience = 0
             , hitPoints = 0
+            , maxHitPoints = 0
             , attack = 0
             }

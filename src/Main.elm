@@ -15,8 +15,9 @@ import Height exposing (Height)
 import Build exposing (Build)
 
 import Action exposing (Action)
-import Effect exposing (Effect)
+import BattleEffect exposing (BattleEffect)
 import Monster exposing (Monster)
+import Reward exposing (Reward)
 
 -- MODEL
 
@@ -79,39 +80,49 @@ type alias SceneModel =
     , attack : Int
     }
 
-applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
-applyEffectToSceneModel effect m =
-    case effect of
-        Effect.ChangeLevel dLevel ->
-            { m | level = m.level + dLevel }
-        
-        Effect.ChangeExperience dExperience ->
-            { m | experience = m.experience + dExperience }
-        
-        Effect.ChangeSatiety dSatiety ->
-            { m | satiety = m.satiety + dSatiety }
-        
-        Effect.ChangeMaxSatiety dMaxSatiety ->
-            { m | maxSatiety = m.maxSatiety + dMaxSatiety }
-        
-        Effect.ChangeHitPoints dHitPoints ->
-            { m | hitPoints = m.hitPoints + dHitPoints }
-        
-        Effect.ChangeMaxHitPoints dMaxHitPoints ->
-            { m | maxHitPoints = m.maxHitPoints + dMaxHitPoints }
-        
-        Effect.ChangeMagicPoints dMagicPoints ->
-            { m | magicPoints = m.magicPoints + dMagicPoints }
-        
-        Effect.ChangeMaxMagicPoints dMaxMagicPoints ->
-            { m | maxMagicPoints = m.maxMagicPoints + dMaxMagicPoints }
-        
-        Effect.ChangeAttack dAttack ->
-            { m | attack = m.attack + dAttack }
+type alias Battle =
+    { monster : Monster
+    , player : SceneModel
+    }
 
-applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
-applyEffectsToSceneModel effects m =
-    List.foldl applyEffectToSceneModel m effects
+applyEffectToBattle : BattleEffect -> Battle -> Battle
+applyEffectToBattle effect b =
+    case effect of
+        BattleEffect.ChangePlayerHitPoints d ->
+            let
+                p =
+                    b.player
+                
+                newHitPoints =
+                    boundedBy 0 p.maxHitPoints (p.hitPoints + d)
+                
+                newPlayer =
+                    { p | hitPoints = newHitPoints }
+            in
+            { b | player = newPlayer }
+        
+        BattleEffect.ChangeMonsterHitPoints d ->
+            let
+                m =
+                    b.monster
+                
+                newHitPoints =
+                    boundedBy 0 m.maxHitPoints (m.hitPoints + d)
+                
+                newMonster =
+                    { m | hitPoints = newHitPoints }
+            in
+            { b | monster = newMonster }
+
+boundedBy : Int -> Int -> Int -> Int
+boundedBy lower upper x =
+    x
+        |> min upper
+        |> max lower
+
+applyEffectsToBattle : List BattleEffect -> Battle -> Battle
+applyEffectsToBattle effects m =
+    List.foldl applyEffectToBattle m effects
  
 type CharacterCreationError
     = MissingName
@@ -186,6 +197,8 @@ type Scene
     | HomeScene
     | BattleScene
     | BattleMonsterScene Monster
+    | VictoryScene Monster Reward
+    | GameOverScene
 
 type alias Avatar =
     { hairStyle : HairStyle
@@ -340,7 +353,7 @@ viewScenePhase sceneModel =
             [ sceneModel.name
             , avatarDescription sceneModel.avatar
             , "LV: " ++ String.fromInt sceneModel.level
-            , "EXP: " ++ String.fromInt sceneModel.experience
+            , "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
             , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
             , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
             , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
@@ -429,14 +442,12 @@ viewSceneModel sceneModel =
     case sceneModel.scene of
         PlayerScene ->
             textList
-                [ "STR: 1"
-                , "DEF: 1"
-                , "AGI: 1"
+                [ "TODO"
                 ]
         
         HomeScene ->
             textList
-                [ "Rest"
+                [ "TODO"
                 ]
         
         BattleScene ->
@@ -463,6 +474,22 @@ viewSceneModel sceneModel =
                         ]
                     ]
                 ]
+        
+        VictoryScene monster reward ->
+            textList
+                [ "You defeated " ++ monster.name ++ "!"
+                , "Reward:"
+                , "EXP: " ++ String.fromInt reward.experience
+                ]
+        
+        GameOverScene ->
+            textList
+                [ "Defeated..."
+                ]
+
+levelUpExperience : Int -> Int
+levelUpExperience n =
+    10 * n * n
 
 monsterTable : List Monster -> Html Msg
 monsterTable monsters =
@@ -471,7 +498,8 @@ monsterTable monsters =
             Html.span
                 []
                 [ Html.text <| monster.name
-                , Html.text <| String.fromInt monster.hitPoints
+                , Html.text <| " | HP: " ++ String.fromInt monster.hitPoints
+                , Html.text <| " | EXP: " ++ String.fromInt monster.experience ++ " "
                 , Html.button
                     [ Html.Events.onClick <| UserSelectedBattleMonsterScene monster ]
                     [ Html.text "Fight" ]
@@ -515,14 +543,7 @@ update msg model =
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
         ( UserSelectedBattleAction monster action, ScenePhase sceneModel ) ->
-            let
-                newMonster =
-                    { monster | hitPoints = monster.hitPoints - 1 }
-                
-                newSceneModel =
-                    applyEffectsToSceneModel action.effects sceneModel
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+            updateBattleAction model monster action sceneModel
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
@@ -621,6 +642,46 @@ updateCharacterCreationConfirmation model characterCreationModel =
 
     in
     ( newModel, Cmd.none )
+
+updateBattleAction : Model -> Monster -> Action -> SceneModel -> ( Model, Cmd Msg )
+updateBattleAction model monster action sceneModel =
+    let
+        battle =
+            { monster = monster
+            , player = sceneModel
+            }
+        
+        battleEffects =
+            action.effects ++
+                [ BattleEffect.ChangePlayerHitPoints -1
+                ]
+        
+        newBattle =
+            applyEffectsToBattle battleEffects battle
+        
+        newMonster =
+            newBattle.monster
+        
+        newSceneModel =
+            newBattle.player
+        
+        newSceneModel2 =
+            if newSceneModel.hitPoints <= 0 then
+                { newSceneModel | scene = GameOverScene }
+            else if newMonster.hitPoints <= 0 then
+                let
+                    reward =
+                        { experience = newMonster.experience
+                        }
+                in
+                { newSceneModel
+                    | scene = VictoryScene newMonster reward
+                    , experience = newSceneModel.experience + reward.experience
+                }
+            else
+                { newSceneModel | scene = BattleMonsterScene newMonster }
+    in
+    ( { model | phase = ScenePhase newSceneModel2 }, Cmd.none )
 
 -- SUBSCRIPTIONS
 

@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Events
 import Json.Decode
+import Random
 
 import FormResult exposing (FormResult)
 import HairStyle exposing (HairStyle)
@@ -100,6 +101,20 @@ type DungeonScene
     | DungeonEvent
     | DungeonRestArea
     | DungeonShop
+    | DungeonTrapDoor
+    | DungeonGoal
+
+dungeonSceneGenerator : Random.Generator DungeonScene
+dungeonSceneGenerator =
+    Random.choice
+        DungeonTrap
+        [ DungeonBattle
+        , DungeonTreasure
+        , DungeonEvent
+        , DungeonRestArea
+        , DungeonShop
+        , DungeonTrapDoor
+        ]
 
 dungeonSceneName : DungeonScene -> String
 dungeonSceneName s =
@@ -520,7 +535,7 @@ viewExploreDungeonScene sceneModel delve =
         []
         [ textList
             [ "Exploring: " ++ delve.dungeon.name
-            , "Floor: " ++ String.fromInt delve.floor
+            , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
             , "Location: " ++ dungeonSceneName delve.scene
             ]
         , Html.ul

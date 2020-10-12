@@ -90,12 +90,15 @@ type alias Battle =
 type alias Delve =
     { dungeon : Dungeon
     , floor : Int
-    , scene : DungeonScene
+    , phase : DelvePhase
     }
 
+type DelvePhase
+    = ExplorationPhase (List Path)
+    | ActionPhase DungeonScene
+
 type DungeonScene
-    = DungeonEntrance
-    | DungeonTrap
+    = DungeonTrap
     | DungeonBattle
     | DungeonTreasure
     | DungeonEvent
@@ -106,7 +109,7 @@ type DungeonScene
 
 dungeonSceneGenerator : Random.Generator DungeonScene
 dungeonSceneGenerator =
-    Random.choice
+    Random.uniform
         DungeonTrap
         [ DungeonBattle
         , DungeonTreasure

@@ -7,6 +7,8 @@ import Html.Events
 import Json.Decode
 import Random
 
+import Distribution exposing (Distribution)
+
 import FormResult exposing (FormResult)
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
@@ -250,6 +252,9 @@ type Msg
     | UserSelectedHomeRest
     | UserSelectedExploreScene
     | UserSelectedExploreDungeonScene Dungeon
+    | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
+    | UserSelectedDungeonPath Delve DungeonPath.Path
+    | SystemGotDungeonScene Delve DungeonScene.Scene
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Monster Action
@@ -512,10 +517,41 @@ viewExploreDungeonScene sceneModel delve =
             [ "Exploring: " ++ delve.dungeon.name
             , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
             ]
-        , Html.ul
-            []
-            []
+        , case delve.phase of
+            ExplorationPhase paths ->
+                pathTable delve paths
+            
+            ActionPhase scene ->
+                textList
+                    [ DungeonScene.toString scene
+                    ]
         ]
+
+pathTable : Delve -> List DungeonPath.Path -> Html Msg
+pathTable delve paths =
+    let
+        pathFn path =
+            Html.li
+                []
+                [ Html.text path.description
+                , explainSceneDistribution path.sceneDistribution
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedDungeonPath delve path ]
+                    [ Html.text "Go" ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map pathFn paths )
+
+explainSceneDistribution : Distribution DungeonScene.Scene -> Html Msg
+explainSceneDistribution d =
+    let
+        explainOneScene ( chance, scene ) =
+            String.fromFloat chance ++ "% of " ++ DungeonScene.toString scene
+    in
+    textList (List.map explainOneScene (d.head :: d.tail))
+
 viewBattleMonsterScene : SceneModel -> Monster -> Html Msg
 viewBattleMonsterScene sceneModel monster =
     Html.div
@@ -609,16 +645,44 @@ update msg model =
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
-        ( UserSelectedExploreDungeonScene dungeon, ScenePhase sceneModel ) ->
+        ( UserSelectedExploreDungeonScene dungeon, ScenePhase _ ) ->
+            let
+                pathListGenerator =
+                    Random.list 3 DungeonPath.generator
+                
+                cmd =
+                    Random.generate (SystemGotDungeonInitialization dungeon) pathListGenerator
+            in
+            ( model, cmd )
+        
+        ( SystemGotDungeonInitialization dungeon paths, ScenePhase sceneModel ) ->
             let
                 delve =
                     { dungeon = dungeon
                     , floor = 1
-                    , phase = ExplorationPhase []
+                    , phase = ExplorationPhase paths
                     }
                 
                 newSceneModel =
                     { sceneModel | scene = ExploreDungeonScene delve }
+            in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedDungeonPath delve path, ScenePhase _ ) ->
+            let
+                cmd =
+                    Random.generate (SystemGotDungeonScene delve) (Distribution.random path.sceneDistribution)
+            in
+            ( model, cmd )
+        
+        ( SystemGotDungeonScene delve scene, ScenePhase sceneModel ) ->
+            let
+                newDelve =
+                    { delve | phase = ActionPhase scene }
+                
+                newSceneModel =
+                    { sceneModel | scene = ExploreDungeonScene newDelve }
+                
             in
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         

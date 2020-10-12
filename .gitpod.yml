@@ -4,4 +4,4 @@ vscode:
 
 tasks:
   - init: bash setup.sh
-    command: elm-live src/Main.elm --port 3000 -- --debug
+    command: bash setup.sh && elm-live src/Main.elm --port 3000 -- --debug

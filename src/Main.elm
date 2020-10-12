@@ -15,6 +15,8 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import DungeonPath
+import DungeonScene
 import Dungeon exposing (Dungeon)
 import Action exposing (Action)
 import BattleEffect exposing (BattleEffect)
@@ -94,39 +96,9 @@ type alias Delve =
     }
 
 type DelvePhase
-    = ExplorationPhase (List Path)
-    | ActionPhase DungeonScene
+    = ExplorationPhase (List DungeonPath.Path)
+    | ActionPhase DungeonScene.Scene
 
-type DungeonScene
-    = DungeonTrap
-    | DungeonBattle
-    | DungeonTreasure
-    | DungeonEvent
-    | DungeonRestArea
-    | DungeonShop
-    | DungeonTrapDoor
-    | DungeonGoal
-
-dungeonSceneGenerator : Random.Generator DungeonScene
-dungeonSceneGenerator =
-    Random.uniform
-        DungeonTrap
-        [ DungeonBattle
-        , DungeonTreasure
-        , DungeonEvent
-        , DungeonRestArea
-        , DungeonShop
-        , DungeonTrapDoor
-        ]
-
-dungeonSceneName : DungeonScene -> String
-dungeonSceneName s =
-    case s of
-        DungeonEntrance ->
-            "Entrance"
-        
-        _ ->
-            "Unknown"
 
 applyEffectToBattle : BattleEffect -> Battle -> Battle
 applyEffectToBattle effect b =
@@ -539,7 +511,6 @@ viewExploreDungeonScene sceneModel delve =
         [ textList
             [ "Exploring: " ++ delve.dungeon.name
             , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
-            , "Location: " ++ dungeonSceneName delve.scene
             ]
         , Html.ul
             []
@@ -643,7 +614,7 @@ update msg model =
                 delve =
                     { dungeon = dungeon
                     , floor = 1
-                    , scene = DungeonEntrance
+                    , phase = ExplorationPhase []
                     }
                 
                 newSceneModel =

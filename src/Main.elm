@@ -255,6 +255,8 @@ type Msg
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath Delve DungeonPath.Path
     | SystemGotDungeonScene Delve DungeonScene.Scene
+    | UserSelectedContinueDungeon Delve
+    | SystemGotDungeonContinuation Delve (List DungeonPath.Path)
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Monster Action
@@ -522,8 +524,12 @@ viewExploreDungeonScene sceneModel delve =
                 pathTable delve paths
             
             ActionPhase scene ->
-                textList
-                    [ DungeonScene.toString scene
+                Html.ul
+                    []
+                    [ Html.text <| DungeonScene.toString scene
+                    , Html.button
+                        [ Html.Events.onClick <| UserSelectedContinueDungeon delve ]
+                        [ Html.text "Continue" ]
                     ]
         ]
 
@@ -684,6 +690,32 @@ update msg model =
                     { sceneModel | scene = ExploreDungeonScene newDelve }
                 
             in
+            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        
+        ( UserSelectedContinueDungeon delve, ScenePhase _ ) ->
+            let
+                pathListGenerator =
+                    Random.list 3 DungeonPath.generator
+
+                cmd =
+                    Random.generate (SystemGotDungeonContinuation delve) pathListGenerator
+            in
+            ( model, cmd )
+        
+        ( SystemGotDungeonContinuation delve paths, ScenePhase sceneModel ) ->
+            let
+                newDelve =
+                    { delve
+                        | phase = ExplorationPhase paths
+                        , floor =
+                            delve.floor + 1
+                                |> boundedBy 1 delve.dungeon.depth
+                    }
+                
+                newSceneModel =
+                    { sceneModel | scene = ExploreDungeonScene newDelve }
+                
+            in 
             ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
         
         ( UserSelectedBattleScene, ScenePhase sceneModel ) ->

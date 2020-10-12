@@ -20,8 +20,9 @@ generator =
             { description = "Follow the winding tunnels"
             , sceneDistribution =
                 Distribution.new
-                    ( 100, DungeonScene.Empty )
-                    []
+                    ( 50, DungeonScene.Empty )
+                    [ ( 50, DungeonScene.Battle )
+                    ]
             }
     in
     Random.constant windingTunnels

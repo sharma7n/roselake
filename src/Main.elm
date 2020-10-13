@@ -9,6 +9,8 @@ import Random
 
 import Distribution exposing (Distribution)
 
+import CharacterCreationError
+import CharacterCreationSettings exposing (CharacterCreationSettings)
 import FormResult exposing (FormResult)
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
@@ -17,6 +19,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Avatar exposing (Avatar)
 import DungeonPath
 import DungeonScene
 import Dungeon exposing (Dungeon)
@@ -39,38 +42,7 @@ type alias CharacterCreationModel =
     { settings : CharacterCreationSettings
     }
 
-type alias CharacterCreationSettings =
-    { name : FormResult CharacterCreationError String
-    , hairStyle : FormResult CharacterCreationError HairStyle
-    , hairColor : FormResult CharacterCreationError HairColor
-    , eyeColor : FormResult CharacterCreationError EyeColor
-    , complexion : FormResult CharacterCreationError Complexion
-    , height : FormResult CharacterCreationError Height
-    , build : FormResult CharacterCreationError Build
-    }
 
-checkCharacterCreationSettings : CharacterCreationSettings -> CharacterCreationSettings
-checkCharacterCreationSettings settings =
-    let
-        checkName name =
-            case name of
-                FormResult.FROk okName ->
-                    if okName == "" then 
-                        FormResult.FRErr MissingName 
-                    else   
-                        FormResult.FROk okName
-                
-                _ ->
-                    FormResult.FRErr MissingName
-    in
-    { name = checkName settings.name
-    , hairStyle = FormResult.check settings.hairStyle
-    , hairColor = FormResult.check settings.hairColor
-    , eyeColor = FormResult.check settings.eyeColor
-    , complexion = FormResult.check settings.complexion
-    , height = FormResult.check settings.height
-    , build = FormResult.check settings.build
-    }
 type alias SceneModel =
     { name : String
     , avatar : Avatar
@@ -139,41 +111,9 @@ boundedBy lower upper x =
 applyEffectsToBattle : List BattleEffect -> Battle -> Battle
 applyEffectsToBattle effects m =
     List.foldl applyEffectToBattle m effects
- 
-type CharacterCreationError
-    = MissingName
-    | MissingHairStyle
-    | MissingHairColor
-    | MissingEyeColor
-    | MissingComplexion
-    | MissingHeight
-    | MissingBuild
 
-characterCreationErrorToString : CharacterCreationError -> String
-characterCreationErrorToString e =
-    case e of
-        MissingName ->
-            "Missing name"
-        
-        MissingHairStyle ->
-            "Missing hair style"
-        
-        MissingHairColor ->
-            "Missing hair color"
-        
-        MissingEyeColor ->
-            "Missing eye color"
-        
-        MissingComplexion ->
-            "Missing complexion"
-        
-        MissingHeight ->
-            "Missing height"
-        
-        MissingBuild ->
-            "Missing build"
 
-characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError) SceneModel
+characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError.Error) SceneModel
 characterCreationSettingsToSceneModel settings =
     FormResult.toValidation settings.name
         |> Result.andThen (\name -> FormResult.toValidation settings.hairStyle
@@ -217,29 +157,7 @@ type Scene
     | VictoryScene Monster Reward
     | GameOverScene
 
-type alias Avatar =
-    { hairStyle : HairStyle
-    , hairColor : HairColor
-    , eyeColor : EyeColor
-    , complexion : Complexion
-    , height : Height
-    , build : Build
-    }
 
-avatarDescription : Avatar -> String
-avatarDescription a =
-    (Height.toString a.height) 
-    ++ " and " 
-    ++ (Build.toString a.build) 
-    ++ " frame | "
-    ++ (Complexion.toString a.complexion)
-    ++ " complexion | "
-    ++ (HairColor.toString a.hairColor) 
-    ++ ", " 
-    ++ (HairStyle.toString a.hairStyle)
-    ++ " hair | "
-    ++ (EyeColor.toString a.eyeColor)
-    ++ " eyes"
 
 -- MSG
 
@@ -288,13 +206,13 @@ init : flags -> ( Model, Cmd Msg )
 init _ =
     let
         initCharacterCreationSettings =
-            { name = FormResult.FRBlank MissingName
-            , hairStyle = FormResult.FRBlank MissingHairStyle
-            , hairColor = FormResult.FRBlank MissingHairColor
-            , eyeColor = FormResult.FRBlank MissingEyeColor
-            , complexion = FormResult.FRBlank MissingComplexion
-            , height = FormResult.FRBlank MissingHeight
-            , build = FormResult.FRBlank MissingBuild
+            { name = FormResult.FRBlank CharacterCreationError.MissingName
+            , hairStyle = FormResult.FRBlank CharacterCreationError.MissingHairStyle
+            , hairColor = FormResult.FRBlank CharacterCreationError.MissingHairColor
+            , eyeColor = FormResult.FRBlank CharacterCreationError.MissingEyeColor
+            , complexion = FormResult.FRBlank CharacterCreationError.MissingComplexion
+            , height = FormResult.FRBlank CharacterCreationError.MissingHeight
+            , build = FormResult.FRBlank CharacterCreationError.MissingBuild
             }
         
         initCharacterCreationModel =
@@ -321,7 +239,7 @@ view model =
 viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
 viewCharacterCreationPhase model =
     let
-        settingToInfo : (a -> String) -> FormResult CharacterCreationError a -> Html Msg
+        settingToInfo : (a -> String) -> FormResult CharacterCreationError.Error a -> Html Msg
         settingToInfo aToString x =
             case x of
                 FormResult.FRBlank _ ->
@@ -331,7 +249,7 @@ viewCharacterCreationPhase model =
                     Html.text <| aToString a
                 
                 FormResult.FRErr e ->
-                    Html.text <| characterCreationErrorToString e
+                    Html.text <| CharacterCreationError.toString e
     in
     Html.div
         []
@@ -376,7 +294,7 @@ viewScenePhase scene sceneModel =
         []
         [ textList
             [ sceneModel.name
-            , avatarDescription sceneModel.avatar
+            , Avatar.description sceneModel.avatar
             , "LV: " ++ String.fromInt sceneModel.level
             , "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
             , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
@@ -785,7 +703,7 @@ updateCharacterCreationConfirmation : Model -> CharacterCreationModel -> ( Model
 updateCharacterCreationConfirmation model characterCreationModel =
     let
         newSettings =
-            checkCharacterCreationSettings characterCreationModel.settings
+            CharacterCreationSettings.check characterCreationModel.settings
         
         sceneModelResult =
             characterCreationSettingsToSceneModel newSettings

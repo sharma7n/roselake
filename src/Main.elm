@@ -33,7 +33,7 @@ type alias Model =
 
 type Phase
     = CharacterCreationPhase CharacterCreationModel
-    | ScenePhase SceneModel
+    | ScenePhase Scene SceneModel
 
 type alias CharacterCreationModel =
     { settings : CharacterCreationSettings
@@ -72,8 +72,7 @@ checkCharacterCreationSettings settings =
     , build = FormResult.check settings.build
     }
 type alias SceneModel =
-    { scene : Scene
-    , name : String
+    { name : String
     , avatar : Avatar
     , level : Int
     , experience : Int
@@ -194,8 +193,7 @@ characterCreationSettingsToSceneModel settings =
                     , build = build
                     }
             in
-            { scene = PlayerScene
-            , name = name
+            { name = name
             , avatar = avatar
             , level = 1
             , experience = 0
@@ -317,8 +315,8 @@ view model =
         CharacterCreationPhase characterCreationModel ->
             viewCharacterCreationPhase characterCreationModel
         
-        ScenePhase sceneModel ->
-            viewScenePhase sceneModel
+        ScenePhase scene sceneModel ->
+            viewScenePhase scene sceneModel
 
 viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
 viewCharacterCreationPhase model =
@@ -372,8 +370,8 @@ viewCharacterCreationPhase model =
         , Html.button [ Html.Events.onClick DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
         ]
 
-viewScenePhase : SceneModel -> Html Msg
-viewScenePhase sceneModel =
+viewScenePhase : Scene -> SceneModel -> Html Msg
+viewScenePhase scene sceneModel =
     Html.div
         []
         [ textList
@@ -385,7 +383,7 @@ viewScenePhase sceneModel =
             , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
             , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
-        , case sceneModel.scene of
+        , case scene of
             BattleMonsterScene _ ->
                 Html.div
                     []
@@ -405,7 +403,7 @@ viewScenePhase sceneModel =
                     , ( "Explore", UserSelectedExploreScene )
                     , ( "Battle", UserSelectedBattleScene )
                     ]
-        , viewSceneModel sceneModel
+        , viewSceneModel scene sceneModel
         ]
 
 textList : List String -> Html Msg
@@ -470,9 +468,9 @@ radioButtons toString toMsg items currentItem =
         ( List.map itemFn items )
     
 
-viewSceneModel : SceneModel -> Html Msg
-viewSceneModel sceneModel =
-    case sceneModel.scene of
+viewSceneModel : Scene -> SceneModel -> Html Msg
+viewSceneModel scene sceneModel =
+    case scene of
         PlayerScene ->
             textList
                 [ "TODO"
@@ -623,35 +621,23 @@ monsterTable monsters =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.phase ) of
-        ( UserSelectedPlayerScene, ScenePhase sceneModel ) ->
-            let
-                newSceneModel =
-                    { sceneModel | scene = PlayerScene }
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        ( UserSelectedPlayerScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase PlayerScene sceneModel }, Cmd.none )
         
-        ( UserSelectedHomeScene, ScenePhase sceneModel ) ->
-            let
-                newSceneModel =
-                    { sceneModel | scene = HomeScene }
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        ( UserSelectedHomeScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase HomeScene sceneModel }, Cmd.none )
         
-        ( UserSelectedHomeRest, ScenePhase sceneModel ) ->
+        ( UserSelectedHomeRest, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
                     { sceneModel | hitPoints = sceneModel.maxHitPoints }
             in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
-        ( UserSelectedExploreScene, ScenePhase sceneModel ) ->
-            let
-                newSceneModel =
-                    { sceneModel | scene = ExploreScene }
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        ( UserSelectedExploreScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase ExploreScene sceneModel }, Cmd.none )
         
-        ( UserSelectedExploreDungeonScene dungeon, ScenePhase _ ) ->
+        ( UserSelectedExploreDungeonScene dungeon, ScenePhase ExploreScene _ ) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
@@ -661,38 +647,32 @@ update msg model =
             in
             ( model, cmd )
         
-        ( SystemGotDungeonInitialization dungeon paths, ScenePhase sceneModel ) ->
+        ( SystemGotDungeonInitialization dungeon paths, ScenePhase _ sceneModel ) ->
             let
                 delve =
                     { dungeon = dungeon
                     , floor = 1
                     , phase = ExplorationPhase paths
                     }
-                
-                newSceneModel =
-                    { sceneModel | scene = ExploreDungeonScene delve }
             in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase (ExploreDungeonScene delve) sceneModel }, Cmd.none )
         
-        ( UserSelectedDungeonPath delve path, ScenePhase _ ) ->
+        ( UserSelectedDungeonPath delve path, ScenePhase (ExploreDungeonScene _) _) ->
             let
                 cmd =
                     Random.generate (SystemGotDungeonScene delve) (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( SystemGotDungeonScene delve scene, ScenePhase sceneModel ) ->
+        ( SystemGotDungeonScene delve scene, ScenePhase _ sceneModel ) ->
             let
                 newDelve =
                     { delve | phase = ActionPhase scene }
                 
-                newSceneModel =
-                    { sceneModel | scene = ExploreDungeonScene newDelve }
-                
             in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
         
-        ( UserSelectedContinueDungeon delve, ScenePhase _ ) ->
+        ( UserSelectedContinueDungeon delve, ScenePhase (ExploreDungeonScene _) _) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
@@ -702,7 +682,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( SystemGotDungeonContinuation delve paths, ScenePhase sceneModel ) ->
+        ( SystemGotDungeonContinuation delve paths, ScenePhase _ sceneModel ) ->
             let
                 newDelve =
                     { delve
@@ -712,27 +692,16 @@ update msg model =
                                 |> boundedBy 1 delve.dungeon.depth
                     }
                 
-                newSceneModel =
-                    { sceneModel | scene = ExploreDungeonScene newDelve }
-                
             in 
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleScene, ScenePhase sceneModel ) ->
-            let
-                newSceneModel =
-                    { sceneModel | scene = BattleScene }
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        ( UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleMonsterScene monster, ScenePhase sceneModel ) ->
-            let
-                newSceneModel =
-                    { sceneModel | scene = BattleMonsterScene monster }
-            in
-            ( { model | phase = ScenePhase newSceneModel }, Cmd.none )
+        ( UserSelectedBattleMonsterScene monster, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase (BattleMonsterScene monster) sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleAction monster action, ScenePhase sceneModel ) ->
+        ( UserSelectedBattleAction monster action, ScenePhase (BattleMonsterScene monster2) sceneModel ) ->
             updateBattleAction model monster action sceneModel
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
@@ -753,8 +722,7 @@ update msg model =
                     }
                 
                 sceneModel =
-                    { scene = PlayerScene
-                    , name = "Dev"
+                    { name = "Dev"
                     , avatar = avatar
                     , level = 1
                     , experience = 0
@@ -768,7 +736,7 @@ update msg model =
                     }
                 
                 newModel =
-                    { model | phase = ScenePhase sceneModel } 
+                    { model | phase = ScenePhase PlayerScene sceneModel } 
             in
             ( newModel, Cmd.none )
         
@@ -825,7 +793,7 @@ updateCharacterCreationConfirmation model characterCreationModel =
         newModel =
             case sceneModelResult of
                 Ok sceneModel ->
-                    { model | phase = ScenePhase sceneModel }
+                    { model | phase = ScenePhase PlayerScene sceneModel }
                 
                 Err _ ->
                     { model | phase = CharacterCreationPhase { settings = newSettings }}
@@ -855,23 +823,26 @@ updateBattleAction model monster action sceneModel =
         newSceneModel =
             newBattle.player
         
-        newSceneModel2 =
+        ( newScene, newSceneModel2 ) =
             if newSceneModel.hitPoints <= 0 then
-                { newSceneModel | scene = GameOverScene }
+                ( GameOverScene, newSceneModel )
             else if newMonster.hitPoints <= 0 then
                 let
                     reward =
                         { experience = newMonster.experience
                         }
+                    
+                    newSceneModel3 =
+                        { newSceneModel
+                            | experience = newSceneModel.experience + reward.experience
+                        }
                 in
-                { newSceneModel
-                    | scene = VictoryScene newMonster reward
-                    , experience = newSceneModel.experience + reward.experience
-                }
+                ( VictoryScene newMonster reward, newSceneModel3 )
+
             else
-                { newSceneModel | scene = BattleMonsterScene newMonster }
+                ( BattleMonsterScene newMonster, newSceneModel )
     in
-    ( { model | phase = ScenePhase newSceneModel2 }, Cmd.none )
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Cmd.none )
 
 -- SUBSCRIPTIONS
 

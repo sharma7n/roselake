@@ -251,13 +251,13 @@ type Msg
     | UserSelectedExploreScene
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
-    | UserSelectedDungeonPath Delve DungeonPath.Path
-    | SystemGotDungeonScene Delve DungeonScene.Scene
-    | UserSelectedContinueDungeon Delve
-    | SystemGotDungeonContinuation Delve (List DungeonPath.Path)
+    | UserSelectedDungeonPath DungeonPath.Path
+    | SystemGotDungeonScene DungeonScene.Scene
+    | UserSelectedContinueDungeon
+    | SystemGotDungeonContinuation (List DungeonPath.Path)
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
-    | UserSelectedBattleAction Monster Action
+    | UserSelectedBattleAction Action
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
     | DevSelectedCharacterCreationConfirmation
@@ -487,7 +487,7 @@ viewSceneModel scene sceneModel =
                 ]
         
         ExploreDungeonScene delve ->
-            viewExploreDungeonScene sceneModel delve
+            viewExploreDungeonScene delve
 
         BattleScene ->
             monsterTable
@@ -509,8 +509,8 @@ viewSceneModel scene sceneModel =
                 [ "Defeated..."
                 ]
 
-viewExploreDungeonScene : SceneModel -> Delve -> Html Msg
-viewExploreDungeonScene sceneModel delve =
+viewExploreDungeonScene : Delve -> Html Msg
+viewExploreDungeonScene delve =
     Html.div
         []
         [ textList
@@ -519,20 +519,20 @@ viewExploreDungeonScene sceneModel delve =
             ]
         , case delve.phase of
             ExplorationPhase paths ->
-                pathTable delve paths
+                pathTable paths
             
             ActionPhase scene ->
                 Html.ul
                     []
                     [ Html.text <| DungeonScene.toString scene
                     , Html.button
-                        [ Html.Events.onClick <| UserSelectedContinueDungeon delve ]
+                        [ Html.Events.onClick <| UserSelectedContinueDungeon ]
                         [ Html.text "Continue" ]
                     ]
         ]
 
-pathTable : Delve -> List DungeonPath.Path -> Html Msg
-pathTable delve paths =
+pathTable : List DungeonPath.Path -> Html Msg
+pathTable paths =
     let
         pathFn path =
             Html.li
@@ -540,7 +540,7 @@ pathTable delve paths =
                 [ Html.text path.description
                 , explainSceneDistribution path.sceneDistribution
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedDungeonPath delve path ]
+                    [ Html.Events.onClick <| UserSelectedDungeonPath path ]
                     [ Html.text "Go" ]
                 ]
     in
@@ -571,7 +571,7 @@ viewBattleMonsterScene sceneModel monster =
                 []
                 [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedBattleAction monster (Action.byId "attack") ]
+                    [ Html.Events.onClick <| UserSelectedBattleAction (Action.byId "attack") ]
                     [ Html.text "Go" ]
                 ]
             ]
@@ -647,7 +647,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( SystemGotDungeonInitialization dungeon paths, ScenePhase _ sceneModel ) ->
+        ( SystemGotDungeonInitialization dungeon paths, ScenePhase ExploreScene sceneModel ) ->
             let
                 delve =
                     { dungeon = dungeon
@@ -657,14 +657,14 @@ update msg model =
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene delve) sceneModel }, Cmd.none )
         
-        ( UserSelectedDungeonPath delve path, ScenePhase (ExploreDungeonScene _) _) ->
+        ( UserSelectedDungeonPath path, ScenePhase (ExploreDungeonScene _) _) ->
             let
                 cmd =
-                    Random.generate (SystemGotDungeonScene delve) (Distribution.random path.sceneDistribution)
+                    Random.generate SystemGotDungeonScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( SystemGotDungeonScene delve scene, ScenePhase _ sceneModel ) ->
+        ( SystemGotDungeonScene scene, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
             let
                 newDelve =
                     { delve | phase = ActionPhase scene }
@@ -672,17 +672,17 @@ update msg model =
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
         
-        ( UserSelectedContinueDungeon delve, ScenePhase (ExploreDungeonScene _) _) ->
+        ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _) _) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
 
                 cmd =
-                    Random.generate (SystemGotDungeonContinuation delve) pathListGenerator
+                    Random.generate SystemGotDungeonContinuation pathListGenerator
             in
             ( model, cmd )
         
-        ( SystemGotDungeonContinuation delve paths, ScenePhase _ sceneModel ) ->
+        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
             let
                 newDelve =
                     { delve
@@ -701,7 +701,7 @@ update msg model =
         ( UserSelectedBattleMonsterScene monster, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase (BattleMonsterScene monster) sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleAction monster action, ScenePhase (BattleMonsterScene monster2) sceneModel ) ->
+        ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster) sceneModel ) ->
             updateBattleAction model monster action sceneModel
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->

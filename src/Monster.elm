@@ -1,7 +1,10 @@
 module Monster exposing
     ( Monster
     , byId
+    , generator
     )
+
+import Random
 
 type alias Monster =
     { name : String
@@ -29,3 +32,10 @@ byId id =
             , maxHitPoints = 0
             , attack = 0
             }
+
+generator : Random.Generator Monster
+generator =
+    Random.weighted
+        ( 0, byId "" )
+        [ ( 1, byId "gremlin" )
+        ]

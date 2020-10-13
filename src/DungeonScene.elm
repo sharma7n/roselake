@@ -6,10 +6,13 @@ module DungeonScene exposing
 
 import Random
 
+import Monster exposing (Monster)
+
 type Scene
     = Empty
     | Trap
     | Battle
+    | BattleMonster Monster
     | Treasure
     | Event
     | RestArea
@@ -41,6 +44,9 @@ toString s =
         
         Battle ->
             "Battle"
+        
+        BattleMonster monster ->
+            "Battling: " ++ monster.name
         
         Treasure ->
             "Treasure"

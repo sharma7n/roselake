@@ -173,6 +173,7 @@ type Msg
     | SystemGotDungeonScene DungeonScene.Scene
     | UserSelectedContinueDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
+    | SystemGotMonster Monster
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
@@ -405,7 +406,7 @@ viewSceneModel scene sceneModel =
                 ]
         
         ExploreDungeonScene delve ->
-            viewExploreDungeonScene delve
+            viewExploreDungeonScene sceneModel delve
 
         BattleScene ->
             monsterTable
@@ -427,8 +428,8 @@ viewSceneModel scene sceneModel =
                 [ "Defeated..."
                 ]
 
-viewExploreDungeonScene : Delve -> Html Msg
-viewExploreDungeonScene delve =
+viewExploreDungeonScene : SceneModel -> Delve -> Html Msg
+viewExploreDungeonScene sceneModel delve =
     Html.div
         []
         [ textList
@@ -440,13 +441,35 @@ viewExploreDungeonScene delve =
                 pathTable paths
             
             ActionPhase scene ->
-                Html.ul
-                    []
-                    [ Html.text <| DungeonScene.toString scene
-                    , Html.button
-                        [ Html.Events.onClick <| UserSelectedContinueDungeon ]
-                        [ Html.text "Continue" ]
-                    ]
+                case scene of
+                    DungeonScene.BattleMonster monster ->
+                        Html.div
+                            []
+                            [ textList
+                                [ monster.name
+                                , "HP: " ++ String.fromInt monster.hitPoints
+                                , "Intent: Attack " ++ String.fromInt monster.attack
+                                ]
+                            , Html.ul
+                                []
+                                [ Html.li
+                                    []
+                                    [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
+                                    , Html.button
+                                        [ Html.Events.onClick <| UserSelectedBattleAction (Action.byId "attack") ]
+                                        [ Html.text "Go" ]
+                                    ]
+                                ]
+                            ]
+                    
+                    _ ->
+                        Html.ul
+                            []
+                            [ Html.text <| DungeonScene.toString scene
+                            , Html.button
+                                [ Html.Events.onClick <| UserSelectedContinueDungeon ]
+                                [ Html.text "Continue" ]
+                            ]
         ]
 
 pathTable : List DungeonPath.Path -> Html Msg
@@ -587,6 +610,21 @@ update msg model =
                 newDelve =
                     { delve | phase = ActionPhase scene }
                 
+                cmd =
+                    case scene of
+                        DungeonScene.Battle ->
+                            Random.generate SystemGotMonster Monster.generator
+                        
+                        _ ->
+                            Cmd.none
+                
+            in
+            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, cmd )
+        
+        ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
+            let
+                newDelve =
+                    { delve | phase = ActionPhase (DungeonScene.BattleMonster monster) }
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
         
@@ -622,13 +660,16 @@ update msg model =
         ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster) sceneModel ) ->
             updateBattleAction model monster action sceneModel
         
+        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
+            ( model, Cmd.none )
+        
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
         
         ( UserSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationConfirmation model characterCreationModel
         
-        ( DevSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
+        ( DevSelectedCharacterCreationConfirmation, CharacterCreationPhase _ ) ->
             let
                 avatar =
                     { hairStyle = HairStyle.Plain

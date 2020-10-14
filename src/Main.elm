@@ -27,6 +27,7 @@ import Action exposing (Action)
 import BattleEffect exposing (BattleEffect)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
+import Inventory exposing (Inventory)
 
 -- MODEL
 
@@ -46,6 +47,8 @@ type alias CharacterCreationModel =
 type alias SceneModel =
     { name : String
     , avatar : Avatar
+    , gold : Int
+    , inventory : Inventory
     , level : Int
     , experience : Int
     , satiety : Int
@@ -134,6 +137,8 @@ characterCreationSettingsToSceneModel settings =
             in
             { name = name
             , avatar = avatar
+            , gold = 0
+            , inventory = Inventory.new
             , level = 1
             , experience = 0
             , satiety = 10
@@ -155,8 +160,6 @@ type Scene
     | BattleMonsterScene Monster
     | VictoryScene Monster Reward
     | GameOverScene
-
-
 
 -- MSG
 
@@ -295,6 +298,7 @@ viewScenePhase scene sceneModel =
         [ textList
             [ sceneModel.name
             , Avatar.description sceneModel.avatar
+            , "G: " ++ String.fromInt sceneModel.gold
             , "LV: " ++ String.fromInt sceneModel.level
             , "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
             , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
@@ -651,7 +655,7 @@ update msg model =
             updateBattleAction model monster action sceneModel
         
         ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster)) delve) sceneModel ) ->
-            ( model, Cmd.none )
+            updateDungeonBattleAction model monster action delve sceneModel
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
@@ -673,6 +677,8 @@ update msg model =
                 sceneModel =
                     { name = "Dev"
                     , avatar = avatar
+                    , gold = 0
+                    , inventory = Inventory.new
                     , level = 1
                     , experience = 0
                     , satiety = 10
@@ -779,6 +785,7 @@ updateBattleAction model monster action sceneModel =
                 let
                     reward =
                         { experience = newMonster.experience
+                        , items = []
                         }
                     
                     newSceneModel3 =
@@ -790,6 +797,50 @@ updateBattleAction model monster action sceneModel =
 
             else
                 ( BattleMonsterScene newMonster, newSceneModel )
+    in
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Cmd.none )
+
+updateDungeonBattleAction : Model -> Monster -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
+updateDungeonBattleAction model monster action delve sceneModel =
+    let
+        battle =
+            { monster = monster
+            , player = sceneModel
+            }
+        
+        battleEffects =
+            action.effects ++
+                [ BattleEffect.ChangePlayerHitPoints -1
+                ]
+        
+        newBattle =
+            applyEffectsToBattle battleEffects battle
+        
+        newMonster =
+            newBattle.monster
+        
+        newSceneModel =
+            newBattle.player
+        
+        ( newScene, newSceneModel2 ) =
+            if newSceneModel.hitPoints <= 0 then
+                ( GameOverScene, newSceneModel )
+            else if newMonster.hitPoints <= 0 then
+                let
+                    reward =
+                        { experience = newMonster.experience
+                        , items = []
+                        }
+                    
+                    newSceneModel3 =
+                        { newSceneModel
+                            | experience = newSceneModel.experience + reward.experience
+                        }
+                in
+                ( ExploreDungeonScene (ActionPhase (DungeonScene.Victory newMonster reward)) delve, newSceneModel3 )
+
+            else
+                ( ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster newMonster)) delve, newSceneModel )
     in
     ( { model | phase = ScenePhase newScene newSceneModel2 }, Cmd.none )
 

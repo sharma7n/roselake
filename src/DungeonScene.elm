@@ -7,12 +7,14 @@ module DungeonScene exposing
 import Random
 
 import Monster exposing (Monster)
+import Reward exposing (Reward)
 
 type Scene
     = Empty
     | Trap
     | Battle
     | BattleMonster Monster
+    | Victory Monster Reward
     | Treasure
     | Event
     | RestArea
@@ -47,6 +49,9 @@ toString s =
         
         BattleMonster monster ->
             "Battling: " ++ monster.name
+        
+        Victory _ _ ->
+            "Victory"
         
         Treasure ->
             "Treasure"

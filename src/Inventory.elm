@@ -19,11 +19,17 @@ new =
 modify : Item -> Int -> Inventory -> Inventory
 modify item delta (Inventory dict) =
     let
+        qty =
+            dict
+                |> Dict.get item.id
+                |> Maybe.withDefault 0
+        
+        newQty =
+            max 0 (qty + delta)
+        
         newDict =
-            Dict.update
-                item.id
-                (Maybe.map (\qty -> max 0 (qty + delta)))
-                dict
+            dict
+                |> Dict.insert item.id newQty
     in
     Inventory newDict
 

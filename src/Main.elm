@@ -410,10 +410,14 @@ viewInventory i =
                 |> Inventory.toList
                 |> List.filter (\(_, q) -> q > 0)
     in
-    Html.ul
+    Html.div
         []
-        ( List.map itemQtyFn visibleItemQtys )
-    
+        [ Html.text "Inventory:"
+        , Html.ul
+            []
+            ( List.map itemQtyFn visibleItemQtys )
+        ]
+
 textList : List String -> Html Msg
 textList items =
     let
@@ -719,7 +723,7 @@ update msg model =
         ( UserSelectedBuy item, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
-                    if item.cost < sceneModel.gold then
+                    if item.cost <= sceneModel.gold then
                         { sceneModel
                             | gold = max 0 (sceneModel.gold - item.cost)
                             , inventory =
@@ -843,7 +847,7 @@ update msg model =
                 sceneModel =
                     { name = "Dev"
                     , avatar = avatar
-                    , gold = 0
+                    , gold = 10
                     , inventory = Inventory.new
                     , level = 1
                     , experience = 0
@@ -951,12 +955,14 @@ updateBattleAction model monster action sceneModel =
                 let
                     reward =
                         { experience = newMonster.experience
+                        , gold = newMonster.gold
                         , items = []
                         }
                     
                     newSceneModel3 =
                         { newSceneModel
-                            | experience = newSceneModel.experience + reward.experience
+                            | experience = max 0 (newSceneModel.experience + reward.experience)
+                            , gold = max 0 (newSceneModel.gold + reward.gold)
                         }
                 in
                 ( VictoryScene newMonster reward, newSceneModel3 )
@@ -995,12 +1001,14 @@ updateDungeonBattleAction model monster action delve sceneModel =
                 let
                     reward =
                         { experience = newMonster.experience
+                        , gold = newMonster.gold
                         , items = []
                         }
                     
                     newSceneModel3 =
                         { newSceneModel
-                            | experience = newSceneModel.experience + reward.experience
+                            | experience = max 0 (newSceneModel.experience + reward.experience)
+                            , gold = max 0 (newSceneModel.gold + reward.gold)
                         }
                 in
                 ( ExploreDungeonScene (ActionPhase (DungeonScene.Victory newMonster reward)) delve, newSceneModel3 )

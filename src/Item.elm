@@ -25,7 +25,7 @@ byId s =
         "potion" ->
             { id = "potion"
             , name = "Potion"
-            , cost = 1
+            , cost = 2
             , context = Context.Any
             , battleEffects = []
             , effects =

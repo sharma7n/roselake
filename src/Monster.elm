@@ -17,6 +17,14 @@ type alias Monster =
 byId : String -> Monster
 byId id =
     case id of
+        "slime" ->
+            { name = "Slime"
+            , experience = 1
+            , hitPoints = 3
+            , maxHitPoints = 3
+            , attack = 1
+            }
+        
         "gremlin" ->
             { name = "Gremlin"
             , experience = 1
@@ -37,5 +45,5 @@ generator : Random.Generator Monster
 generator =
     Random.weighted
         ( 0, byId "" )
-        [ ( 1, byId "gremlin" )
+        [ ( 1, byId "attack" )
         ]

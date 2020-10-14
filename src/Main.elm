@@ -65,7 +65,6 @@ type alias Battle =
 type alias Delve =
     { dungeon : Dungeon
     , floor : Int
-    , phase : DelvePhase
     }
 
 type DelvePhase
@@ -151,7 +150,7 @@ type Scene
     = PlayerScene
     | HomeScene
     | ExploreScene
-    | ExploreDungeonScene Delve
+    | ExploreDungeonScene DelvePhase Delve
     | BattleScene
     | BattleMonsterScene Monster
     | VictoryScene Monster Reward
@@ -308,7 +307,7 @@ viewScenePhase scene sceneModel =
                     []
                     []
             
-            ExploreDungeonScene _ ->
+            ExploreDungeonScene _ _ ->
                 Html.div
                     []
                     []
@@ -405,8 +404,8 @@ viewSceneModel scene sceneModel =
                 [ Dungeon.byId "beginnerscave"
                 ]
         
-        ExploreDungeonScene delve ->
-            viewExploreDungeonScene sceneModel delve
+        ExploreDungeonScene delvePhase delve ->
+            viewExploreDungeonScene sceneModel delvePhase delve
 
         BattleScene ->
             monsterTable
@@ -428,15 +427,15 @@ viewSceneModel scene sceneModel =
                 [ "Defeated..."
                 ]
 
-viewExploreDungeonScene : SceneModel -> Delve -> Html Msg
-viewExploreDungeonScene sceneModel delve =
+viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
+viewExploreDungeonScene sceneModel delvePhase delve =
     Html.div
         []
         [ textList
             [ "Exploring: " ++ delve.dungeon.name
             , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
             ]
-        , case delve.phase of
+        , case delvePhase of
             ExplorationPhase paths ->
                 pathTable paths
             
@@ -593,23 +592,19 @@ update msg model =
                 delve =
                     { dungeon = dungeon
                     , floor = 1
-                    , phase = ExplorationPhase paths
                     }
             in
-            ( { model | phase = ScenePhase (ExploreDungeonScene delve) sceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ExplorationPhase paths) delve) sceneModel }, Cmd.none )
         
-        ( UserSelectedDungeonPath path, ScenePhase (ExploreDungeonScene _) _) ->
+        ( UserSelectedDungeonPath path, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 cmd =
                     Random.generate SystemGotDungeonScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( SystemGotDungeonScene scene, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
+        ( SystemGotDungeonScene scene, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
-                newDelve =
-                    { delve | phase = ActionPhase scene }
-                
                 cmd =
                     case scene of
                         DungeonScene.Battle ->
@@ -619,16 +614,12 @@ update msg model =
                             Cmd.none
                 
             in
-            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, cmd )
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase scene) delve) sceneModel }, cmd )
         
-        ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
-            let
-                newDelve =
-                    { delve | phase = ActionPhase (DungeonScene.BattleMonster monster) }
-            in
-            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
+        ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster)) delve) sceneModel }, Cmd.none )
         
-        ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _) _) ->
+        ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
@@ -638,18 +629,17 @@ update msg model =
             in
             ( model, cmd )
         
-        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
+        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
                 newDelve =
                     { delve
-                        | phase = ExplorationPhase paths
-                        , floor =
+                        | floor =
                             delve.floor + 1
                                 |> boundedBy 1 delve.dungeon.depth
                     }
                 
             in 
-            ( { model | phase = ScenePhase (ExploreDungeonScene newDelve) sceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ExplorationPhase paths) newDelve) sceneModel }, Cmd.none )
         
         ( UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )
@@ -660,7 +650,7 @@ update msg model =
         ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster) sceneModel ) ->
             updateBattleAction model monster action sceneModel
         
-        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene delve) sceneModel ) ->
+        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster)) delve) sceneModel ) ->
             ( model, Cmd.none )
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->

@@ -16,13 +16,6 @@ new : Inventory
 new =
     Inventory Dict.empty
 
-fromItems : List ( Item, Int ) -> Inventory
-fromItems itemsAndQuantities =
-    itemsAndQuantities
-        |> List.map (\(item, qty) -> (item.id, qty))
-        |> Dict.fromList
-        |> Inventory
-
 modify : Item -> Int -> Inventory -> Inventory
 modify item delta (Inventory dict) =
     let

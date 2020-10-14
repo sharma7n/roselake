@@ -25,9 +25,12 @@ import DungeonScene
 import Dungeon exposing (Dungeon)
 import Action exposing (Action)
 import BattleEffect exposing (BattleEffect)
+import Effect exposing (Effect)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Inventory exposing (Inventory)
+import Shop exposing (Shop)
+import Item exposing (Item)
 
 -- MODEL
 
@@ -114,6 +117,60 @@ applyEffectsToBattle : List BattleEffect -> Battle -> Battle
 applyEffectsToBattle effects m =
     List.foldl applyEffectToBattle m effects
 
+applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
+applyEffectToSceneModel effect m =
+    case effect of
+        Effect.ChangeLevel d ->
+            { m | level = max 1 (m.level + d) }
+        
+        Effect.ChangeExperience d ->
+            { m | experience = max 0 (m.experience + d) }
+        
+        Effect.ChangeSatiety d ->
+            { m | satiety = boundedBy 0 m.maxSatiety (m.satiety + d) }
+        
+        Effect.ChangeMaxSatiety d ->
+            let
+                newMaxSatiety =
+                    max 1 (m.maxSatiety + d)
+            in
+            { m
+                | maxSatiety = newMaxSatiety
+                , satiety = boundedBy 0 newMaxSatiety m.satiety
+            }
+        
+        Effect.ChangeHitPoints d ->
+            { m | hitPoints = boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
+        
+        Effect.ChangeMaxHitPoints d ->
+            let
+                newMaxHitPoints =
+                    max 1 (m.maxHitPoints + d)
+            in
+            { m
+                | maxHitPoints = newMaxHitPoints
+                , hitPoints = boundedBy 0 newMaxHitPoints m.hitPoints
+            }
+        
+        Effect.ChangeMagicPoints d ->
+            { m | magicPoints = boundedBy 0 m.maxMagicPoints (m.magicPoints + d) }
+
+        Effect.ChangeMaxMagicPoints d ->
+            let
+                newMaxMagicPoints =
+                    max 1 (m.maxMagicPoints + d)
+            in
+            { m
+                | maxMagicPoints = newMaxMagicPoints
+                , magicPoints = boundedBy 0 newMaxMagicPoints m.magicPoints
+            }
+        
+        Effect.ChangeAttack d ->
+            { m | attack = max 0 (m.attack + d) }
+
+applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
+applyEffectsToSceneModel effects m =
+    List.foldl applyEffectToSceneModel m effects
 
 characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError.Error) SceneModel
 characterCreationSettingsToSceneModel settings =
@@ -154,6 +211,8 @@ characterCreationSettingsToSceneModel settings =
 type Scene
     = PlayerScene
     | HomeScene
+    | ShopSelectScene
+    | ShopScene Shop
     | ExploreScene
     | ExploreDungeonScene DelvePhase Delve
     | BattleScene
@@ -168,6 +227,10 @@ type Msg
     | UserSelectedPlayerScene
     | UserSelectedHomeScene
     | UserSelectedHomeRest
+    | UserSelectedShopSelectScene
+    | UserSelectedShop Shop
+    | UserSelectedBuy Item
+    | UserSelectedUseItem Item
     | UserSelectedExploreScene
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
@@ -305,6 +368,7 @@ viewScenePhase scene sceneModel =
             , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
             , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
+        , viewInventory sceneModel.inventory
         , case scene of
             BattleMonsterScene _ ->
                 Html.div
@@ -320,7 +384,7 @@ viewScenePhase scene sceneModel =
                  buttonList
                     [ ( "Player", UserSelectedPlayerScene )
                     , ( "Home", UserSelectedHomeScene )
-                    , ( "Shop", NoOp )
+                    , ( "Shop", UserSelectedShopSelectScene )
                     , ( "Town", NoOp )
                     , ( "Explore", UserSelectedExploreScene )
                     , ( "Battle", UserSelectedBattleScene )
@@ -328,6 +392,28 @@ viewScenePhase scene sceneModel =
         , viewSceneModel scene sceneModel
         ]
 
+viewInventory : Inventory -> Html Msg
+viewInventory i =
+    let
+        itemQtyFn ( item, qty ) =
+            Html.li
+                []
+                [ Html.text <| item.name ++ ": "
+                , Html.text <| String.fromInt qty ++ " "
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedUseItem item ]
+                    [ Html.text "Use" ]
+                ]
+        
+        visibleItemQtys =
+            i
+                |> Inventory.toList
+                |> List.filter (\(_, q) -> q > 0)
+    in
+    Html.ul
+        []
+        ( List.map itemQtyFn visibleItemQtys )
+    
 textList : List String -> Html Msg
 textList items =
     let
@@ -402,6 +488,14 @@ viewSceneModel scene sceneModel =
             buttonList
                 [ ( "Rest", UserSelectedHomeRest )
                 ]
+        
+        ShopSelectScene ->
+            shopTable
+                [ Shop.byId "potionshop"
+                ]
+        
+        ShopScene shop ->
+            viewShopScene sceneModel shop
         
         ExploreScene ->
             dungeonTable
@@ -492,6 +586,22 @@ pathTable paths =
         []
         ( List.map pathFn paths )
 
+shopTable : List Shop -> Html Msg
+shopTable shops =
+    let
+        shopFn shop =
+            Html.li
+                []
+                [ Html.text shop.name
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedShop shop ]
+                    [ Html.text "Go" ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map shopFn shops )
+    
 explainSceneDistribution : Distribution DungeonScene.Scene -> Html Msg
 explainSceneDistribution d =
     let
@@ -521,6 +631,28 @@ viewBattleMonsterScene sceneModel monster =
             ]
         ]
 
+viewShopScene : SceneModel -> Shop -> Html Msg
+viewShopScene sceneModel shop =
+    let
+        buyableFn b =
+            Html.li
+                []
+                [ Html.text <| b.name ++ " | "
+                , Html.text <| String.fromInt b.cost ++ " "
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedBuy b ]
+                    [ Html.text "Buy" ]
+                ]
+    in
+    Html.div
+        []
+        [ textList
+            [ "Shop: " ++ shop.name
+            ]
+        , Html.ul
+            []
+            ( List.map buyableFn shop.stock )
+        ]
 levelUpExperience : Int -> Int
 levelUpExperience n =
     10 * n * n
@@ -575,6 +707,40 @@ update msg model =
             let
                 newSceneModel =
                     { sceneModel | hitPoints = sceneModel.maxHitPoints }
+            in
+            ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
+        
+        ( UserSelectedShopSelectScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase ShopSelectScene sceneModel }, Cmd.none )
+        
+        ( UserSelectedShop shop, ScenePhase ShopSelectScene sceneModel ) ->
+            ( { model | phase = ScenePhase (ShopScene shop) sceneModel }, Cmd.none )
+        
+        ( UserSelectedBuy item, ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    if item.cost < sceneModel.gold then
+                        { sceneModel
+                            | gold = max 0 (sceneModel.gold - item.cost)
+                            , inventory =
+                                sceneModel.inventory
+                                    |> Inventory.modify item 1
+                        }
+                    else
+                        sceneModel
+
+            in
+            ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
+        
+        ( UserSelectedUseItem item, ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel
+                        | inventory =
+                            sceneModel.inventory
+                                |> Inventory.modify item -1
+                    }
+                        |> applyEffectsToSceneModel item.effects
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         

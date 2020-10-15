@@ -2,9 +2,14 @@ module Monster exposing
     ( Monster
     , byId
     , generator
+    , chooseAction
     )
 
 import Random
+
+import Distribution exposing (Distribution)
+
+import Action exposing (Action)
 
 type alias Monster =
     { name : String
@@ -14,6 +19,7 @@ type alias Monster =
     , hitPoints : Int
     , maxHitPoints : Int
     , attack : Int
+    , actions : Distribution Action
     }
 
 byId : String -> Monster
@@ -27,6 +33,11 @@ byId id =
             , hitPoints = 3
             , maxHitPoints = 3
             , attack = 1
+            , actions =
+                Distribution.new
+                    ( 50, Action.byId "nothing" )
+                    [ ( 50, Action.byId "attack" )
+                    ]
             }
         
         "gremlin" ->
@@ -37,6 +48,11 @@ byId id =
             , hitPoints = 10
             , maxHitPoints = 10
             , attack = 1
+            , actions =
+                Distribution.new
+                    ( 50, Action.byId "attack" )
+                    [ ( 50, Action.byId "fireball" )
+                    ]
             }
         
         _ ->
@@ -47,6 +63,10 @@ byId id =
             , hitPoints = 0
             , maxHitPoints = 0
             , attack = 0
+            , actions =
+                Distribution.new
+                    ( 0, Action.byId "null" )
+                    []
             }
 
 generator : Random.Generator Monster
@@ -55,3 +75,7 @@ generator =
         ( 0, byId "" )
         [ ( 1, byId "slime" )
         ]
+
+chooseAction : Monster -> Random.Generator Action
+chooseAction monster =
+    Distribution.random monster.actions

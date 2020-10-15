@@ -1,7 +1,7 @@
 module Action exposing
     ( Action
     , byId
-    , all
+    , learnable
     )
 
 import Context exposing (Context)
@@ -19,6 +19,15 @@ type alias Action =
 byId : String -> Action
 byId id =
     case id of
+        "nothing" ->
+            { id = "nothing"
+            , name = "Nothing"
+            , context = Context.Any
+            , learnCost = 0
+            , magicPointCost = 0
+            , effects = []
+            }
+        
         "attack" ->
             { id = "attack"
             , name = "Attack"
@@ -61,9 +70,8 @@ byId id =
             , effects = []
             }
 
-all : List Action
-all =
-    [ byId "attack"
-    , byId "fireball"
+learnable : List Action
+learnable =
+    [ byId "fireball"
     , byId "heal"
     ]

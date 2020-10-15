@@ -208,7 +208,8 @@ type Scene
     | ExploreScene
     | ExploreDungeonScene DelvePhase Delve
     | BattleScene
-    | BattleMonsterScene Monster
+    | BattleMonsterLoadingIntentScene Monster
+    | BattleMonsterScene Monster Action
     | VictoryScene Monster Reward
     | GameOverScene
 
@@ -233,6 +234,7 @@ type Msg
     | UserSelectedContinueDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
     | SystemGotMonster Monster
+    | SystemGotMonsterIntent Action
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
@@ -365,7 +367,7 @@ viewScenePhase scene sceneModel =
             ]
         , viewInventory sceneModel.inventory
         , case scene of
-            BattleMonsterScene _ ->
+            BattleMonsterScene _ _ ->
                 Html.div
                     []
                     []
@@ -485,7 +487,7 @@ viewSceneModel scene sceneModel =
                 ]
         
         LearnSelectScene ->
-            learnTable Action.all sceneModel.actions
+            learnTable Action.learnable sceneModel.actions
         
         HomeScene ->
             buttonList
@@ -513,8 +515,11 @@ viewSceneModel scene sceneModel =
                 [ Monster.byId "gremlin"
                 ]
         
-        BattleMonsterScene monster ->
-            viewBattleMonsterScene sceneModel monster
+        BattleMonsterLoadingIntentScene monster ->
+            Html.text <| monster.name ++ " is thinking..."
+        
+        BattleMonsterScene monster intent ->
+            viewBattleMonsterScene sceneModel monster intent
         
         VictoryScene monster reward ->
             textList
@@ -563,13 +568,13 @@ viewExploreDungeonScene sceneModel delvePhase delve =
             
             ActionPhase scene ->
                 case scene of
-                    DungeonScene.BattleMonster monster ->
+                    DungeonScene.BattleMonster monster intent ->
                         Html.div
                             []
                             [ textList
                                 [ monster.name
                                 , "HP: " ++ String.fromInt monster.hitPoints
-                                , "Intent: Attack " ++ String.fromInt monster.attack
+                                , "Intent: " ++ intent.name
                                 ]
                             , actionTable sceneModel.actions
                             ]
@@ -625,14 +630,14 @@ explainSceneDistribution d =
     in
     textList (List.map explainOneScene (d.head :: d.tail))
 
-viewBattleMonsterScene : SceneModel -> Monster -> Html Msg
-viewBattleMonsterScene sceneModel monster =
+viewBattleMonsterScene : SceneModel -> Monster -> Action -> Html Msg
+viewBattleMonsterScene sceneModel monster intent =
     Html.div
         []
         [ textList
             [ monster.name
             , "HP: " ++ String.fromInt monster.hitPoints
-            , "Intent: Attack " ++ String.fromInt monster.attack
+            , "Intent: " ++ intent.name
             ]
         , actionTable sceneModel.actions
         ]
@@ -830,8 +835,15 @@ update msg model =
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase scene) delve) sceneModel }, cmd )
         
         ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
-            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster)) delve) sceneModel }, Cmd.none )
+            let
+                cmd =
+                    Random.generate SystemGotMonsterIntent (Monster.chooseAction monster)
+            in
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel }, cmd )
         
+        ( SystemGotMonsterIntent intent, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel ) ->
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster intent)) delve) sceneModel }, Cmd.none )
+
         ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 pathListGenerator =
@@ -858,13 +870,20 @@ update msg model =
             ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )
         
         ( UserSelectedBattleMonsterScene monster, ScenePhase _ sceneModel ) ->
-            ( { model | phase = ScenePhase (BattleMonsterScene monster) sceneModel }, Cmd.none )
+            let
+                cmd =
+                    Random.generate SystemGotMonsterIntent (Monster.chooseAction monster)
+            in
+            ( { model | phase = ScenePhase (BattleMonsterLoadingIntentScene monster) sceneModel }, cmd )
         
-        ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster) sceneModel ) ->
-            updateBattleAction model monster action sceneModel
+        ( SystemGotMonsterIntent intent, ScenePhase (BattleMonsterLoadingIntentScene monster) sceneModel ) ->
+            ( { model | phase = ScenePhase (BattleMonsterScene monster intent) sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster)) delve) sceneModel ) ->
-            updateDungeonBattleAction model monster action delve sceneModel
+        ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster monsterAction) sceneModel ) ->
+            updateBattleAction model monster action monsterAction sceneModel
+        
+        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
+            updateDungeonBattleAction model monster action monsterAction delve sceneModel
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
@@ -971,8 +990,8 @@ updateCharacterCreationConfirmation model characterCreationModel =
     in
     ( newModel, Cmd.none )
 
-updateBattleAction : Model -> Monster -> Action -> SceneModel -> ( Model, Cmd Msg )
-updateBattleAction model monster action sceneModel =
+updateBattleAction : Model -> Monster -> Action -> Action -> SceneModel -> ( Model, Cmd Msg )
+updateBattleAction model monster action monsterAction sceneModel =
     let 
         playerEffects =
             if action.magicPointCost <= sceneModel.magicPoints then
@@ -1012,12 +1031,12 @@ updateBattleAction model monster action sceneModel =
                 ( VictoryScene newMonster reward, newSceneModel3 )
 
             else
-                ( BattleMonsterScene newMonster, newSceneModel )
+                ( BattleMonsterLoadingIntentScene newMonster, newSceneModel )
     in
-    ( { model | phase = ScenePhase newScene newSceneModel2 }, Cmd.none )
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate SystemGotMonsterIntent (Monster.chooseAction monster) )
 
-updateDungeonBattleAction : Model -> Monster -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
-updateDungeonBattleAction model monster action delve sceneModel =
+updateDungeonBattleAction : Model -> Monster -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
+updateDungeonBattleAction model monster action monsterAction delve sceneModel =
     let
         playerEffects =
             if action.magicPointCost <= sceneModel.magicPoints then
@@ -1057,9 +1076,9 @@ updateDungeonBattleAction model monster action delve sceneModel =
                 ( ExploreDungeonScene (ActionPhase (DungeonScene.Victory newMonster reward)) delve, newSceneModel3 )
 
             else
-                ( ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster newMonster)) delve, newSceneModel )
+                ( ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent newMonster)) delve, newSceneModel )
     in
-    ( { model | phase = ScenePhase newScene newSceneModel2 }, Cmd.none )
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate SystemGotMonsterIntent (Monster.chooseAction monster) )
 
 -- SUBSCRIPTIONS
 

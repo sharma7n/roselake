@@ -10,6 +10,7 @@ type alias Monster =
     { name : String
     , experience : Int
     , gold : Int
+    , abilityPoints : Int
     , hitPoints : Int
     , maxHitPoints : Int
     , attack : Int
@@ -22,6 +23,7 @@ byId id =
             { name = "Slime"
             , experience = 1
             , gold = 1
+            , abilityPoints = 1
             , hitPoints = 3
             , maxHitPoints = 3
             , attack = 1
@@ -31,6 +33,7 @@ byId id =
             { name = "Gremlin"
             , experience = 1
             , gold = 1
+            , abilityPoints = 1
             , hitPoints = 10
             , maxHitPoints = 10
             , attack = 1
@@ -40,6 +43,7 @@ byId id =
             { name = "Null Monster"
             , experience = 0
             , gold = 0
+            , abilityPoints = 0
             , hitPoints = 0
             , maxHitPoints = 0
             , attack = 0

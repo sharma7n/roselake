@@ -53,6 +53,8 @@ type alias SceneModel =
     , inventory : Inventory
     , level : Int
     , experience : Int
+    , freeAbilityPoints : Int
+    , totalAbilityPoints : Int
     , satiety : Int
     , maxSatiety : Int
     , hitPoints : Int
@@ -181,6 +183,8 @@ characterCreationSettingsToSceneModel settings =
             , inventory = Inventory.new
             , level = 1
             , experience = 0
+            , freeAbilityPoints = 0
+            , totalAbilityPoints = 0
             , satiety = 10
             , maxSatiety = 10
             , hitPoints = 10
@@ -197,6 +201,7 @@ characterCreationSettingsToSceneModel settings =
 
 type Scene
     = PlayerScene
+    | LearnSelectScene
     | HomeScene
     | ShopSelectScene
     | ShopScene Shop
@@ -212,6 +217,8 @@ type Scene
 type Msg
     = NoOp
     | UserSelectedPlayerScene
+    | UserSelectedLearnSelectScene
+    | UserSelectedLearnSkill Action
     | UserSelectedHomeScene
     | UserSelectedHomeRest
     | UserSelectedShopSelectScene
@@ -351,6 +358,7 @@ viewScenePhase scene sceneModel =
             , "G: " ++ String.fromInt sceneModel.gold
             , "LV: " ++ String.fromInt sceneModel.level
             , "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
+            , "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
             , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
             , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
             , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
@@ -370,6 +378,7 @@ viewScenePhase scene sceneModel =
             _ ->
                  buttonList
                     [ ( "Player", UserSelectedPlayerScene )
+                    , ( "Learn", UserSelectedLearnSelectScene )
                     , ( "Home", UserSelectedHomeScene )
                     , ( "Shop", UserSelectedShopSelectScene )
                     , ( "Town", NoOp )
@@ -475,6 +484,9 @@ viewSceneModel scene sceneModel =
                 [ "TODO"
                 ]
         
+        LearnSelectScene ->
+            learnTable Action.all sceneModel.actions
+        
         HomeScene ->
             buttonList
                 [ ( "Rest", UserSelectedHomeRest )
@@ -515,6 +527,27 @@ viewSceneModel scene sceneModel =
             textList
                 [ "Defeated..."
                 ]
+
+learnTable : List Action -> List Action -> Html Msg
+learnTable learnable learned =
+    let
+        toLearn =
+            learnable
+                |> List.filter (\l -> not (List.member l learned))
+        
+        learnFn learn =
+            Html.li
+                []
+                [ Html.text <| learn.name ++ " | "
+                , Html.text <| String.fromInt learn.learnCost ++ " "
+                , Html.button
+                    [ Html.Events.onClick <| UserSelectedLearnSkill learn ]
+                    [ Html.text "Learn" ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map learnFn toLearn )
 
 viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeonScene sceneModel delvePhase delve =
@@ -689,13 +722,34 @@ update msg model =
         ( UserSelectedPlayerScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase PlayerScene sceneModel }, Cmd.none )
         
+        ( UserSelectedLearnSelectScene, ScenePhase _ sceneModel ) ->
+            ( { model | phase = ScenePhase LearnSelectScene sceneModel }, Cmd.none )
+        
+        ( UserSelectedLearnSkill action, ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    if action.learnCost <= sceneModel.freeAbilityPoints then
+                        { sceneModel
+                            | freeAbilityPoints =
+                                sceneModel.freeAbilityPoints - action.learnCost
+                            , actions =
+                                action :: sceneModel.actions
+                        }
+                    else
+                        sceneModel
+            in
+            ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
+        
         ( UserSelectedHomeScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase HomeScene sceneModel }, Cmd.none )
         
         ( UserSelectedHomeRest, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
-                    { sceneModel | hitPoints = sceneModel.maxHitPoints }
+                    { sceneModel 
+                        | hitPoints = sceneModel.maxHitPoints
+                        , magicPoints = sceneModel.maxMagicPoints
+                    }
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
@@ -836,6 +890,8 @@ update msg model =
                     , inventory = Inventory.new
                     , level = 1
                     , experience = 0
+                    , freeAbilityPoints = 0
+                    , totalAbilityPoints = 0
                     , satiety = 10
                     , maxSatiety = 10
                     , hitPoints = 10
@@ -917,16 +973,15 @@ updateCharacterCreationConfirmation model characterCreationModel =
 
 updateBattleAction : Model -> Monster -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateBattleAction model monster action sceneModel =
-    let
-        battle =
-            { monster = monster
-            , player = sceneModel
-            }
-        
+    let 
+        playerEffects =
+            if action.magicPointCost <= sceneModel.magicPoints then
+                (Effect.ChangeMagicPoints -1) :: action.effects
+            else
+                []
+            
         battleEffects =
-            action.effects ++
-                [ Effect.ChangeHitPoints -1
-                ]
+            (Effect.ChangeHitPoints -1) :: playerEffects
 
         newMonster =
             applyEffectsToMonster battleEffects monster
@@ -942,6 +997,7 @@ updateBattleAction model monster action sceneModel =
                     reward =
                         { experience = newMonster.experience
                         , gold = newMonster.gold
+                        , abilityPoints = newMonster.abilityPoints
                         , items = []
                         }
                     
@@ -949,6 +1005,8 @@ updateBattleAction model monster action sceneModel =
                         { newSceneModel
                             | experience = max 0 (newSceneModel.experience + reward.experience)
                             , gold = max 0 (newSceneModel.gold + reward.gold)
+                            , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
+                            , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
                         }
                 in
                 ( VictoryScene newMonster reward, newSceneModel3 )
@@ -961,15 +1019,14 @@ updateBattleAction model monster action sceneModel =
 updateDungeonBattleAction : Model -> Monster -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model monster action delve sceneModel =
     let
-        battle =
-            { monster = monster
-            , player = sceneModel
-            }
-        
+        playerEffects =
+            if action.magicPointCost <= sceneModel.magicPoints then
+                (Effect.ChangeMagicPoints -1) :: action.effects
+            else
+                []
+            
         battleEffects =
-            action.effects ++
-                [ Effect.ChangeHitPoints -1
-                ]
+            (Effect.ChangeHitPoints -1) :: playerEffects
         
         newMonster =
             applyEffectsToMonster battleEffects monster
@@ -985,6 +1042,7 @@ updateDungeonBattleAction model monster action delve sceneModel =
                     reward =
                         { experience = newMonster.experience
                         , gold = newMonster.gold
+                        , abilityPoints = newMonster.abilityPoints
                         , items = []
                         }
                     
@@ -992,6 +1050,8 @@ updateDungeonBattleAction model monster action delve sceneModel =
                         { newSceneModel
                             | experience = max 0 (newSceneModel.experience + reward.experience)
                             , gold = max 0 (newSceneModel.gold + reward.gold)
+                            , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
+                            , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
                         }
                 in
                 ( ExploreDungeonScene (ActionPhase (DungeonScene.Victory newMonster reward)) delve, newSceneModel3 )

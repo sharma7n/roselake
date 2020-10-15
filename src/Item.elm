@@ -6,7 +6,6 @@ module Item exposing
 
 import Random
 
-import BattleEffect exposing (BattleEffect)
 import Context exposing (Context)
 import Effect exposing (Effect)
 
@@ -15,7 +14,6 @@ type alias Item =
     , name : String
     , cost : Int
     , context : Context
-    , battleEffects : List BattleEffect
     , effects : List Effect
     }
 
@@ -27,7 +25,6 @@ byId s =
             , name = "Potion"
             , cost = 2
             , context = Context.Any
-            , battleEffects = []
             , effects =
                 [ Effect.ChangeHitPoints 1
                 ]
@@ -38,7 +35,6 @@ byId s =
             , name = "Null Item"
             , cost = 0
             , context = Context.None
-            , battleEffects = []
             , effects = []
             }
 

@@ -24,7 +24,6 @@ import DungeonPath
 import DungeonScene
 import Dungeon exposing (Dungeon)
 import Action exposing (Action)
-import BattleEffect exposing (BattleEffect)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
@@ -61,6 +60,7 @@ type alias SceneModel =
     , magicPoints : Int
     , maxMagicPoints : Int
     , attack : Int
+    , actions : List Action
     }
 
 type alias Battle =
@@ -78,44 +78,24 @@ type DelvePhase
     | ActionPhase DungeonScene.Scene
 
 
-applyEffectToBattle : BattleEffect -> Battle -> Battle
-applyEffectToBattle effect b =
+applyEffectToMonster : Effect -> Monster -> Monster
+applyEffectToMonster effect m =
     case effect of
-        BattleEffect.ChangePlayerHitPoints d ->
-            let
-                p =
-                    b.player
-                
-                newHitPoints =
-                    boundedBy 0 p.maxHitPoints (p.hitPoints + d)
-                
-                newPlayer =
-                    { p | hitPoints = newHitPoints }
-            in
-            { b | player = newPlayer }
+        Effect.ChangeMonsterHitPoints d ->
+            { m | hitPoints = boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
         
-        BattleEffect.ChangeMonsterHitPoints d ->
-            let
-                m =
-                    b.monster
-                
-                newHitPoints =
-                    boundedBy 0 m.maxHitPoints (m.hitPoints + d)
-                
-                newMonster =
-                    { m | hitPoints = newHitPoints }
-            in
-            { b | monster = newMonster }
+        _ ->
+            m
+
+applyEffectsToMonster : List Effect -> Monster -> Monster
+applyEffectsToMonster effects m =
+    List.foldl applyEffectToMonster m effects
 
 boundedBy : Int -> Int -> Int -> Int
 boundedBy lower upper x =
     x
         |> min upper
         |> max lower
-
-applyEffectsToBattle : List BattleEffect -> Battle -> Battle
-applyEffectsToBattle effects m =
-    List.foldl applyEffectToBattle m effects
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
 applyEffectToSceneModel effect m =
@@ -167,6 +147,9 @@ applyEffectToSceneModel effect m =
         
         Effect.ChangeAttack d ->
             { m | attack = max 0 (m.attack + d) }
+        
+        Effect.ChangeMonsterHitPoints _ ->
+            m
 
 applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
 applyEffectsToSceneModel effects m =
@@ -205,6 +188,10 @@ characterCreationSettingsToSceneModel settings =
             , magicPoints = 5
             , maxMagicPoints = 5
             , attack = 1
+            , actions =
+                [ Action.byId "attack"
+                , Action.byId "fireball"
+                ]
             }
         )))))))
 
@@ -551,16 +538,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                                 , "HP: " ++ String.fromInt monster.hitPoints
                                 , "Intent: Attack " ++ String.fromInt monster.attack
                                 ]
-                            , Html.ul
-                                []
-                                [ Html.li
-                                    []
-                                    [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
-                                    , Html.button
-                                        [ Html.Events.onClick <| UserSelectedBattleAction (Action.byId "attack") ]
-                                        [ Html.text "Go" ]
-                                    ]
-                                ]
+                            , actionTable sceneModel.actions
                             ]
                     
                     _ ->
@@ -623,17 +601,24 @@ viewBattleMonsterScene sceneModel monster =
             , "HP: " ++ String.fromInt monster.hitPoints
             , "Intent: Attack " ++ String.fromInt monster.attack
             ]
-        , Html.ul
-            []
-            [ Html.li
+        , actionTable sceneModel.actions
+        ]
+
+actionTable : List Action -> Html Msg
+actionTable actions =
+    let
+        actionFn action =
+            Html.li
                 []
-                [ Html.text <| "Attack " ++ String.fromInt sceneModel.attack
+                [ Html.text <| action.name ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedBattleAction (Action.byId "attack") ]
+                    [ Html.Events.onClick <| UserSelectedBattleAction action ]
                     [ Html.text "Go" ]
                 ]
-            ]
-        ]
+    in
+    Html.ul
+        []
+        ( List.map actionFn actions )
 
 viewShopScene : SceneModel -> Shop -> Html Msg
 viewShopScene sceneModel shop =
@@ -858,6 +843,10 @@ update msg model =
                     , magicPoints = 5
                     , maxMagicPoints = 5
                     , attack = 1
+                    , actions =
+                        [ Action.byId "attack"
+                        , Action.byId "fireball"
+                        ]
                     }
                 
                 newModel =
@@ -936,17 +925,14 @@ updateBattleAction model monster action sceneModel =
         
         battleEffects =
             action.effects ++
-                [ BattleEffect.ChangePlayerHitPoints -1
+                [ Effect.ChangeHitPoints -1
                 ]
-        
-        newBattle =
-            applyEffectsToBattle battleEffects battle
-        
+
         newMonster =
-            newBattle.monster
+            applyEffectsToMonster battleEffects monster
         
         newSceneModel =
-            newBattle.player
+            applyEffectsToSceneModel battleEffects sceneModel
         
         ( newScene, newSceneModel2 ) =
             if newSceneModel.hitPoints <= 0 then
@@ -982,17 +968,14 @@ updateDungeonBattleAction model monster action delve sceneModel =
         
         battleEffects =
             action.effects ++
-                [ BattleEffect.ChangePlayerHitPoints -1
+                [ Effect.ChangeHitPoints -1
                 ]
         
-        newBattle =
-            applyEffectsToBattle battleEffects battle
-        
         newMonster =
-            newBattle.monster
+            applyEffectsToMonster battleEffects monster
         
         newSceneModel =
-            newBattle.player
+            applyEffectsToSceneModel battleEffects sceneModel
         
         ( newScene, newSceneModel2 ) =
             if newSceneModel.hitPoints <= 0 then

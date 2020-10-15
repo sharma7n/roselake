@@ -18,7 +18,10 @@ type alias Monster =
     , abilityPoints : Int
     , hitPoints : Int
     , maxHitPoints : Int
+    , magicPoints : Int
+    , maxMagicPoints : Int
     , attack : Int
+    , agility : Int
     , actions : Distribution Action
     }
 
@@ -32,7 +35,10 @@ byId id =
             , abilityPoints = 1
             , hitPoints = 3
             , maxHitPoints = 3
+            , magicPoints = 0
+            , maxMagicPoints = 0
             , attack = 1
+            , agility = 1
             , actions =
                 Distribution.new
                     ( 50, Action.byId "nothing" )
@@ -47,7 +53,10 @@ byId id =
             , abilityPoints = 1
             , hitPoints = 10
             , maxHitPoints = 10
+            , magicPoints = 5
+            , maxMagicPoints = 5
             , attack = 1
+            , agility = 1
             , actions =
                 Distribution.new
                     ( 50, Action.byId "attack" )
@@ -62,7 +71,10 @@ byId id =
             , abilityPoints = 0
             , hitPoints = 0
             , maxHitPoints = 0
+            , magicPoints = 0
+            , maxMagicPoints = 0
             , attack = 0
+            , agility = 0
             , actions =
                 Distribution.new
                     ( 0, Action.byId "null" )

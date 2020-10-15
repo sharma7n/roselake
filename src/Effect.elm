@@ -15,7 +15,6 @@ type Effect
     | ChangeMagicPoints Int
     | ChangeMaxMagicPoints Int
     | ChangeAttack Int
-    | ChangeMonsterHitPoints Int
 
 contexts : Effect -> List Context
 contexts effect =
@@ -46,6 +45,3 @@ contexts effect =
         
         ChangeAttack _ ->
             [ Context.None ]
-        
-        ChangeMonsterHitPoints _ ->
-            [ Context.Battle ]

@@ -8,6 +8,7 @@ import Json.Decode
 import Random
 
 import Distribution exposing (Distribution)
+import Util
 
 import CharacterCreationError
 import CharacterCreationSettings exposing (CharacterCreationSettings)
@@ -19,6 +20,8 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Battler exposing (Battler)
+import Target exposing (Target)
 import Avatar exposing (Avatar)
 import DungeonPath
 import DungeonScene
@@ -62,6 +65,7 @@ type alias SceneModel =
     , magicPoints : Int
     , maxMagicPoints : Int
     , attack : Int
+    , agility : Int
     , actions : List Action
     }
 
@@ -79,26 +83,6 @@ type DelvePhase
     = ExplorationPhase (List DungeonPath.Path)
     | ActionPhase DungeonScene.Scene
 
-
-applyEffectToMonster : Effect -> Monster -> Monster
-applyEffectToMonster effect m =
-    case effect of
-        Effect.ChangeMonsterHitPoints d ->
-            { m | hitPoints = boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
-        
-        _ ->
-            m
-
-applyEffectsToMonster : List Effect -> Monster -> Monster
-applyEffectsToMonster effects m =
-    List.foldl applyEffectToMonster m effects
-
-boundedBy : Int -> Int -> Int -> Int
-boundedBy lower upper x =
-    x
-        |> min upper
-        |> max lower
-
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
 applyEffectToSceneModel effect m =
     case effect of
@@ -109,7 +93,7 @@ applyEffectToSceneModel effect m =
             { m | experience = max 0 (m.experience + d) }
         
         Effect.ChangeSatiety d ->
-            { m | satiety = boundedBy 0 m.maxSatiety (m.satiety + d) }
+            { m | satiety = Util.boundedBy 0 m.maxSatiety (m.satiety + d) }
         
         Effect.ChangeMaxSatiety d ->
             let
@@ -118,11 +102,11 @@ applyEffectToSceneModel effect m =
             in
             { m
                 | maxSatiety = newMaxSatiety
-                , satiety = boundedBy 0 newMaxSatiety m.satiety
+                , satiety = Util.boundedBy 0 newMaxSatiety m.satiety
             }
         
         Effect.ChangeHitPoints d ->
-            { m | hitPoints = boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
+            { m | hitPoints = Util.boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
         
         Effect.ChangeMaxHitPoints d ->
             let
@@ -131,11 +115,11 @@ applyEffectToSceneModel effect m =
             in
             { m
                 | maxHitPoints = newMaxHitPoints
-                , hitPoints = boundedBy 0 newMaxHitPoints m.hitPoints
+                , hitPoints = Util.boundedBy 0 newMaxHitPoints m.hitPoints
             }
         
         Effect.ChangeMagicPoints d ->
-            { m | magicPoints = boundedBy 0 m.maxMagicPoints (m.magicPoints + d) }
+            { m | magicPoints = Util.boundedBy 0 m.maxMagicPoints (m.magicPoints + d) }
 
         Effect.ChangeMaxMagicPoints d ->
             let
@@ -144,14 +128,11 @@ applyEffectToSceneModel effect m =
             in
             { m
                 | maxMagicPoints = newMaxMagicPoints
-                , magicPoints = boundedBy 0 newMaxMagicPoints m.magicPoints
+                , magicPoints = Util.boundedBy 0 newMaxMagicPoints m.magicPoints
             }
         
         Effect.ChangeAttack d ->
             { m | attack = max 0 (m.attack + d) }
-        
-        Effect.ChangeMonsterHitPoints _ ->
-            m
 
 applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
 applyEffectsToSceneModel effects m =
@@ -192,6 +173,7 @@ characterCreationSettingsToSceneModel settings =
             , magicPoints = 5
             , maxMagicPoints = 5
             , attack = 1
+            , agility = 1
             , actions =
                 [ Action.byId "attack"
                 , Action.byId "fireball"
@@ -482,8 +464,12 @@ viewSceneModel : Scene -> SceneModel -> Html Msg
 viewSceneModel scene sceneModel =
     case scene of
         PlayerScene ->
-            textList
-                [ "TODO"
+            Html.ul
+                []
+                [ textList
+                    [ "ATK: " ++ String.fromInt sceneModel.attack
+                    , "AGI: " ++ String.fromInt sceneModel.agility
+                    ]
                 ]
         
         LearnSelectScene ->
@@ -860,7 +846,7 @@ update msg model =
                     { delve
                         | floor =
                             delve.floor + 1
-                                |> boundedBy 1 delve.dungeon.depth
+                                |> Util.boundedBy 1 delve.dungeon.depth
                     }
                 
             in 
@@ -918,6 +904,7 @@ update msg model =
                     , magicPoints = 5
                     , maxMagicPoints = 5
                     , attack = 1
+                    , agility = 1
                     , actions =
                         [ Action.byId "attack"
                         , Action.byId "fireball"
@@ -992,21 +979,9 @@ updateCharacterCreationConfirmation model characterCreationModel =
 
 updateBattleAction : Model -> Monster -> Action -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateBattleAction model monster action monsterAction sceneModel =
-    let 
-        playerEffects =
-            if action.magicPointCost <= sceneModel.magicPoints then
-                (Effect.ChangeMagicPoints -1) :: action.effects
-            else
-                []
-            
-        battleEffects =
-            (Effect.ChangeHitPoints -1) :: playerEffects
-
-        newMonster =
-            applyEffectsToMonster battleEffects monster
-        
-        newSceneModel =
-            applyEffectsToSceneModel battleEffects sceneModel
+    let
+        ( newMonster, newSceneModel ) =
+            runOneBattleRound monsterAction action monster sceneModel
         
         ( newScene, newSceneModel2 ) =
             if newSceneModel.hitPoints <= 0 then
@@ -1038,20 +1013,8 @@ updateBattleAction model monster action monsterAction sceneModel =
 updateDungeonBattleAction : Model -> Monster -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model monster action monsterAction delve sceneModel =
     let
-        playerEffects =
-            if action.magicPointCost <= sceneModel.magicPoints then
-                (Effect.ChangeMagicPoints -1) :: action.effects
-            else
-                []
-            
-        battleEffects =
-            (Effect.ChangeHitPoints -1) :: playerEffects
-        
-        newMonster =
-            applyEffectsToMonster battleEffects monster
-        
-        newSceneModel =
-            applyEffectsToSceneModel battleEffects sceneModel
+        ( newMonster, newSceneModel ) =
+            runOneBattleRound monsterAction action monster sceneModel
         
         ( newScene, newSceneModel2 ) =
             if newSceneModel.hitPoints <= 0 then
@@ -1079,6 +1042,56 @@ updateDungeonBattleAction model monster action monsterAction delve sceneModel =
                 ( ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent newMonster)) delve, newSceneModel )
     in
     ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate SystemGotMonsterIntent (Monster.chooseAction monster) )
+
+
+runOneBattleRound : Action -> Action -> Battler a -> Battler b -> ( Battler a, Battler b )
+runOneBattleRound actionA actionB battlerA battlerB =
+    let
+        realActionA =
+            if actionA.magicPointCost <= battlerA.magicPoints then
+                actionA
+            else
+                Action.byId "null"
+        
+        realActionB =
+            if actionB.magicPointCost <= battlerB.magicPoints then
+                actionB
+            else
+                Action.byId "null"
+        
+        effectsTargetingBattlerA =
+            (realActionA.subs
+                |> List.filter (\s -> s.target == Target.Self)
+                |> List.map (\s -> s.effects)
+                |> List.concat
+            ) ++
+            (realActionB.subs
+                |> List.filter (\s -> s.target == Target.Enemy)
+                |> List.map (\s -> s.effects)
+                |> List.concat
+            )
+        
+        effectsTargetingBattlerB =
+            (realActionA.subs
+                |> List.filter (\s -> s.target == Target.Enemy)
+                |> List.map (\s -> s.effects)
+                |> List.concat
+            ) ++
+            (realActionB.subs
+                |> List.filter (\s -> s.target == Target.Self)
+                |> List.map (\s -> s.effects)
+                |> List.concat
+            )
+
+        newBattlerA =
+            { battlerA | magicPoints = battlerA.magicPoints - realActionA.magicPointCost }
+                |> Battler.applyEffects effectsTargetingBattlerA
+        
+        newBattlerB =
+            { battlerB | magicPoints = battlerB.magicPoints - realActionB.magicPointCost }
+                |> Battler.applyEffects effectsTargetingBattlerB
+    in
+    ( newBattlerA, newBattlerB )
 
 -- SUBSCRIPTIONS
 

@@ -6,6 +6,7 @@ module Action exposing
 
 import Context exposing (Context)
 import Effect exposing (Effect)
+import Target exposing (Target)
 
 type alias Action =
     { id : String
@@ -13,6 +14,11 @@ type alias Action =
     , context : Context
     , learnCost : Int
     , magicPointCost : Int
+    , subs : List Sub
+    }
+
+type alias Sub =
+    { target : Target
     , effects : List Effect
     }
 
@@ -25,7 +31,11 @@ byId id =
             , context = Context.Any
             , learnCost = 0
             , magicPointCost = 0
-            , effects = []
+            , subs =
+                [ { target = Target.None
+                  , effects = []
+                  }
+                ]
             }
         
         "attack" ->
@@ -34,8 +44,12 @@ byId id =
             , context = Context.Battle
             , learnCost = 0
             , magicPointCost = 0
-            , effects = 
-                [ Effect.ChangeMonsterHitPoints -1
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.ChangeHitPoints -1
+                    ]
+                  }
                 ]
             }
         
@@ -45,8 +59,12 @@ byId id =
             , context = Context.Battle
             , learnCost = 1
             , magicPointCost = 1
-            , effects =
-                [ Effect.ChangeMonsterHitPoints -3
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.ChangeHitPoints -3
+                    ]
+                  }
                 ]
             }
         
@@ -56,8 +74,12 @@ byId id =
             , context = Context.Any
             , learnCost = 1
             , magicPointCost = 2
-            , effects =
-                [ Effect.ChangeHitPoints 1
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.ChangeHitPoints 2
+                    ]
+                  }
                 ]
             }
         
@@ -67,7 +89,7 @@ byId id =
             , context = Context.None
             , learnCost = 0
             , magicPointCost = 0
-            , effects = []
+            , subs = []
             }
 
 learnable : List Action

@@ -4,6 +4,7 @@ module Effect exposing
     )
 
 import Context exposing (Context)
+import Formula exposing (Formula)
 
 type Effect
     = ChangeLevel Int
@@ -15,6 +16,8 @@ type Effect
     | ChangeMagicPoints Int
     | ChangeMaxMagicPoints Int
     | ChangeAttack Int
+    | BattleEnemy Formula
+    | BattleSelf Formula
 
 contexts : Effect -> List Context
 contexts effect =
@@ -45,3 +48,9 @@ contexts effect =
         
         ChangeAttack _ ->
             [ Context.None ]
+        
+        BattleEnemy _ ->
+            [ Context.Battle ]
+        
+        BattleSelf _ ->
+            [ Context.Battle ]

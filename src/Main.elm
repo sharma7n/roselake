@@ -133,6 +133,9 @@ applyEffectToSceneModel effect m =
         
         Effect.ChangeAttack d ->
             { m | attack = max 0 (m.attack + d) }
+        
+        _ ->
+            m
 
 applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
 applyEffectsToSceneModel effects m =

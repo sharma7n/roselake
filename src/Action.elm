@@ -6,6 +6,7 @@ module Action exposing
 
 import Context exposing (Context)
 import Effect exposing (Effect)
+import Formula exposing (Formula)
 import Target exposing (Target)
 
 type alias Action =
@@ -31,11 +32,7 @@ byId id =
             , context = Context.Any
             , learnCost = 0
             , magicPointCost = 0
-            , subs =
-                [ { target = Target.None
-                  , effects = []
-                  }
-                ]
+            , subs = []
             }
         
         "attack" ->
@@ -47,7 +44,7 @@ byId id =
             , subs =
                 [ { target = Target.Enemy
                   , effects =
-                    [ Effect.ChangeHitPoints -1
+                    [ Effect.BattleEnemy Formula.Attack
                     ]
                   }
                 ]
@@ -62,7 +59,7 @@ byId id =
             , subs =
                 [ { target = Target.Enemy
                   , effects =
-                    [ Effect.ChangeHitPoints -3
+                    [ Effect.BattleEnemy Formula.Fireball
                     ]
                   }
                 ]
@@ -77,7 +74,7 @@ byId id =
             , subs =
                 [ { target = Target.Self
                   , effects =
-                    [ Effect.ChangeHitPoints 2
+                    [ Effect.BattleSelf Formula.Heal
                     ]
                   }
                 ]

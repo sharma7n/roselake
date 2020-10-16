@@ -501,7 +501,8 @@ viewSceneModel scene sceneModel =
 
         BattleScene ->
             monsterTable
-                [ Monster.byId "gremlin"
+                [ Monster.byId "dummy"
+                , Monster.byId "gremlin"
                 ]
         
         BattleMonsterLoadingIntentScene monster ->
@@ -694,7 +695,7 @@ monsterTable : List Monster -> Html Msg
 monsterTable monsters =
     let
         monsterFn monster =
-            Html.span
+            Html.li
                 []
                 [ Html.text <| monster.name
                 , Html.text <| " | HP: " ++ String.fromInt monster.hitPoints
@@ -1062,39 +1063,25 @@ runOneBattleRound actionA actionB battlerA battlerB =
             else
                 Action.byId "null"
         
-        effectsTargetingBattlerA =
-            (realActionA.subs
-                |> List.filter (\s -> s.target == Target.Self)
+        battlerAEffects =
+            realActionA.subs
                 |> List.map (\s -> s.effects)
                 |> List.concat
-            ) ++
-            (realActionB.subs
-                |> List.filter (\s -> s.target == Target.Enemy)
-                |> List.map (\s -> s.effects)
-                |> List.concat
-            )
         
-        effectsTargetingBattlerB =
-            (realActionA.subs
-                |> List.filter (\s -> s.target == Target.Enemy)
+        battlerBEffects =
+            realActionB.subs
                 |> List.map (\s -> s.effects)
                 |> List.concat
-            ) ++
-            (realActionB.subs
-                |> List.filter (\s -> s.target == Target.Self)
-                |> List.map (\s -> s.effects)
-                |> List.concat
-            )
 
-        newBattlerA =
-            { battlerA | magicPoints = battlerA.magicPoints - realActionA.magicPointCost }
-                |> Battler.applyEffects effectsTargetingBattlerA
+        ( newBattlerA1, newBattlerB1 ) =
+            ( { battlerA | magicPoints = battlerA.magicPoints - realActionA.magicPointCost }, battlerB )
+                |> Battler.applyEffects battlerAEffects
         
-        newBattlerB =
-            { battlerB | magicPoints = battlerB.magicPoints - realActionB.magicPointCost }
-                |> Battler.applyEffects effectsTargetingBattlerB
+        ( newBattlerB2, newBattlerA2 ) =
+            ( { newBattlerB1 | magicPoints = battlerB.magicPoints - realActionB.magicPointCost }, newBattlerA1 )
+                |> Battler.applyEffects battlerBEffects
     in
-    ( newBattlerA, newBattlerB )
+    ( newBattlerA2, newBattlerB2 )
 
 -- SUBSCRIPTIONS
 

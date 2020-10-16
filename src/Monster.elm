@@ -46,6 +46,22 @@ byId id =
                     ]
             }
         
+        "dummy" ->
+            { name = "Dummy"
+            , experience = 1
+            , gold = 1
+            , abilityPoints = 1
+            , hitPoints = 1
+            , maxHitPoints = 1
+            , magicPoints = 1
+            , maxMagicPoints = 1
+            , attack = 1
+            , agility = 1
+            , actions = Distribution.new
+                ( 1, Action.byId "nothing" )
+                []
+            }
+        
         "gremlin" ->
             { name = "Gremlin"
             , experience = 1
@@ -59,8 +75,9 @@ byId id =
             , agility = 1
             , actions =
                 Distribution.new
-                    ( 50, Action.byId "attack" )
-                    [ ( 50, Action.byId "fireball" )
+                    ( 33, Action.byId "attack" )
+                    [ ( 33, Action.byId "fireball" )
+                    , ( 33, Action.byId "heal" )
                     ]
             }
         
@@ -90,4 +107,17 @@ generator =
 
 chooseAction : Monster -> Random.Generator Action
 chooseAction monster =
-    Distribution.random monster.actions
+    chooseActionInternal monster 0
+
+chooseActionInternal : Monster -> Int -> Random.Generator Action
+chooseActionInternal monster retries =
+    if retries > 2 then
+        Random.constant <| Action.byId "attack"
+    else
+        Distribution.random monster.actions
+            |> Random.andThen (\action ->
+                if action.magicPointCost <= monster.magicPoints then
+                    Random.constant action
+                else
+                    chooseActionInternal monster (retries + 1)
+            )

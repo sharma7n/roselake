@@ -44,7 +44,7 @@ byId id =
             , subs =
                 [ { target = Target.Enemy
                   , effects =
-                    [ Effect.BattleEnemy Formula.Attack
+                    [ Effect.BattleFormula Formula.Attack
                     ]
                   }
                 ]
@@ -59,7 +59,7 @@ byId id =
             , subs =
                 [ { target = Target.Enemy
                   , effects =
-                    [ Effect.BattleEnemy Formula.Fireball
+                    [ Effect.BattleFormula Formula.Fireball
                     ]
                   }
                 ]
@@ -74,7 +74,7 @@ byId id =
             , subs =
                 [ { target = Target.Self
                   , effects =
-                    [ Effect.BattleSelf Formula.Heal
+                    [ Effect.BattleFormula Formula.Heal
                     ]
                   }
                 ]

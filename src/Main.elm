@@ -586,6 +586,15 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             , ( "Exit Dungeon", UserSelectedExitDungeon )
                             ]
                     
+                    DungeonScene.TrapDoor ->
+                        Html.div
+                            []
+                            [ Html.text "A trap door!"
+                            , Html.button
+                                [ Html.Events.onClick UserSelectedExitDungeon ]
+                                [ Html.text "Exit Dungeon" ]
+                            ]
+                    
                     _ ->
                         Html.ul
                             []
@@ -935,7 +944,7 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( UserSelectedExitDungeon, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.RestArea) _) sceneModel ) ->
+        ( UserSelectedExitDungeon, ScenePhase (ExploreDungeonScene (ActionPhase _) _) sceneModel ) ->
             ( { model | phase = ScenePhase ExploreScene sceneModel }, Cmd.none )
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->

@@ -16,15 +16,27 @@ type alias Path =
 generator : Random.Generator Path
 generator =
     let
+        restArea =
+            { description = "The glow of a save point"
+            , sceneDistribution =
+                Distribution.new
+                    ( 100, DungeonScene.RestArea )
+                    []
+            }
+        
         windingTunnels =
             { description = "Follow the winding tunnels"
             , sceneDistribution =
                 Distribution.new
-                    ( 20, DungeonScene.Empty )
-                    [ ( 40, DungeonScene.Battle )
+                    ( 15, DungeonScene.Empty )
+                    [ ( 35, DungeonScene.Battle )
                     , ( 20, DungeonScene.Treasure )
-                    , ( 20, DungeonScene.RestArea )
+                    , ( 25, DungeonScene.RestArea )
+                    , ( 5, DungeonScene.TrapDoor )
                     ]
             }
     in
-    Random.constant windingTunnels
+    Random.weighted
+        ( 20, restArea )
+        [ ( 80, windingTunnels )
+        ]

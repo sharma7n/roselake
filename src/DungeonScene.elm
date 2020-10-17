@@ -9,6 +9,7 @@ import Random
 import Action exposing (Action)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
+import Object exposing (Object)
 
 type Scene
     = Empty
@@ -18,6 +19,7 @@ type Scene
     | BattleMonster Monster Action
     | Victory Monster Reward
     | Treasure
+    | ReceiveTreasure Object
     | Event
     | RestArea
     | Shop
@@ -60,6 +62,9 @@ toString s =
         
         Treasure ->
             "Treasure"
+        
+        ReceiveTreasure o ->
+            "Got: " ++ Object.toString o
         
         Event ->
             "Event"

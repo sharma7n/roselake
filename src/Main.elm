@@ -31,6 +31,7 @@ import Effect exposing (Effect)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Inventory exposing (Inventory)
+import Object exposing (Object)
 import Shop exposing (Shop)
 import Item exposing (Item)
 
@@ -192,6 +193,7 @@ type Scene
     | ShopScene Shop
     | ExploreScene
     | ExploreDungeonScene DelvePhase Delve
+    | ExploreDoneScene Delve
     | BattleScene
     | BattleMonsterLoadingIntentScene Monster
     | BattleMonsterScene Monster Action
@@ -220,6 +222,7 @@ type Msg
     | SystemGotDungeonContinuation (List DungeonPath.Path)
     | SystemGotMonster Monster
     | SystemGotMonsterIntent Action
+    | SystemGotObject Object
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
@@ -499,6 +502,11 @@ viewSceneModel scene sceneModel =
         ExploreDungeonScene delvePhase delve ->
             viewExploreDungeonScene sceneModel delvePhase delve
 
+        ExploreDoneScene delve ->
+            textList
+                [ "You beat " ++ delve.dungeon.name
+                ]
+        
         BattleScene ->
             monsterTable
                 [ Monster.byId "dummy"
@@ -818,6 +826,9 @@ update msg model =
                         DungeonScene.Battle ->
                             Random.generate SystemGotMonster Monster.generator
                         
+                        DungeonScene.Treasure ->
+                            Random.generate SystemGotObject Object.generator
+                        
                         _ ->
                             Cmd.none
                 
@@ -834,6 +845,25 @@ update msg model =
         ( SystemGotMonsterIntent intent, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel ) ->
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster intent)) delve) sceneModel }, Cmd.none )
 
+        ( SystemGotObject (Object.Item i), ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
+            let
+                newDungeonScene =
+                    ActionPhase <| DungeonScene.ReceiveTreasure (Object.Item i)
+                
+                newSceneModel =
+                    { sceneModel
+                        | inventory =
+                            sceneModel.inventory
+                                |> Inventory.modify i 1
+                    }
+                
+                newModel =
+                    { model
+                        | phase = ScenePhase (ExploreDungeonScene newDungeonScene delve) newSceneModel
+                    }
+            in
+            ( newModel, Cmd.none )
+        
         ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 pathListGenerator =
@@ -844,17 +874,23 @@ update msg model =
             in
             ( model, cmd )
         
-        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
+        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
             let
-                newDelve =
-                    { delve
-                        | floor =
-                            delve.floor + 1
-                                |> Util.boundedBy 1 delve.dungeon.depth
-                    }
-                
+                newScene =
+                    if delve.floor >= delve.dungeon.depth then
+                        ExploreDoneScene delve
+                    else
+                        let
+                            newDelve =
+                                { delve
+                                    | floor =
+                                        delve.floor + 1
+                                            |> Util.boundedBy 1 delve.dungeon.depth
+                                }
+                        in
+                        ExploreDungeonScene (ExplorationPhase paths) newDelve
             in 
-            ( { model | phase = ScenePhase (ExploreDungeonScene (ExplorationPhase paths) newDelve) sceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase newScene sceneModel }, Cmd.none )
         
         ( UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )

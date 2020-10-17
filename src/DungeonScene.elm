@@ -25,7 +25,8 @@ type Scene
     | Rested
     | Shop
     | TrapDoor
-    | Goal
+    | LoadingGoal
+    | Goal Reward
 
 generator : Random.Generator Scene
 generator =
@@ -82,5 +83,8 @@ toString s =
         TrapDoor ->
             "Trap Door"
         
-        Goal ->
+        LoadingGoal ->
+            "Loading goal..."
+        
+        Goal _ ->
             "Goal"

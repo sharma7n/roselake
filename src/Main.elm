@@ -193,7 +193,6 @@ type Scene
     | ShopScene Shop
     | ExploreScene
     | ExploreDungeonScene DelvePhase Delve
-    | ExploreDoneScene Delve
     | BattleScene
     | BattleMonsterLoadingIntentScene Monster
     | BattleMonsterScene Monster Action
@@ -224,6 +223,7 @@ type Msg
     | SystemGotMonster Monster
     | SystemGotMonsterIntent Action
     | SystemGotObject Object
+    | SystemGotReward Reward
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
@@ -503,11 +503,6 @@ viewSceneModel scene sceneModel =
         
         ExploreDungeonScene delvePhase delve ->
             viewExploreDungeonScene sceneModel delvePhase delve
-
-        ExploreDoneScene delve ->
-            textList
-                [ "You beat " ++ delve.dungeon.name
-                ]
         
         BattleScene ->
             monsterTable
@@ -587,9 +582,22 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             ]
                     
                     DungeonScene.TrapDoor ->
-                        Html.div
+                        Html.ul
                             []
                             [ Html.text "A trap door!"
+                            , Html.button
+                                [ Html.Events.onClick UserSelectedExitDungeon ]
+                                [ Html.text "Exit Dungeon" ]
+                            ]
+                    
+                    DungeonScene.LoadingGoal ->
+                        Html.text "Loading goal..."
+                    
+                    DungeonScene.Goal reward ->
+                        Html.ul
+                            []
+                            [ Html.text "Goal!"
+                            , viewReward reward
                             , Html.button
                                 [ Html.Events.onClick UserSelectedExitDungeon ]
                                 [ Html.text "Exit Dungeon" ]
@@ -621,6 +629,60 @@ pathTable paths =
     Html.ul
         []
         ( List.map pathFn paths )
+
+viewReward : Reward -> Html Msg
+viewReward r =
+    let
+        ( experienceReward, expVis ) =
+            ( Html.li
+                []
+                [ Html.text <| "Got: " ++ String.fromInt r.experience ++ " EXP!" ]
+            , r.experience > 0
+            )
+        
+        ( goldReward, goldVis ) =
+            ( Html.li
+                []
+                [ Html.text <| "Got: " ++ String.fromInt r.gold ++ " G!" ]
+            , r.gold > 0
+            )
+        
+        ( apReward, apVis ) =
+            ( Html.li
+                []
+                [ Html.text <| "Got: " ++ String.fromInt r.abilityPoints ++ " AP!" ]
+            , r.abilityPoints > 0
+            )
+        
+        ( itemReward, itemVis ) =
+            let
+                relevant =
+                    r.items
+                        |> List.filter (\(_, q) -> q > 0)
+            in
+            ( let
+
+                oneItemReward ( item, qty )=
+                    Html.text <| "Got: " ++ String.fromInt qty ++ "x " ++ item.name ++ "!"
+              in
+              Html.li
+                []
+                ( List.map oneItemReward relevant )
+            , List.length relevant > 0
+            )
+        
+        display =
+            [ ( experienceReward, expVis )
+            , ( goldReward, goldVis )
+            , ( apReward, apVis )
+            , ( itemReward, itemVis )
+            ]
+                |> List.filter (\(_, vis) -> vis)
+                |> List.map (\(d,_) -> d)            
+    in
+    Html.ul
+        []
+        display
 
 shopTable : List Shop -> Html Msg
 shopTable shops =
@@ -894,9 +956,15 @@ update msg model =
         
         ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
             let
+                cmd =
+                    if delve.floor >= delve.dungeon.depth then
+                        Random.generate SystemGotReward (generateDungeonReward delve.dungeon)
+                    else
+                        Cmd.none
+                
                 newScene =
                     if delve.floor >= delve.dungeon.depth then
-                        ExploreDoneScene delve
+                        ExploreDungeonScene (ActionPhase DungeonScene.LoadingGoal) delve
                     else
                         let
                             newDelve =
@@ -908,7 +976,29 @@ update msg model =
                         in
                         ExploreDungeonScene (ExplorationPhase paths) newDelve
             in 
-            ( { model | phase = ScenePhase newScene sceneModel }, Cmd.none )
+            ( { model | phase = ScenePhase newScene sceneModel }, cmd )
+        
+        ( SystemGotReward reward, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.LoadingGoal) delve) sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel
+                        | experience = sceneModel.experience + reward.experience
+                        , gold = sceneModel.gold + reward.gold
+                        , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
+                        , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
+                    }
+                
+                newSceneModel2 =
+                        List.foldl (\(item, qty) -> \s ->
+                            { s | inventory = Inventory.modify item 1 s.inventory }
+                        ) newSceneModel reward.items
+                
+                newModel =
+                    { model
+                        | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.Goal reward)) delve) newSceneModel2
+                    }
+            in
+            ( newModel, Cmd.none )
         
         ( UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )
@@ -1154,6 +1244,17 @@ runOneBattleRound actionA actionB battlerA battlerB =
                 |> Battler.applyEffects battlerBEffects
     in
     ( newBattlerA2, newBattlerB2 )
+
+generateDungeonReward : Dungeon -> Random.Generator Reward
+generateDungeonReward _ =
+    Random.constant <|
+        { experience = 5
+        , gold = 5
+        , abilityPoints = 5
+        , items =
+            [ ( Item.byId "potion", 3 )
+            ]
+        }
 
 -- SUBSCRIPTIONS
 

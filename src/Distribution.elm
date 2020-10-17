@@ -2,21 +2,24 @@ module Distribution exposing
     ( Distribution
     , new
     , random
+    , toList
     )
 
 import Random
 
-type alias Distribution a =
-    { head : ( Float, a )
-    , tail : List ( Float, a )
-    }
+import NonEmptyList exposing (NonEmptyList)
+
+type Distribution a
+    = Distribution (NonEmptyList ( Float, a ))
 
 new : ( Float, a ) -> List ( Float, a ) -> Distribution a
 new head tail =
-    { head = head
-    , tail = tail
-    }
+    Distribution <| NonEmptyList.new head tail
 
 random : Distribution a -> Random.Generator a
-random d =
-    Random.weighted d.head d.tail
+random (Distribution l) =
+    Random.weighted (NonEmptyList.head l) (NonEmptyList.tail l)
+
+toList : Distribution a -> List ( Float, a )
+toList (Distribution l) =
+    NonEmptyList.toList l

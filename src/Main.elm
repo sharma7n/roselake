@@ -626,7 +626,7 @@ explainSceneDistribution d =
         explainOneScene ( chance, scene ) =
             String.fromFloat chance ++ "% of " ++ DungeonScene.toString scene
     in
-    textList (List.map explainOneScene (d.head :: d.tail))
+    textList (List.map explainOneScene (Distribution.toList d))
 
 viewBattleMonsterScene : SceneModel -> Monster -> Action -> Html Msg
 viewBattleMonsterScene sceneModel monster intent =

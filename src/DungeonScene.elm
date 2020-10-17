@@ -22,6 +22,7 @@ type Scene
     | ReceiveTreasure Object
     | Event
     | RestArea
+    | Rested
     | Shop
     | TrapDoor
     | Goal
@@ -71,6 +72,9 @@ toString s =
         
         RestArea ->
             "Rest Area"
+        
+        Rested ->
+            "Rested"
         
         Shop ->
             "Shop"

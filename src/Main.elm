@@ -219,6 +219,7 @@ type Msg
     | UserSelectedDungeonPath DungeonPath.Path
     | SystemGotDungeonScene DungeonScene.Scene
     | UserSelectedContinueDungeon
+    | UserSelectedExitDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
     | SystemGotMonster Monster
     | SystemGotMonsterIntent Action
@@ -226,6 +227,7 @@ type Msg
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
+    | UserSelectedRest
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
     | DevSelectedCharacterCreationConfirmation
@@ -577,6 +579,13 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             , actionTable sceneModel.actions
                             ]
                     
+                    DungeonScene.RestArea ->
+                        buttonList
+                            [ ( "Rest", UserSelectedRest )
+                            , ( "Continue", UserSelectedContinueDungeon )
+                            , ( "Exit Dungeon", UserSelectedExitDungeon )
+                            ]
+                    
                     _ ->
                         Html.ul
                             []
@@ -910,6 +919,24 @@ update msg model =
         
         ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
             updateDungeonBattleAction model monster action monsterAction delve sceneModel
+        
+        ( UserSelectedRest, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel
+                        | hitPoints = sceneModel.maxHitPoints
+                        , magicPoints = sceneModel.maxMagicPoints
+                    }
+                
+                newModel =
+                    { model
+                        | phase = ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.Rested) delve) newSceneModel
+                    }
+            in
+            ( newModel, Cmd.none )
+        
+        ( UserSelectedExitDungeon, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.RestArea) _) sceneModel ) ->
+            ( { model | phase = ScenePhase ExploreScene sceneModel }, Cmd.none )
         
         ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection

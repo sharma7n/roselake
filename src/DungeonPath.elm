@@ -28,11 +28,12 @@ generator =
             { description = "Follow the winding tunnels"
             , sceneDistribution =
                 Distribution.new
-                    ( 15, DungeonScene.Empty )
+                    ( 20, DungeonScene.Empty )
                     [ ( 35, DungeonScene.Battle )
-                    , ( 20, DungeonScene.Treasure )
-                    , ( 25, DungeonScene.RestArea )
+                    , ( 10, DungeonScene.Treasure )
+                    , ( 20, DungeonScene.RestArea )
                     , ( 5, DungeonScene.TrapDoor )
+                    , ( 10, DungeonScene.Shop )
                     ]
             }
     in

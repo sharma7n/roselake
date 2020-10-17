@@ -10,6 +10,7 @@ import Action exposing (Action)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Object exposing (Object)
+import Shop exposing (Shop)
 
 type Scene
     = Empty
@@ -24,6 +25,7 @@ type Scene
     | RestArea
     | Rested
     | Shop
+    | Shopping Shop
     | TrapDoor
     | LoadingGoal
     | Goal Reward
@@ -79,6 +81,9 @@ toString s =
         
         Shop ->
             "Shop"
+        
+        Shopping shop ->
+            "Shopping at " ++ shop.name
         
         TrapDoor ->
             "Trap Door"

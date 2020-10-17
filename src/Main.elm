@@ -224,10 +224,12 @@ type Msg
     | SystemGotMonsterIntent Action
     | SystemGotObject Object
     | SystemGotReward Reward
+    | SystemGotShop Shop
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
     | UserSelectedRest
+    | UserSelectedOpenChest
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
     | DevSelectedCharacterCreationConfirmation
@@ -603,6 +605,30 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                                 [ Html.text "Exit Dungeon" ]
                             ]
                     
+                    DungeonScene.Shop ->
+                        Html.text "Loading shop..."
+                    
+                    DungeonScene.Treasure ->
+                        Html.ul
+                            []
+                            [ Html.text "You find a treasure chest!"
+                            , Html.button
+                                [ Html.Events.onClick UserSelectedOpenChest ]
+                                [ Html.text "Open" ]
+                            , Html.button
+                                [ Html.Events.onClick UserSelectedContinueDungeon ]
+                                [ Html.text "Continue" ]
+                            ]
+                    
+                    DungeonScene.Shopping shop ->
+                        Html.ul
+                            []
+                            [ viewShopScene sceneModel shop
+                            , Html.button
+                                [ Html.Events.onClick UserSelectedContinueDungeon ]
+                                [ Html.text "Continue" ]
+                            ]
+                    
                     _ ->
                         Html.ul
                             []
@@ -906,14 +932,20 @@ update msg model =
                         DungeonScene.Battle ->
                             Random.generate SystemGotMonster Monster.generator
                         
-                        DungeonScene.Treasure ->
-                            Random.generate SystemGotObject Object.generator
+                        DungeonScene.Shop ->
+                            Random.generate SystemGotShop Shop.generator
                         
                         _ ->
                             Cmd.none
                 
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase scene) delve) sceneModel }, cmd )
+        
+        ( UserSelectedOpenChest, ScenePhase (ExploreDungeonScene _ _) _ ) ->
+            ( model, Random.generate SystemGotObject Object.generator )
+        
+        ( SystemGotShop shop, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
+            ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.Shopping shop)) delve) sceneModel }, Cmd.none )
         
         ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
@@ -990,7 +1022,7 @@ update msg model =
                 
                 newSceneModel2 =
                         List.foldl (\(item, qty) -> \s ->
-                            { s | inventory = Inventory.modify item 1 s.inventory }
+                            { s | inventory = Inventory.modify item qty s.inventory }
                         ) newSceneModel reward.items
                 
                 newModel =

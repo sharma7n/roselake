@@ -4,6 +4,8 @@ module Event exposing
     , generator
     )
 
+import Random
+
 import NonEmptyList exposing (NonEmptyList)
 
 type alias Event =
@@ -26,3 +28,9 @@ byId id =
             , description = "Null Event"
             , choices = NonEmptyList.new { description = "Null Choice" } []
             }
+
+generator : Random.Generator Event
+generator =
+    Random.weighted
+        ( 1, byId "null" )
+        []

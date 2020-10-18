@@ -12,6 +12,8 @@ import Util
 
 import CharacterCreationError
 import CharacterCreationSettings exposing (CharacterCreationSettings)
+import CharacterCreationSettingSelection exposing (CharacterCreationSettingSelection)
+
 import FormResult exposing (FormResult)
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
@@ -34,6 +36,9 @@ import Inventory exposing (Inventory)
 import Object exposing (Object)
 import Shop exposing (Shop)
 import Item exposing (Item)
+import Weapon exposing (Weapon)
+
+import Msg exposing (Msg)
 
 -- MODEL
 
@@ -68,6 +73,7 @@ type alias SceneModel =
     , attack : Int
     , agility : Int
     , actions : List Action
+    , equippedWeapon : Maybe Weapon
     }
 
 type alias Battle =
@@ -182,6 +188,7 @@ characterCreationSettingsToSceneModel settings =
                 [ Action.byId "attack"
                 , Action.byId "fireball"
                 ]
+            , equippedWeapon = Just <| Weapon.byId "sword"
             }
         )))))))
 
@@ -201,47 +208,7 @@ type Scene
 
 -- MSG
 
-type Msg
-    = NoOp
-    | UserSelectedPlayerScene
-    | UserSelectedLearnSelectScene
-    | UserSelectedLearnSkill Action
-    | UserSelectedHomeScene
-    | UserSelectedHomeRest
-    | UserSelectedShopSelectScene
-    | UserSelectedShop Shop
-    | UserSelectedBuy Item
-    | UserSelectedUseItem Item
-    | UserSelectedExploreScene
-    | UserSelectedExploreDungeonScene Dungeon
-    | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
-    | UserSelectedDungeonPath DungeonPath.Path
-    | SystemGotDungeonScene DungeonScene.Scene
-    | UserSelectedContinueDungeon
-    | UserSelectedExitDungeon
-    | SystemGotDungeonContinuation (List DungeonPath.Path)
-    | SystemGotMonster Monster
-    | SystemGotMonsterIntent Action
-    | SystemGotObject Object
-    | SystemGotReward Reward
-    | SystemGotShop Shop
-    | UserSelectedBattleScene
-    | UserSelectedBattleMonsterScene Monster
-    | UserSelectedBattleAction Action
-    | UserSelectedRest
-    | UserSelectedOpenChest
-    | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
-    | UserSelectedCharacterCreationConfirmation
-    | DevSelectedCharacterCreationConfirmation
 
-type CharacterCreationSettingSelection
-    = NameSelection String
-    | HairStyleSelection HairStyle
-    | HairColorSelection HairColor
-    | EyeColorSelection EyeColor
-    | ComplexionSelection Complexion
-    | HeightSelection Height
-    | BuildSelection Build
 
 -- MAIN
 
@@ -310,36 +277,36 @@ viewCharacterCreationPhase model =
         [ Html.text "Create Character"
         , formList
             [ ( "Name"
-              , Html.input [ Html.Events.onInput (UserSelectedCharacterCreationSettingSelection << NameSelection) ] []
+              , Html.input [ Html.Events.onInput (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection) ] []
               , settingToInfo (\a -> a) model.settings.name 
               )
             , ( "Hair Style"
-              , radioButtons HairStyle.toString (UserSelectedCharacterCreationSettingSelection << HairStyleSelection) HairStyle.all model.settings.hairStyle
+              , radioButtons HairStyle.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairStyleSelection) HairStyle.all model.settings.hairStyle
               , settingToInfo HairStyle.toString model.settings.hairStyle
               )
             , ( "Hair Color"
-              , radioButtons HairColor.toString (UserSelectedCharacterCreationSettingSelection << HairColorSelection) HairColor.all model.settings.hairColor
+              , radioButtons HairColor.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairColorSelection) HairColor.all model.settings.hairColor
               , settingToInfo HairColor.toString model.settings.hairColor
               )
             , ( "Eye Color"
-              , radioButtons EyeColor.toString (UserSelectedCharacterCreationSettingSelection << EyeColorSelection) EyeColor.all model.settings.eyeColor
+              , radioButtons EyeColor.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.EyeColorSelection) EyeColor.all model.settings.eyeColor
               , settingToInfo EyeColor.toString model.settings.eyeColor
               )
             , ( "Complexion"
-              , radioButtons Complexion.toString (UserSelectedCharacterCreationSettingSelection << ComplexionSelection) Complexion.all model.settings.complexion
+              , radioButtons Complexion.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.ComplexionSelection) Complexion.all model.settings.complexion
               , settingToInfo Complexion.toString model.settings.complexion
               )
             , ( "Height"
-              , radioButtons Height.toString (UserSelectedCharacterCreationSettingSelection << HeightSelection) Height.all model.settings.height
+              , radioButtons Height.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HeightSelection) Height.all model.settings.height
               , settingToInfo Height.toString model.settings.height
               )
             , ( "Build"
-              , radioButtons Build.toString (UserSelectedCharacterCreationSettingSelection << BuildSelection) Build.all model.settings.build
+              , radioButtons Build.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.BuildSelection) Build.all model.settings.build
               , settingToInfo Build.toString model.settings.build
               )
             ]
-        , Html.button [ Html.Events.onClick UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
-        , Html.button [ Html.Events.onClick DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
+        , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
+        , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
         ]
 
 viewScenePhase : Scene -> SceneModel -> Html Msg
@@ -371,13 +338,13 @@ viewScenePhase scene sceneModel =
             
             _ ->
                  buttonList
-                    [ ( "Player", UserSelectedPlayerScene )
-                    , ( "Learn", UserSelectedLearnSelectScene )
-                    , ( "Home", UserSelectedHomeScene )
-                    , ( "Shop", UserSelectedShopSelectScene )
-                    , ( "Town", NoOp )
-                    , ( "Explore", UserSelectedExploreScene )
-                    , ( "Battle", UserSelectedBattleScene )
+                    [ ( "Player", Msg.UserSelectedPlayerScene )
+                    , ( "Learn", Msg.UserSelectedLearnSelectScene )
+                    , ( "Home", Msg.UserSelectedHomeScene )
+                    , ( "Shop", Msg.UserSelectedShopSelectScene )
+                    , ( "Town", Msg.NoOp )
+                    , ( "Explore", Msg.UserSelectedExploreScene )
+                    , ( "Battle", Msg.UserSelectedBattleScene )
                     ]
         , viewSceneModel scene sceneModel
         ]
@@ -391,7 +358,7 @@ viewInventory i =
                 [ Html.text <| item.name ++ ": "
                 , Html.text <| String.fromInt qty ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedUseItem item ]
+                    [ Html.Events.onClick <| Msg.UserSelectedUseItem item ]
                     [ Html.text "Use" ]
                 ]
         
@@ -487,7 +454,7 @@ viewSceneModel scene sceneModel =
         
         HomeScene ->
             buttonList
-                [ ( "Rest", UserSelectedHomeRest )
+                [ ( "Rest", Msg.UserSelectedHomeRest )
                 ]
         
         ShopSelectScene ->
@@ -543,7 +510,7 @@ learnTable learnable learned =
                 [ Html.text <| learn.name ++ " | "
                 , Html.text <| String.fromInt learn.learnCost ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedLearnSkill learn ]
+                    [ Html.Events.onClick <| Msg.UserSelectedLearnSkill learn ]
                     [ Html.text "Learn" ]
                 ]
     in
@@ -578,9 +545,9 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                     
                     DungeonScene.RestArea ->
                         buttonList
-                            [ ( "Rest", UserSelectedRest )
-                            , ( "Continue", UserSelectedContinueDungeon )
-                            , ( "Exit Dungeon", UserSelectedExitDungeon )
+                            [ ( "Rest", Msg.UserSelectedRest )
+                            , ( "Continue", Msg.UserSelectedContinueDungeon )
+                            , ( "Exit Dungeon", Msg.UserSelectedExitDungeon )
                             ]
                     
                     DungeonScene.TrapDoor ->
@@ -588,7 +555,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             []
                             [ Html.text "A trap door!"
                             , Html.button
-                                [ Html.Events.onClick UserSelectedExitDungeon ]
+                                [ Html.Events.onClick Msg.UserSelectedExitDungeon ]
                                 [ Html.text "Exit Dungeon" ]
                             ]
                     
@@ -601,7 +568,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             [ Html.text "Goal!"
                             , viewReward reward
                             , Html.button
-                                [ Html.Events.onClick UserSelectedExitDungeon ]
+                                [ Html.Events.onClick Msg.UserSelectedExitDungeon ]
                                 [ Html.text "Exit Dungeon" ]
                             ]
                     
@@ -613,10 +580,10 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             []
                             [ Html.text "You find a treasure chest!"
                             , Html.button
-                                [ Html.Events.onClick UserSelectedOpenChest ]
+                                [ Html.Events.onClick Msg.UserSelectedOpenChest ]
                                 [ Html.text "Open" ]
                             , Html.button
-                                [ Html.Events.onClick UserSelectedContinueDungeon ]
+                                [ Html.Events.onClick Msg.UserSelectedContinueDungeon ]
                                 [ Html.text "Continue" ]
                             ]
                     
@@ -625,7 +592,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             []
                             [ viewShopScene sceneModel shop
                             , Html.button
-                                [ Html.Events.onClick UserSelectedContinueDungeon ]
+                                [ Html.Events.onClick Msg.UserSelectedContinueDungeon ]
                                 [ Html.text "Continue" ]
                             ]
                     
@@ -634,7 +601,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             []
                             [ Html.text <| DungeonScene.toString scene
                             , Html.button
-                                [ Html.Events.onClick <| UserSelectedContinueDungeon ]
+                                [ Html.Events.onClick <| Msg.UserSelectedContinueDungeon ]
                                 [ Html.text "Continue" ]
                             ]
         ]
@@ -648,7 +615,7 @@ pathTable paths =
                 [ Html.text path.description
                 , explainSceneDistribution path.sceneDistribution
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedDungeonPath path ]
+                    [ Html.Events.onClick <| Msg.UserSelectedDungeonPath path ]
                     [ Html.text "Go" ]
                 ]
     in
@@ -718,7 +685,7 @@ shopTable shops =
                 []
                 [ Html.text shop.name
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedShop shop ]
+                    [ Html.Events.onClick <| Msg.UserSelectedShop shop ]
                     [ Html.text "Go" ]
                 ]
     in
@@ -754,7 +721,7 @@ actionTable actions =
                 []
                 [ Html.text <| action.name ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedBattleAction action ]
+                    [ Html.Events.onClick <| Msg.UserSelectedBattleAction action ]
                     [ Html.text "Go" ]
                 ]
     in
@@ -771,7 +738,7 @@ viewShopScene sceneModel shop =
                 [ Html.text <| b.name ++ " | "
                 , Html.text <| String.fromInt b.cost ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedBuy b ]
+                    [ Html.Events.onClick <| Msg.UserSelectedBuy b ]
                     [ Html.text "Buy" ]
                 ]
     in
@@ -796,7 +763,7 @@ dungeonTable dungeons =
                 []
                 [ Html.text <| dungeon.name
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedExploreDungeonScene dungeon ]
+                    [ Html.Events.onClick <| Msg.UserSelectedExploreDungeonScene dungeon ]
                     [ Html.text "Explore" ]
                 ]
         
@@ -815,7 +782,7 @@ monsterTable monsters =
                 , Html.text <| " | HP: " ++ String.fromInt monster.hitPoints
                 , Html.text <| " | EXP: " ++ String.fromInt monster.experience ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| UserSelectedBattleMonsterScene monster ]
+                    [ Html.Events.onClick <| Msg.UserSelectedBattleMonsterScene monster ]
                     [ Html.text "Fight" ]
                 ]
     in
@@ -828,13 +795,13 @@ monsterTable monsters =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.phase ) of
-        ( UserSelectedPlayerScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedPlayerScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase PlayerScene sceneModel }, Cmd.none )
         
-        ( UserSelectedLearnSelectScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedLearnSelectScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase LearnSelectScene sceneModel }, Cmd.none )
         
-        ( UserSelectedLearnSkill action, ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedLearnSkill action, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
                     if action.learnCost <= sceneModel.freeAbilityPoints then
@@ -849,10 +816,10 @@ update msg model =
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
-        ( UserSelectedHomeScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedHomeScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase HomeScene sceneModel }, Cmd.none )
         
-        ( UserSelectedHomeRest, ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedHomeRest, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
                     { sceneModel 
@@ -862,13 +829,13 @@ update msg model =
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
-        ( UserSelectedShopSelectScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedShopSelectScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase ShopSelectScene sceneModel }, Cmd.none )
         
-        ( UserSelectedShop shop, ScenePhase ShopSelectScene sceneModel ) ->
+        ( Msg.UserSelectedShop shop, ScenePhase ShopSelectScene sceneModel ) ->
             ( { model | phase = ScenePhase (ShopScene shop) sceneModel }, Cmd.none )
         
-        ( UserSelectedBuy item, ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedBuy item, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
                     if item.cost <= sceneModel.gold then
@@ -884,7 +851,7 @@ update msg model =
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
-        ( UserSelectedUseItem item, ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedUseItem item, ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
                     { sceneModel
@@ -896,20 +863,20 @@ update msg model =
             in
             ( { model | phase = ScenePhase scene newSceneModel }, Cmd.none )
         
-        ( UserSelectedExploreScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedExploreScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase ExploreScene sceneModel }, Cmd.none )
         
-        ( UserSelectedExploreDungeonScene dungeon, ScenePhase ExploreScene _ ) ->
+        ( Msg.UserSelectedExploreDungeonScene dungeon, ScenePhase ExploreScene _ ) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
                 
                 cmd =
-                    Random.generate (SystemGotDungeonInitialization dungeon) pathListGenerator
+                    Random.generate (Msg.SystemGotDungeonInitialization dungeon) pathListGenerator
             in
             ( model, cmd )
         
-        ( SystemGotDungeonInitialization dungeon paths, ScenePhase ExploreScene sceneModel ) ->
+        ( Msg.SystemGotDungeonInitialization dungeon paths, ScenePhase ExploreScene sceneModel ) ->
             let
                 delve =
                     { dungeon = dungeon
@@ -918,22 +885,22 @@ update msg model =
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene (ExplorationPhase paths) delve) sceneModel }, Cmd.none )
         
-        ( UserSelectedDungeonPath path, ScenePhase (ExploreDungeonScene _ _) _) ->
+        ( Msg.UserSelectedDungeonPath path, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 cmd =
-                    Random.generate SystemGotDungeonScene (Distribution.random path.sceneDistribution)
+                    Random.generate Msg.SystemGotDungeonScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( SystemGotDungeonScene scene, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
+        ( Msg.SystemGotDungeonScene scene, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
                 cmd =
                     case scene of
                         DungeonScene.Battle ->
-                            Random.generate SystemGotMonster Monster.generator
+                            Random.generate Msg.SystemGotMonster Monster.generator
                         
                         DungeonScene.Shop ->
-                            Random.generate SystemGotShop Shop.generator
+                            Random.generate Msg.SystemGotShop Shop.generator
                         
                         _ ->
                             Cmd.none
@@ -941,23 +908,23 @@ update msg model =
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase scene) delve) sceneModel }, cmd )
         
-        ( UserSelectedOpenChest, ScenePhase (ExploreDungeonScene _ _) _ ) ->
-            ( model, Random.generate SystemGotObject Object.generator )
+        ( Msg.UserSelectedOpenChest, ScenePhase (ExploreDungeonScene _ _) _ ) ->
+            ( model, Random.generate Msg.SystemGotObject Object.generator )
         
-        ( SystemGotShop shop, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotShop shop, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.Shopping shop)) delve) sceneModel }, Cmd.none )
         
-        ( SystemGotMonster monster, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
+        ( Msg.SystemGotMonster monster, ScenePhase (ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
                 cmd =
-                    Random.generate SystemGotMonsterIntent (Monster.chooseAction monster)
+                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
             in
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel }, cmd )
         
-        ( SystemGotMonsterIntent intent, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel ) ->
+        ( Msg.SystemGotMonsterIntent intent, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel ) ->
             ( { model | phase = ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster intent)) delve) sceneModel }, Cmd.none )
 
-        ( SystemGotObject (Object.Item i), ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotObject (Object.Item i), ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
             let
                 newDungeonScene =
                     ActionPhase <| DungeonScene.ReceiveTreasure (Object.Item i)
@@ -976,21 +943,21 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _ _) _) ->
+        ( Msg.UserSelectedContinueDungeon, ScenePhase (ExploreDungeonScene _ _) _) ->
             let
                 pathListGenerator =
                     Random.list 3 DungeonPath.generator
 
                 cmd =
-                    Random.generate SystemGotDungeonContinuation pathListGenerator
+                    Random.generate Msg.SystemGotDungeonContinuation pathListGenerator
             in
             ( model, cmd )
         
-        ( SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotDungeonContinuation paths, ScenePhase (ExploreDungeonScene _ delve) sceneModel ) ->
             let
                 cmd =
                     if delve.floor >= delve.dungeon.depth then
-                        Random.generate SystemGotReward (generateDungeonReward delve.dungeon)
+                        Random.generate Msg.SystemGotReward (generateDungeonReward delve.dungeon)
                     else
                         Cmd.none
                 
@@ -1010,7 +977,7 @@ update msg model =
             in 
             ( { model | phase = ScenePhase newScene sceneModel }, cmd )
         
-        ( SystemGotReward reward, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.LoadingGoal) delve) sceneModel ) ->
+        ( Msg.SystemGotReward reward, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.LoadingGoal) delve) sceneModel ) ->
             let
                 newSceneModel =
                     { sceneModel
@@ -1032,26 +999,26 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedBattleScene, ScenePhase _ sceneModel ) ->
             ( { model | phase = ScenePhase BattleScene sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleMonsterScene monster, ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedBattleMonsterScene monster, ScenePhase _ sceneModel ) ->
             let
                 cmd =
-                    Random.generate SystemGotMonsterIntent (Monster.chooseAction monster)
+                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
             in
             ( { model | phase = ScenePhase (BattleMonsterLoadingIntentScene monster) sceneModel }, cmd )
         
-        ( SystemGotMonsterIntent intent, ScenePhase (BattleMonsterLoadingIntentScene monster) sceneModel ) ->
+        ( Msg.SystemGotMonsterIntent intent, ScenePhase (BattleMonsterLoadingIntentScene monster) sceneModel ) ->
             ( { model | phase = ScenePhase (BattleMonsterScene monster intent) sceneModel }, Cmd.none )
         
-        ( UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster monsterAction) sceneModel ) ->
+        ( Msg.UserSelectedBattleAction action, ScenePhase (BattleMonsterScene monster monsterAction) sceneModel ) ->
             updateBattleAction model monster action monsterAction sceneModel
         
-        ( UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
+        ( Msg.UserSelectedBattleAction action, ScenePhase (ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
             updateDungeonBattleAction model monster action monsterAction delve sceneModel
         
-        ( UserSelectedRest, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
+        ( Msg.UserSelectedRest, ScenePhase (ExploreDungeonScene (ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
             let
                 newSceneModel =
                     { sceneModel
@@ -1066,16 +1033,16 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( UserSelectedExitDungeon, ScenePhase (ExploreDungeonScene (ActionPhase _) _) sceneModel ) ->
+        ( Msg.UserSelectedExitDungeon, ScenePhase (ExploreDungeonScene (ActionPhase _) _) sceneModel ) ->
             ( { model | phase = ScenePhase ExploreScene sceneModel }, Cmd.none )
         
-        ( UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
+        ( Msg.UserSelectedCharacterCreationSettingSelection selection, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
         
-        ( UserSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
+        ( Msg.UserSelectedCharacterCreationConfirmation, CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationConfirmation model characterCreationModel
         
-        ( DevSelectedCharacterCreationConfirmation, CharacterCreationPhase _ ) ->
+        ( Msg.DevSelectedCharacterCreationConfirmation, CharacterCreationPhase _ ) ->
             let
                 avatar =
                     { hairStyle = HairStyle.Plain
@@ -1107,6 +1074,7 @@ update msg model =
                         [ Action.byId "attack"
                         , Action.byId "fireball"
                         ]
+                    , equippedWeapon = Just <| Weapon.byId "sword"
                     }
                 
                 newModel =
@@ -1125,25 +1093,25 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
         
         newSettings =
             case selection of
-                NameSelection name ->
+                CharacterCreationSettingSelection.NameSelection name ->
                     { settings | name = FormResult.FROk name }
                 
-                HairStyleSelection hairStyle ->
+                CharacterCreationSettingSelection.HairStyleSelection hairStyle ->
                     { settings | hairStyle = FormResult.FROk hairStyle }
                 
-                HairColorSelection hairColor ->
+                CharacterCreationSettingSelection.HairColorSelection hairColor ->
                     { settings | hairColor = FormResult.FROk hairColor }
                 
-                EyeColorSelection eyeColor ->
+                CharacterCreationSettingSelection.EyeColorSelection eyeColor ->
                     { settings | eyeColor = FormResult.FROk eyeColor }
                 
-                ComplexionSelection complexion ->
+                CharacterCreationSettingSelection.ComplexionSelection complexion ->
                     { settings | complexion = FormResult.FROk complexion }
                 
-                HeightSelection height ->
+                CharacterCreationSettingSelection.HeightSelection height ->
                     { settings | height = FormResult.FROk height }
                 
-                BuildSelection build ->
+                CharacterCreationSettingSelection.BuildSelection build ->
                     { settings | build = FormResult.FROk build }
     
         newCharacterCreationModel =
@@ -1206,7 +1174,7 @@ updateBattleAction model monster action monsterAction sceneModel =
             else
                 ( BattleMonsterLoadingIntentScene newMonster, newSceneModel )
     in
-    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate SystemGotMonsterIntent (Monster.chooseAction monster) )
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
 
 updateDungeonBattleAction : Model -> Monster -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model monster action monsterAction delve sceneModel =
@@ -1239,7 +1207,7 @@ updateDungeonBattleAction model monster action monsterAction delve sceneModel =
             else
                 ( ExploreDungeonScene (ActionPhase (DungeonScene.BattleMonsterLoadingIntent newMonster)) delve, newSceneModel )
     in
-    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate SystemGotMonsterIntent (Monster.chooseAction monster) )
+    ( { model | phase = ScenePhase newScene newSceneModel2 }, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
 
 
 runOneBattleRound : Action -> Action -> Battler a -> Battler b -> ( Battler a, Battler b )

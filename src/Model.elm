@@ -1,0 +1,3 @@
+module Model exposing
+    ( Model
+    )

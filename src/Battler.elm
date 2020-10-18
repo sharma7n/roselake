@@ -1,10 +1,11 @@
 module Battler exposing
     ( Battler
-    , applyEffects
+    , runAction
     )
 
 import Util
 
+import Action exposing (Action)
 import Effect exposing (Effect)
 import Formula exposing (Formula)
 
@@ -16,10 +17,29 @@ type alias Battler a =
         , maxHitPoints : Int
         , magicPoints : Int
         , maxMagicPoints : Int
+        , actionPoints : Int
+        , maxActionPoints : Int
         , attack : Int
         , agility : Int
         , equippedWeapon : Maybe Weapon
     }
+
+runAction : Action -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
+runAction action ( attacker, defender ) =
+    let
+        effects =
+            action.subs
+                |> List.map .effects
+                |> List.concat
+        
+        newAttacker =
+            { attacker
+                | actionPoints = attacker.actionPoints - action.actionPointCost
+                , magicPoints = attacker.magicPoints - action.magicPointCost
+            }
+    in
+    ( newAttacker, defender )
+        |> applyEffects effects
 
 applyEffect : Effect -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 applyEffect effect ( self, enemy ) =

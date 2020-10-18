@@ -3,6 +3,7 @@ module Monster exposing
     , byId
     , generator
     , chooseAction
+    , generateReward
     )
 
 import Random
@@ -10,6 +11,7 @@ import Random
 import Distribution exposing (Distribution)
 
 import Action exposing (Action)
+import Reward exposing (Reward)
 import Weapon exposing (Weapon)
 
 type alias Monster =
@@ -21,6 +23,8 @@ type alias Monster =
     , maxHitPoints : Int
     , magicPoints : Int
     , maxMagicPoints : Int
+    , actionPoints : Int
+    , maxActionPoints : Int
     , attack : Int
     , agility : Int
     , actions : Distribution Action
@@ -39,6 +43,8 @@ byId id =
             , maxHitPoints = 3
             , magicPoints = 0
             , maxMagicPoints = 0
+            , actionPoints = 0
+            , maxActionPoints = 0
             , attack = 1
             , agility = 1
             , actions =
@@ -58,6 +64,8 @@ byId id =
             , maxHitPoints = 1
             , magicPoints = 1
             , maxMagicPoints = 1
+            , actionPoints = 0
+            , maxActionPoints = 0
             , attack = 1
             , agility = 1
             , actions = Distribution.new
@@ -71,11 +79,13 @@ byId id =
             , experience = 1
             , gold = 1
             , abilityPoints = 1
-            , hitPoints = 10
-            , maxHitPoints = 10
-            , magicPoints = 5
-            , maxMagicPoints = 5
-            , attack = 1
+            , hitPoints = 16
+            , maxHitPoints = 16
+            , magicPoints = 8
+            , maxMagicPoints = 8
+            , actionPoints = 0
+            , maxActionPoints = 0
+            , attack = 2
             , agility = 1
             , actions =
                 Distribution.new
@@ -95,6 +105,8 @@ byId id =
             , maxHitPoints = 0
             , magicPoints = 0
             , maxMagicPoints = 0
+            , actionPoints = 0
+            , maxActionPoints = 0
             , attack = 0
             , agility = 0
             , actions =
@@ -127,3 +139,13 @@ chooseActionInternal monster retries =
                 else
                     chooseActionInternal monster (retries + 1)
             )
+
+generateReward : Monster -> Random.Generator Reward
+generateReward monster =
+    Random.constant <|
+        { experience = monster.experience
+        , gold = monster.gold
+        , abilityPoints = monster.abilityPoints
+        , items = []
+        , weapons = []
+        }

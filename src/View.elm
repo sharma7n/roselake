@@ -332,6 +332,9 @@ viewSceneModel scene sceneModel =
         Scene.BattleMonsterScene monster intent ->
             viewBattleMonsterScene sceneModel monster intent
         
+        Scene.VictoryLoadingScene monster ->
+            Html.text "Loading..."
+        
         Scene.VictoryScene monster reward ->
             textList
                 [ "You defeated " ++ monster.name ++ "!"
@@ -380,15 +383,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
             DelvePhase.ActionPhase scene ->
                 case scene of
                     DungeonScene.BattleMonster monster intent ->
-                        Html.div
-                            []
-                            [ textList
-                                [ monster.name
-                                , "HP: " ++ String.fromInt monster.hitPoints
-                                , "Intent: " ++ intent.name
-                                ]
-                            , actionTable sceneModel.actions
-                            ]
+                        viewBattleMonsterScene sceneModel monster intent
                     
                     DungeonScene.RestArea ->
                         buttonList
@@ -557,12 +552,20 @@ viewBattleMonsterScene sceneModel monster intent =
             , "HP: " ++ String.fromInt monster.hitPoints
             , "Intent: " ++ intent.name
             ]
-        , actionTable sceneModel.actions
+        , Html.text <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
+        , actionTable sceneModel.actionPoints sceneModel.actions
+        , Html.button
+            [ Html.Events.onClick Msg.UserSelectedEndBattleTurn ]
+            [ Html.text "End Turn" ]
         ]
 
-actionTable : List Action -> Html Msg
-actionTable actions =
+actionTable : Int -> List Action -> Html Msg
+actionTable actionPoints actions =
     let
+        availableActions =
+            actions
+                |> List.filter (\a -> a.actionPointCost <= actionPoints)
+        
         actionFn action =
             Html.li
                 []
@@ -574,7 +577,7 @@ actionTable actions =
     in
     Html.ul
         []
-        ( List.map actionFn actions )
+        ( List.map actionFn availableActions )
 
 viewShopScene : SceneModel -> Shop -> Html Msg
 viewShopScene sceneModel shop =

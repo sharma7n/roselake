@@ -18,6 +18,7 @@ type Scene
     | Battle
     | BattleMonsterLoadingIntent Monster
     | BattleMonster Monster Action
+    | VictoryLoading Monster
     | Victory Monster Reward
     | Treasure
     | ReceiveTreasure Object
@@ -60,6 +61,9 @@ toString s =
         
         BattleMonster monster _ ->
             "Battling: " ++ monster.name
+        
+        VictoryLoading _ ->
+            "Loading Victory..."
         
         Victory _ _ ->
             "Victory"

@@ -14,6 +14,7 @@ type alias Action =
     , name : String
     , context : Context
     , learnCost : Int
+    , actionPointCost : Int
     , magicPointCost : Int
     , subs : List Sub
     }
@@ -31,6 +32,7 @@ byId id =
             , name = "Nothing"
             , context = Context.Any
             , learnCost = 0
+            , actionPointCost = 0
             , magicPointCost = 0
             , subs = []
             }
@@ -40,6 +42,7 @@ byId id =
             , name = "Attack"
             , context = Context.Battle
             , learnCost = 0
+            , actionPointCost = 1
             , magicPointCost = 0
             , subs =
                 [ { target = Target.Enemy
@@ -55,6 +58,7 @@ byId id =
             , name = "Fireball"
             , context = Context.Battle
             , learnCost = 1
+            , actionPointCost = 1
             , magicPointCost = 1
             , subs =
                 [ { target = Target.Enemy
@@ -70,6 +74,7 @@ byId id =
             , name = "Heal"
             , context = Context.Any
             , learnCost = 1
+            , actionPointCost = 1
             , magicPointCost = 2
             , subs =
                 [ { target = Target.Self
@@ -84,6 +89,7 @@ byId id =
             { id = "null"
             , name = "Null Action"
             , context = Context.None
+            , actionPointCost = 0
             , learnCost = 0
             , magicPointCost = 0
             , subs = []

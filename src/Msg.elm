@@ -45,6 +45,7 @@ type Msg
     | UserSelectedBattleScene
     | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
+    | UserSelectedEndBattleTurn
     | UserSelectedRest
     | UserSelectedOpenChest
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection

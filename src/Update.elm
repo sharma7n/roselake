@@ -282,15 +282,27 @@ update msg model =
             in 
             ( { model | phase = Phase.ScenePhase newScene sceneModel }, cmd )
         
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoadingScene monster) sceneModel ) ->
+            let
+                newSceneModel =
+                    sceneModel
+                        |> SceneModel.applyReward reward
+            in
+            ( { model | phase = Phase.ScenePhase (Scene.VictoryScene monster reward) newSceneModel }, Cmd.none )
+        
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve) sceneModel ) ->
+            let
+                newSceneModel =
+                    sceneModel
+                        |> SceneModel.applyReward reward
+            in
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve) newSceneModel }, Cmd.none )
+        
         ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.LoadingGoal) delve) sceneModel ) ->
             let
                 newSceneModel =
-                    { sceneModel
-                        | experience = sceneModel.experience + reward.experience
-                        , gold = sceneModel.gold + reward.gold
-                        , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
-                        , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
-                    }
+                    sceneModel
+                        |> SceneModel.applyReward reward
                 
                 newSceneModel2 =
                         List.foldl (\(item, qty) -> \s ->
@@ -320,8 +332,14 @@ update msg model =
         ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonsterScene monster monsterAction) sceneModel ) ->
             updateBattleAction model monster action monsterAction sceneModel
         
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonsterScene monster monsterAction) sceneModel ) ->
+            updateEndBattleTurn model monster monsterAction sceneModel
+        
         ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
             updateDungeonBattleAction model monster action monsterAction delve sceneModel
+        
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster monster monsterAction)) delve) sceneModel ) ->
+            updateDungeonEndBattleTurn model monster monsterAction delve sceneModel
         
         ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
             let
@@ -373,6 +391,8 @@ update msg model =
                     , maxHitPoints = 10
                     , magicPoints = 5
                     , maxMagicPoints = 5
+                    , actionPoints = 3
+                    , maxActionPoints = 3
                     , attack = 1
                     , agility = 1
                     , actions =
@@ -451,103 +471,71 @@ updateCharacterCreationConfirmation model characterCreationModel =
 updateBattleAction : Model -> Monster -> Action -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateBattleAction model monster action monsterAction sceneModel =
     let
-        ( newMonster, newSceneModel ) =
-            runOneBattleRound monsterAction action monster sceneModel
+        ( newSceneModel, newMonster ) =
+            Battler.runAction action ( sceneModel, monster )
         
-        ( newScene, newSceneModel2 ) =
+        ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel )
+                ( Scene.GameOverScene, newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
-                let
-                    reward =
-                        { experience = newMonster.experience
-                        , gold = newMonster.gold
-                        , abilityPoints = newMonster.abilityPoints
-                        , items = []
-                        , weapons = []
-                        }
-                    
-                    newSceneModel3 =
-                        { newSceneModel
-                            | experience = max 0 (newSceneModel.experience + reward.experience)
-                            , gold = max 0 (newSceneModel.gold + reward.gold)
-                            , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
-                            , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
-                        }
-                in
-                ( Scene.VictoryScene newMonster reward, newSceneModel3 )
-
+                ( Scene.VictoryLoadingScene newMonster, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
-                ( Scene.BattleMonsterLoadingIntentScene newMonster, newSceneModel )
+                ( Scene.BattleMonsterScene newMonster monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
     in
-    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
 
 updateDungeonBattleAction : Model -> Monster -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model monster action monsterAction delve sceneModel =
     let
-        ( newMonster, newSceneModel ) =
-            runOneBattleRound monsterAction action monster sceneModel
+        ( newSceneModel, newMonster ) =
+            Battler.runAction action ( sceneModel, monster )
         
-        ( newScene, newSceneModel2 ) =
+        ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel )
+                ( Scene.GameOverScene, newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
-                let
-                    reward =
-                        { experience = newMonster.experience
-                        , gold = newMonster.gold
-                        , abilityPoints = newMonster.abilityPoints
-                        , items = []
-                        , weapons = []
-                        }
-                    
-                    newSceneModel3 =
-                        { newSceneModel
-                            | experience = max 0 (newSceneModel.experience + reward.experience)
-                            , gold = max 0 (newSceneModel.gold + reward.gold)
-                            , freeAbilityPoints = sceneModel.freeAbilityPoints + reward.abilityPoints
-                            , totalAbilityPoints = sceneModel.totalAbilityPoints + reward.abilityPoints
-                        }
-                in
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve, newSceneModel3 )
-
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newMonster)) delve, newSceneModel )
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newMonster monsterAction)) delve, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
     in
-    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
 
 
-runOneBattleRound : Action -> Action -> Battler a -> Battler b -> ( Battler a, Battler b )
-runOneBattleRound actionA actionB battlerA battlerB =
+
+updateEndBattleTurn : Model -> Monster -> Action -> SceneModel -> ( Model, Cmd Msg )
+updateEndBattleTurn model monster monsterAction sceneModel =
     let
-        realActionA =
-            if actionA.magicPointCost <= battlerA.magicPoints then
-                actionA
+        ( newMonster, newSceneModel ) =
+            Battler.runAction monsterAction ( monster, sceneModel )
+        
+        ( newScene, newSceneModel2, newCmd ) =
+            if newSceneModel.hitPoints <= 0 then
+                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+            else if newMonster.hitPoints <= 0 then
+                ( Scene.VictoryLoadingScene newMonster, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
-                Action.byId "null"
+                ( Scene.BattleMonsterLoadingIntentScene newMonster, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
         
-        realActionB =
-            if actionB.magicPointCost <= battlerB.magicPoints then
-                actionB
-            else
-                Action.byId "null"
-        
-        battlerAEffects =
-            realActionA.subs
-                |> List.map (\s -> s.effects)
-                |> List.concat
-        
-        battlerBEffects =
-            realActionB.subs
-                |> List.map (\s -> s.effects)
-                |> List.concat
-
-        ( newBattlerA1, newBattlerB1 ) =
-            ( { battlerA | magicPoints = battlerA.magicPoints - realActionA.magicPointCost }, battlerB )
-                |> Battler.applyEffects battlerAEffects
-        
-        ( newBattlerB2, newBattlerA2 ) =
-            ( { newBattlerB1 | magicPoints = battlerB.magicPoints - realActionB.magicPointCost }, newBattlerA1 )
-                |> Battler.applyEffects battlerBEffects
+        newSceneModel3 =
+            { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}
     in
-    ( newBattlerA2, newBattlerB2 )
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
+
+updateDungeonEndBattleTurn : Model -> Monster -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
+updateDungeonEndBattleTurn model monster monsterAction delve sceneModel =
+    let
+        ( newMonster, newSceneModel ) =
+            Battler.runAction monsterAction ( monster, sceneModel )
+        
+        ( newScene, newSceneModel2, newCmd ) =
+            if newSceneModel.hitPoints <= 0 then
+                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+            else if newMonster.hitPoints <= 0 then
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
+            else
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newMonster)) delve, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster) )
+        
+        newSceneModel3 =
+            { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}
+    in
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )

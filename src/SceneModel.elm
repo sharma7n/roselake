@@ -2,6 +2,7 @@ module SceneModel exposing
     ( SceneModel
     , characterCreationSettingsToSceneModel
     , applyEffectsToSceneModel
+    , applyReward
     )
 
 import FormResult
@@ -14,6 +15,7 @@ import Action exposing (Action)
 import Avatar exposing (Avatar)
 import Effect exposing (Effect)
 import Inventory exposing (Inventory)
+import Reward exposing (Reward)
 import Weapon exposing (Weapon)
 
 type alias SceneModel =
@@ -31,6 +33,8 @@ type alias SceneModel =
     , maxHitPoints : Int
     , magicPoints : Int
     , maxMagicPoints : Int
+    , actionPoints : Int
+    , maxActionPoints : Int
     , attack : Int
     , agility : Int
     , actions : List Action
@@ -129,6 +133,8 @@ characterCreationSettingsToSceneModel settings =
             , maxHitPoints = 10
             , magicPoints = 5
             , maxMagicPoints = 5
+            , actionPoints = 3
+            , maxActionPoints = 3
             , attack = 1
             , agility = 1
             , actions =
@@ -138,3 +144,16 @@ characterCreationSettingsToSceneModel settings =
             , equippedWeapon = Just <| Weapon.byId "sword"
             }
         )))))))
+
+applyReward : Reward -> SceneModel -> SceneModel
+applyReward reward m =
+    { m
+        | experience = m.experience + reward.experience
+        , gold = m.gold + reward.gold
+        , freeAbilityPoints = m.freeAbilityPoints + reward.abilityPoints
+        , totalAbilityPoints = m.totalAbilityPoints + reward.abilityPoints
+        , inventory =
+            m.inventory
+                |> (\i -> List.foldl (Util.uncurry Inventory.modifyItemQuantity) i reward.items)
+                |> (\i -> List.foldl (Util.uncurry Inventory.modifyWeaponQuantity) i reward.weapons)
+    }

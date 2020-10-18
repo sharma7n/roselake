@@ -97,7 +97,7 @@ update msg model =
                             | gold = max 0 (sceneModel.gold - item.cost)
                             , inventory =
                                 sceneModel.inventory
-                                    |> Inventory.modify item 1
+                                    |> Inventory.modifyItemQuantity item 1
                         }
                     else
                         sceneModel
@@ -111,7 +111,7 @@ update msg model =
                     { sceneModel
                         | inventory =
                             sceneModel.inventory
-                                |> Inventory.modify item -1
+                                |> Inventory.modifyItemQuantity item -1
                     }
                         |> SceneModel.applyEffectsToSceneModel item.effects
             in
@@ -187,7 +187,7 @@ update msg model =
                     { sceneModel
                         | inventory =
                             sceneModel.inventory
-                                |> Inventory.modify i 1
+                                |> Inventory.modifyItemQuantity i 1
                     }
                 
                 newModel =
@@ -243,7 +243,7 @@ update msg model =
                 
                 newSceneModel2 =
                         List.foldl (\(item, qty) -> \s ->
-                            { s | inventory = Inventory.modify item qty s.inventory }
+                            { s | inventory = Inventory.modifyItemQuantity item qty s.inventory }
                         ) newSceneModel reward.items
                 
                 newModel =

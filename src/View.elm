@@ -167,7 +167,7 @@ viewInventory i =
         
         visibleItemQtys =
             i
-                |> Inventory.toList
+                |> Inventory.listItems
                 |> List.filter (\(_, q) -> q > 0)
     in
     Html.div

@@ -49,42 +49,19 @@ import Phase exposing (Phase)
 import Model exposing (Model)
 import Msg exposing (Msg)
 
+import Init
+import Subscriptions
+
 -- MAIN
 
 main : Program () Model Msg
 main =
     Browser.element
-        { init = init
+        { init = Init.init
         , view = view
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = Subscriptions.subscriptions
         }
-
--- INIT
-
-init : flags -> ( Model, Cmd Msg )
-init _ =
-    let
-        initCharacterCreationSettings =
-            { name = FormResult.FRBlank CharacterCreationError.MissingName
-            , hairStyle = FormResult.FRBlank CharacterCreationError.MissingHairStyle
-            , hairColor = FormResult.FRBlank CharacterCreationError.MissingHairColor
-            , eyeColor = FormResult.FRBlank CharacterCreationError.MissingEyeColor
-            , complexion = FormResult.FRBlank CharacterCreationError.MissingComplexion
-            , height = FormResult.FRBlank CharacterCreationError.MissingHeight
-            , build = FormResult.FRBlank CharacterCreationError.MissingBuild
-            }
-        
-        initCharacterCreationModel =
-            { settings = initCharacterCreationSettings
-            }
-        
-        initModel =
-            { phase = Phase.CharacterCreationPhase initCharacterCreationModel
-            }
-    in
-    ( initModel, Cmd.none )
-
 -- VIEW
 
 view : Model -> Html Msg
@@ -1094,9 +1071,3 @@ generateDungeonReward _ =
             [ ( Item.byId "potion", 3 )
             ]
         }
-
--- SUBSCRIPTIONS
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none

@@ -8,6 +8,8 @@ import Util
 import Effect exposing (Effect)
 import Formula exposing (Formula)
 
+import Weapon exposing (Weapon)
+
 type alias Battler a =
     { a
         | hitPoints : Int
@@ -16,6 +18,7 @@ type alias Battler a =
         , maxMagicPoints : Int
         , attack : Int
         , agility : Int
+        , equippedWeapon : Maybe Weapon
     }
 
 applyEffect : Effect -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
@@ -37,7 +40,7 @@ applyFormula formula ( self, enemy ) =
         Formula.Attack ->
             let
                 dmg =
-                    self.attack
+                    self.attack + Maybe.withDefault 0 (Maybe.map .attack self.equippedWeapon)
                 
                 newEnemy =
                     { enemy | hitPoints = Util.boundedBy 0 enemy.maxHitPoints (enemy.hitPoints - dmg) }

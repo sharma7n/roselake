@@ -211,7 +211,7 @@ update msg model =
             let
                 cmd =
                     if delve.floor >= delve.dungeon.depth then
-                        Random.generate Msg.SystemGotReward (generateDungeonReward delve.dungeon)
+                        Random.generate Msg.SystemGotReward (Dungeon.generateReward delve.dungeon)
                     else
                         Cmd.none
                 
@@ -498,14 +498,3 @@ runOneBattleRound actionA actionB battlerA battlerB =
                 |> Battler.applyEffects battlerBEffects
     in
     ( newBattlerA2, newBattlerB2 )
-
-generateDungeonReward : Dungeon -> Random.Generator Reward
-generateDungeonReward _ =
-    Random.constant <|
-        { experience = 5
-        , gold = 5
-        , abilityPoints = 5
-        , items =
-            [ ( Item.byId "potion", 3 )
-            ]
-        }

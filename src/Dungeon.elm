@@ -1,7 +1,13 @@
 module Dungeon exposing
     ( Dungeon
     , byId
+    , generateReward
     )
+
+import Random
+
+import Item exposing (Item)
+import Reward exposing (Reward)
 
 type alias Dungeon =
     { name : String
@@ -20,3 +26,14 @@ byId id =
             { name = "Null Dungeon"
             , depth = 0
             }
+
+generateReward : Dungeon -> Random.Generator Reward
+generateReward _ =
+    Random.constant <|
+        { experience = 5
+        , gold = 5
+        , abilityPoints = 5
+        , items =
+            [ ( Item.byId "potion", 3 )
+            ]
+        }

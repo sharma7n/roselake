@@ -10,6 +10,7 @@ import Random
 import Distribution exposing (Distribution)
 
 import Action exposing (Action)
+import Weapon exposing (Weapon)
 
 type alias Monster =
     { name : String
@@ -23,6 +24,7 @@ type alias Monster =
     , attack : Int
     , agility : Int
     , actions : Distribution Action
+    , equippedWeapon : Maybe Weapon
     }
 
 byId : String -> Monster
@@ -44,6 +46,7 @@ byId id =
                     ( 50, Action.byId "nothing" )
                     [ ( 50, Action.byId "attack" )
                     ]
+            , equippedWeapon = Nothing
             }
         
         "dummy" ->
@@ -60,6 +63,7 @@ byId id =
             , actions = Distribution.new
                 ( 1, Action.byId "nothing" )
                 []
+            , equippedWeapon = Nothing
             }
         
         "gremlin" ->
@@ -79,6 +83,7 @@ byId id =
                     [ ( 33, Action.byId "fireball" )
                     , ( 33, Action.byId "heal" )
                     ]
+            , equippedWeapon = Nothing
             }
         
         _ ->
@@ -96,6 +101,7 @@ byId id =
                 Distribution.new
                     ( 0, Action.byId "null" )
                     []
+            , equippedWeapon = Nothing
             }
 
 generator : Random.Generator Monster

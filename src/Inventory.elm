@@ -1,40 +1,78 @@
 module Inventory exposing
     ( Inventory
     , new
-    , modify
-    , toList
+    , modifyItemQuantity
+    , modifyWeaponQuantity
+    , listItems
+    , listWeapons
     )
 
 import Dict exposing (Dict)
 
 import Item exposing (Item)
+import Weapon exposing (Weapon)
 
 type Inventory
-    = Inventory (Dict String Int)
+    = Inventory Data
+
+type alias Data =
+    { items : Dict String Int
+    , weapons : Dict String Int
+    }
+
+type Slot
+    = ItemSlot
+    | WeaponSlot
 
 new : Inventory
 new =
-    Inventory Dict.empty
+    Inventory <|
+        { items = Dict.empty
+        , weapons = Dict.empty
+        }
 
-modify : Item -> Int -> Inventory -> Inventory
-modify item delta (Inventory dict) =
+modifyQuantity : Slot -> { a | id : String } -> Int -> Inventory -> Inventory
+modifyQuantity slot object delta (Inventory data) =
     let
-        qty =
-            dict
-                |> Dict.get item.id
-                |> Maybe.withDefault 0
+        modifyCounter counter =
+            let
+                qty =
+                    counter
+                        |> Dict.get object.id
+                        |> Maybe.withDefault 0
+                
+                newQty =
+                    max 0 (qty + delta)
+            in
+            counter
+                |> Dict.insert object.id newQty
         
-        newQty =
-            max 0 (qty + delta)
-        
-        newDict =
-            dict
-                |> Dict.insert item.id newQty
-    in
-    Inventory newDict
+        newData =
+            case slot of
+                ItemSlot ->
+                    { data | items = modifyCounter data.items }
 
-toList : Inventory -> List ( Item, Int )
-toList (Inventory dict) =
-    dict
+                WeaponSlot ->
+                    { data | weapons = modifyCounter data.weapons }
+    in
+    Inventory newData
+
+modifyItemQuantity : Item -> Int -> Inventory -> Inventory
+modifyItemQuantity =
+    modifyQuantity ItemSlot
+
+modifyWeaponQuantity : Weapon -> Int -> Inventory -> Inventory
+modifyWeaponQuantity =
+    modifyQuantity WeaponSlot
+
+listItems : Inventory -> List ( Item, Int )
+listItems (Inventory data) =
+    data.items
         |> Dict.toList
-        |> List.map (\(k, v) -> (Item.byId k, v))
+        |> List.map (\(id, q) -> (Item.byId id, q))
+
+listWeapons : Inventory -> List ( Weapon, Int )
+listWeapons (Inventory data) =
+    data.weapons
+        |> Dict.toList
+        |> List.map (\(id, q) -> (Weapon.byId id, q))

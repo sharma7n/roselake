@@ -7,7 +7,8 @@ module Weapon exposing
 import Random
 
 type alias Weapon =
-    { name : String
+    { id : String
+    , name : String
     , cost : Int
     , attack : Int
     }
@@ -16,13 +17,15 @@ byId : String -> Weapon
 byId id =
     case id of
         "sword" ->
-            { name = "Sword"
+            { id = "sword"
+            , name = "Sword"
             , cost = 1
             , attack = 1
             }
         
         _ ->
-            { name = "Null Weapon"
+            { id = "null"
+            , name = "Null Weapon"
             , cost = 0
             , attack = 0
             }

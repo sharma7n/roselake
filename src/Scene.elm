@@ -12,6 +12,7 @@ import Shop exposing (Shop)
 type Scene
     = PlayerScene
     | LearnSelectScene
+    | EquipScene
     | HomeScene
     | ShopSelectScene
     | ShopScene Shop

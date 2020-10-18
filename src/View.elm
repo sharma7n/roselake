@@ -143,6 +143,7 @@ viewScenePhase scene sceneModel =
                  buttonList
                     [ ( "Player", Msg.UserSelectedPlayerScene )
                     , ( "Learn", Msg.UserSelectedLearnSelectScene )
+                    , ( "Equip", Msg.UserSelectedEquipScene )
                     , ( "Home", Msg.UserSelectedHomeScene )
                     , ( "Shop", Msg.UserSelectedShopSelectScene )
                     , ( "Town", Msg.NoOp )
@@ -254,6 +255,49 @@ viewSceneModel scene sceneModel =
         
         Scene.LearnSelectScene ->
             learnTable Action.learnable sceneModel.actions
+        
+        Scene.EquipScene ->
+            let
+                equippedWeaponElement =
+                    case sceneModel.equippedWeapon of
+                        Just weapon ->
+                            Html.div
+                                []
+                                [ Html.text <| "Weapon: " ++ weapon.name
+                                , Html.button
+                                    [ Html.Events.onClick <| Msg.UserSelectedUnEquipWeapon weapon ]
+                                    [ Html.text "Un-equip" ]
+                                ]
+                        
+                        Nothing ->
+                            Html.div
+                                []
+                                [ Html.text <| "Weapon: - "
+                                ]
+            in
+            Html.div
+                []
+                [ Html.text "Equipped"
+                , Html.ul
+                    []
+                    [ equippedWeaponElement
+                    ]
+                , Html.text "Equipable"
+                , let
+
+                    equipableFn (w, q) =
+                        Html.li
+                            []
+                            [ Html.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
+                            , Html.button
+                                [ Html.Events.onClick <| Msg.UserSelectedEquipWeapon w ]
+                                [ Html.text "Equip" ]
+                            ]
+                  in
+                  Html.ul
+                    []
+                    (List.map equipableFn (Inventory.listWeapons sceneModel.inventory))
+                ]
         
         Scene.HomeScene ->
             buttonList

@@ -23,6 +23,20 @@ byId id =
             , attack = 1
             }
         
+        "sword2" ->
+            { id = "sword2"
+            , name = "Sword 2"
+            , cost = 2
+            , attack = 2
+            }
+        
+        "sword3" ->
+            { id = "sword3"
+            , name = "Sword 3"
+            , cost = 3
+            , attack = 3
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Weapon"
@@ -35,4 +49,6 @@ generator =
     Random.weighted
         ( 0, byId "" )
         [ ( 1, byId "sword" )
+        , ( 2, byId "sword2" )
+        , ( 3, byId "sword3" )
         ]

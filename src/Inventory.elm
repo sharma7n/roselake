@@ -70,9 +70,11 @@ listItems (Inventory data) =
     data.items
         |> Dict.toList
         |> List.map (\(id, q) -> (Item.byId id, q))
+        |> List.filter (\(_, q) -> q > 0)
 
 listWeapons : Inventory -> List ( Weapon, Int )
 listWeapons (Inventory data) =
     data.weapons
         |> Dict.toList
         |> List.map (\(id, q) -> (Weapon.byId id, q))
+        |> List.filter (\(_, q) -> q > 0)

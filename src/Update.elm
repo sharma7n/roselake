@@ -70,6 +70,49 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene newSceneModel }, Cmd.none )
         
+        ( Msg.UserSelectedEquipScene, Phase.ScenePhase _ sceneModel ) ->
+            ( { model | phase = Phase.ScenePhase Scene.EquipScene sceneModel }, Cmd.none )
+        
+        ( Msg.UserSelectedEquipWeapon weapon, Phase.ScenePhase scene sceneModel ) ->
+            let
+                newInventory =
+                    case sceneModel.equippedWeapon of
+                        Just heldWeapon ->
+                            sceneModel.inventory
+                                |> Inventory.modifyWeaponQuantity weapon -1
+                                |> Inventory.modifyWeaponQuantity heldWeapon 1
+                        
+                        Nothing ->
+                            sceneModel.inventory
+                                |> Inventory.modifyWeaponQuantity weapon -1
+                
+                newSceneModel =
+                    { sceneModel
+                        | inventory = newInventory
+                        , equippedWeapon = Just weapon
+                    }
+                
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
+        ( Msg.UserSelectedUnEquipWeapon weapon, Phase.ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel
+                        | equippedWeapon = Nothing
+                        , inventory =
+                            sceneModel.inventory
+                                |> Inventory.modifyWeaponQuantity weapon 1
+                    }
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
         ( Msg.UserSelectedHomeScene, Phase.ScenePhase _ sceneModel ) ->
             ( { model | phase = Phase.ScenePhase Scene.HomeScene sceneModel }, Cmd.none )
         
@@ -178,16 +221,24 @@ update msg model =
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent monster)) delve) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster monster intent)) delve) sceneModel }, Cmd.none )
 
-        ( Msg.SystemGotObject (Object.Item i), Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
             let
                 newDungeonScene =
-                    DelvePhase.ActionPhase <| DungeonScene.ReceiveTreasure (Object.Item i)
+                    DelvePhase.ActionPhase <| DungeonScene.ReceiveTreasure object
+                
+                newInventory =
+                    case object of
+                        Object.Item i ->
+                            sceneModel.inventory
+                                |> Inventory.modifyItemQuantity i 1
+                        
+                        Object.Weapon w ->
+                            sceneModel.inventory
+                                |> Inventory.modifyWeaponQuantity w 1
                 
                 newSceneModel =
                     { sceneModel
-                        | inventory =
-                            sceneModel.inventory
-                                |> Inventory.modifyItemQuantity i 1
+                        | inventory = newInventory
                     }
                 
                 newModel =
@@ -413,6 +464,7 @@ updateBattleAction model monster action monsterAction sceneModel =
                         , gold = newMonster.gold
                         , abilityPoints = newMonster.abilityPoints
                         , items = []
+                        , weapons = []
                         }
                     
                     newSceneModel3 =
@@ -446,6 +498,7 @@ updateDungeonBattleAction model monster action monsterAction delve sceneModel =
                         , gold = newMonster.gold
                         , abilityPoints = newMonster.abilityPoints
                         , items = []
+                        , weapons = []
                         }
                     
                     newSceneModel3 =

@@ -36,4 +36,6 @@ generateReward _ =
         , items =
             [ ( Item.byId "potion", 3 )
             ]
+        , weapons =
+            []
         }

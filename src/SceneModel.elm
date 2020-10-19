@@ -12,6 +12,7 @@ import CharacterCreationError
 import CharacterCreationSettings exposing (CharacterCreationSettings)
 
 import Action exposing (Action)
+import Armor exposing (Armor)
 import Avatar exposing (Avatar)
 import Effect exposing (Effect)
 import Inventory exposing (Inventory)
@@ -39,6 +40,7 @@ type alias SceneModel =
     , agility : Int
     , actions : List Action
     , equippedWeapon : Maybe Weapon
+    , equippedArmor : Maybe Armor
     }
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
@@ -142,6 +144,7 @@ characterCreationSettingsToSceneModel settings =
                 , Action.byId "fireball"
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
+            , equippedArmor = Just <| Armor.byId "shirt"
             }
         )))))))
 

@@ -148,4 +148,5 @@ generateReward monster =
         , abilityPoints = monster.abilityPoints
         , items = []
         , weapons = []
+        , armors = []
         }

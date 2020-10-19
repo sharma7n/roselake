@@ -3,12 +3,15 @@ module Inventory exposing
     , new
     , modifyItemQuantity
     , modifyWeaponQuantity
+    , modifyArmorQuantity
     , listItems
     , listWeapons
+    , listArmors
     )
 
 import Dict exposing (Dict)
 
+import Armor exposing (Armor)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
 
@@ -18,17 +21,20 @@ type Inventory
 type alias Data =
     { items : Dict String Int
     , weapons : Dict String Int
+    , armors : Dict String Int
     }
 
 type Slot
     = ItemSlot
     | WeaponSlot
+    | ArmorSlot
 
 new : Inventory
 new =
     Inventory <|
         { items = Dict.empty
         , weapons = Dict.empty
+        , armors = Dict.empty
         }
 
 modifyQuantity : Slot -> { a | id : String } -> Int -> Inventory -> Inventory
@@ -54,6 +60,10 @@ modifyQuantity slot object delta (Inventory data) =
 
                 WeaponSlot ->
                     { data | weapons = modifyCounter data.weapons }
+                
+                ArmorSlot ->
+                    { data | armors = modifyCounter data.armors }
+    
     in
     Inventory newData
 
@@ -64,6 +74,10 @@ modifyItemQuantity =
 modifyWeaponQuantity : Weapon -> Int -> Inventory -> Inventory
 modifyWeaponQuantity =
     modifyQuantity WeaponSlot
+
+modifyArmorQuantity : Armor -> Int -> Inventory -> Inventory
+modifyArmorQuantity =
+    modifyQuantity ArmorSlot
 
 listItems : Inventory -> List ( Item, Int )
 listItems (Inventory data) =
@@ -77,4 +91,11 @@ listWeapons (Inventory data) =
     data.weapons
         |> Dict.toList
         |> List.map (\(id, q) -> (Weapon.byId id, q))
+        |> List.filter (\(_, q) -> q > 0)
+
+listArmors : Inventory -> List ( Armor, Int )
+listArmors (Inventory data) =
+    data.armors
+        |> Dict.toList
+        |> List.map (\(id, q) -> (Armor.byId id, q))
         |> List.filter (\(_, q) -> q > 0)

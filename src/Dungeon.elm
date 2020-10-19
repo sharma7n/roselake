@@ -38,4 +38,6 @@ generateReward _ =
             ]
         , weapons =
             []
+        , armors =
+            []
         }

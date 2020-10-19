@@ -5,6 +5,7 @@ module Msg exposing
 import CharacterCreationSettingSelection exposing (CharacterCreationSettingSelection)
 
 import Action exposing (Action)
+import Armor exposing (Armor)
 import Dungeon exposing (Dungeon)
 import DungeonPath
 import DungeonScene
@@ -29,6 +30,8 @@ type Msg
     | UserSelectedUseItem Item
     | UserSelectedEquipWeapon Weapon
     | UserSelectedUnEquipWeapon Weapon
+    | UserSelectedEquipArmor Armor
+    | UserSelectedUnEquipArmor Armor
     | UserSelectedExploreScene
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)

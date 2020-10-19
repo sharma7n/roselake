@@ -274,6 +274,23 @@ viewSceneModel scene sceneModel =
                                 []
                                 [ Html.text <| "Weapon: - "
                                 ]
+                
+                equippedArmorElement =
+                    case sceneModel.equippedArmor of
+                        Just armor ->
+                            Html.div
+                                []
+                                [ Html.text <| "Armor: " ++ armor.name
+                                , Html.button
+                                    [ Html.Events.onClick <| Msg.UserSelectedUnEquipArmor armor ]
+                                    [ Html.text "Un-equip" ]
+                                ]
+                        
+                        Nothing ->
+                            Html.div
+                                []
+                                [ Html.text <| "Armor: - "
+                                ]
             in
             Html.div
                 []
@@ -281,6 +298,7 @@ viewSceneModel scene sceneModel =
                 , Html.ul
                     []
                     [ equippedWeaponElement
+                    , equippedArmorElement
                     ]
                 , Html.text "Equipable"
                 , let
@@ -297,6 +315,20 @@ viewSceneModel scene sceneModel =
                   Html.ul
                     []
                     (List.map equipableFn (Inventory.listWeapons sceneModel.inventory))
+                , let
+
+                    equipableFn (w, q) =
+                        Html.li
+                            []
+                            [ Html.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
+                            , Html.button
+                                [ Html.Events.onClick <| Msg.UserSelectedEquipArmor w ]
+                                [ Html.text "Equip" ]
+                            ]
+                  in
+                  Html.ul
+                    []
+                    (List.map equipableFn (Inventory.listArmors sceneModel.inventory))
                 ]
         
         Scene.HomeScene ->

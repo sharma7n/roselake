@@ -6,22 +6,26 @@ module Object exposing
 
 import Random
 
+import Armor exposing (Armor)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
 
 type Object
     = Item Item
     | Weapon Weapon
+    | Armor Armor
 
 type ObjectType
     = ItemType
     | WeaponType
+    | ArmorType
 
 objectTypeGenerator : Random.Generator ObjectType
 objectTypeGenerator =
     Random.uniform
         ItemType
         [ WeaponType
+        , ArmorType
         ]
 
 generator : Random.Generator Object
@@ -34,6 +38,9 @@ generator =
                 
                 WeaponType ->
                     Random.map Weapon Weapon.generator
+                
+                ArmorType ->
+                    Random.map Armor Armor.generator
         )
 
 toString : Object -> String
@@ -44,3 +51,6 @@ toString o =
         
         Weapon w ->
             w.name
+        
+        Armor a ->
+            a.name

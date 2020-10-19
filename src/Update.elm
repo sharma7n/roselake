@@ -20,6 +20,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Armor exposing (Armor)
 import Battler exposing (Battler)
 import Target exposing (Target)
 import Avatar exposing (Avatar)
@@ -106,6 +107,46 @@ update msg model =
                         , inventory =
                             sceneModel.inventory
                                 |> Inventory.modifyWeaponQuantity weapon 1
+                    }
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
+        ( Msg.UserSelectedEquipArmor armor, Phase.ScenePhase scene sceneModel ) ->
+            let
+                newInventory =
+                    case sceneModel.equippedArmor of
+                        Just heldArmor ->
+                            sceneModel.inventory
+                                |> Inventory.modifyArmorQuantity armor -1
+                                |> Inventory.modifyArmorQuantity heldArmor 1
+                        
+                        Nothing ->
+                            sceneModel.inventory
+                                |> Inventory.modifyArmorQuantity armor -1
+                
+                newSceneModel =
+                    { sceneModel
+                        | inventory = newInventory
+                        , equippedArmor = Just armor
+                    }
+                
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
+        ( Msg.UserSelectedUnEquipArmor armor, Phase.ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    { sceneModel
+                        | equippedArmor = Nothing
+                        , inventory =
+                            sceneModel.inventory
+                                |> Inventory.modifyArmorQuantity armor 1
                     }
                 newModel =
                     { model | phase = Phase.ScenePhase scene newSceneModel }
@@ -235,6 +276,10 @@ update msg model =
                         Object.Weapon w ->
                             sceneModel.inventory
                                 |> Inventory.modifyWeaponQuantity w 1
+                        
+                        Object.Armor a ->
+                            sceneModel.inventory
+                                |> Inventory.modifyArmorQuantity a 1
                 
                 newSceneModel =
                     { sceneModel
@@ -400,6 +445,7 @@ update msg model =
                         , Action.byId "fireball"
                         ]
                     , equippedWeapon = Just <| Weapon.byId "sword"
+                    , equippedArmor = Just <| Armor.byId "shirt"
                     }
                 
                 newModel =

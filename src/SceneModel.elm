@@ -38,6 +38,8 @@ type alias SceneModel =
     , actionPoints : Int
     , maxActionPoints : Int
     , attack : Int
+    , magic : Int
+    , defense : Int
     , agility : Int
     , actions : List Action
     , equippedWeapon : Maybe Weapon
@@ -139,6 +141,8 @@ characterCreationSettingsToSceneModel settings =
             , actionPoints = 3
             , maxActionPoints = 3
             , attack = 1
+            , magic = 1
+            , defense = 0
             , agility = 1
             , actions =
                 [ Action.byId "attack"

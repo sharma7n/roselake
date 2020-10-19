@@ -249,6 +249,8 @@ viewSceneModel scene sceneModel =
                 []
                 [ textList
                     [ "ATK: " ++ String.fromInt sceneModel.attack
+                    , "MAG: " ++ String.fromInt sceneModel.magic
+                    , "DEF: " ++ String.fromInt sceneModel.defense
                     , "AGI: " ++ String.fromInt sceneModel.agility
                     ]
                 ]

@@ -11,6 +11,7 @@ import Random
 import Distribution exposing (Distribution)
 
 import Action exposing (Action)
+import Armor exposing (Armor)
 import Reward exposing (Reward)
 import Weapon exposing (Weapon)
 
@@ -26,9 +27,12 @@ type alias Monster =
     , actionPoints : Int
     , maxActionPoints : Int
     , attack : Int
+    , magic : Int
+    , defense : Int
     , agility : Int
     , actions : Distribution Action
     , equippedWeapon : Maybe Weapon
+    , equippedArmor : Maybe Armor
     }
 
 byId : String -> Monster
@@ -46,6 +50,8 @@ byId id =
             , actionPoints = 0
             , maxActionPoints = 0
             , attack = 1
+            , magic = 1
+            , defense = 0
             , agility = 1
             , actions =
                 Distribution.new
@@ -53,6 +59,7 @@ byId id =
                     [ ( 50, Action.byId "attack" )
                     ]
             , equippedWeapon = Nothing
+            , equippedArmor = Nothing
             }
         
         "dummy" ->
@@ -60,18 +67,21 @@ byId id =
             , experience = 1
             , gold = 1
             , abilityPoints = 1
-            , hitPoints = 1
-            , maxHitPoints = 1
+            , hitPoints = 10
+            , maxHitPoints = 10
             , magicPoints = 1
             , maxMagicPoints = 1
             , actionPoints = 0
             , maxActionPoints = 0
             , attack = 1
+            , magic = 1
+            , defense = 0
             , agility = 1
             , actions = Distribution.new
                 ( 1, Action.byId "nothing" )
                 []
             , equippedWeapon = Nothing
+            , equippedArmor = Nothing
             }
         
         "gremlin" ->
@@ -79,13 +89,15 @@ byId id =
             , experience = 1
             , gold = 1
             , abilityPoints = 1
-            , hitPoints = 16
-            , maxHitPoints = 16
+            , hitPoints = 24
+            , maxHitPoints = 24
             , magicPoints = 8
             , maxMagicPoints = 8
             , actionPoints = 0
             , maxActionPoints = 0
             , attack = 2
+            , magic = 2
+            , defense = 0
             , agility = 1
             , actions =
                 Distribution.new
@@ -94,6 +106,7 @@ byId id =
                     , ( 33, Action.byId "heal" )
                     ]
             , equippedWeapon = Nothing
+            , equippedArmor = Nothing
             }
         
         _ ->
@@ -108,12 +121,15 @@ byId id =
             , actionPoints = 0
             , maxActionPoints = 0
             , attack = 0
+            , magic = 0
+            , defense = 0
             , agility = 0
             , actions =
                 Distribution.new
                     ( 0, Action.byId "null" )
                     []
             , equippedWeapon = Nothing
+            , equippedArmor = Nothing
             }
 
 generator : Random.Generator Monster

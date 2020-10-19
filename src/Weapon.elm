@@ -11,6 +11,7 @@ type alias Weapon =
     , name : String
     , cost : Int
     , attack : Int
+    , magic : Int
     }
 
 byId : String -> Weapon
@@ -21,6 +22,15 @@ byId id =
             , name = "Sword"
             , cost = 1
             , attack = 1
+            , magic = 0
+            }
+        
+        "staff" ->
+            { id = "staff"
+            , name = "Staff"
+            , cost = 1
+            , attack = 0
+            , magic = 1
             }
         
         "sword2" ->
@@ -28,6 +38,7 @@ byId id =
             , name = "Sword 2"
             , cost = 2
             , attack = 2
+            , magic = 0
             }
         
         "sword3" ->
@@ -35,6 +46,7 @@ byId id =
             , name = "Sword 3"
             , cost = 3
             , attack = 3
+            , magic = 0
             }
         
         _ ->
@@ -42,6 +54,7 @@ byId id =
             , name = "Null Weapon"
             , cost = 0
             , attack = 0
+            , magic = 0
             }
 
 generator : Random.Generator Weapon

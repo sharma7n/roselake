@@ -9,6 +9,7 @@ import Action exposing (Action)
 import Effect exposing (Effect)
 import Formula exposing (Formula)
 
+import Armor exposing (Armor)
 import Weapon exposing (Weapon)
 
 type alias Battler a =
@@ -20,9 +21,32 @@ type alias Battler a =
         , actionPoints : Int
         , maxActionPoints : Int
         , attack : Int
+        , magic : Int
+        , defense : Int
         , agility : Int
         , equippedWeapon : Maybe Weapon
+        , equippedArmor : Maybe Armor
     }
+
+totalAttack : Battler a -> Int
+totalAttack b =
+    b.attack + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
+
+totalDefense : Battler a -> Int
+totalDefense b =
+    b.defense + Maybe.withDefault 0 (Maybe.map .defense b.equippedArmor)
+
+totalMagic : Battler a -> Int
+totalMagic b =
+    b.magic + Maybe.withDefault 0 (Maybe.map .magic b.equippedWeapon)
+
+recoverhitPoints : Int -> Battler a -> Battler a
+recoverhitPoints amt b =
+    { b | hitPoints = Util.boundedBy 0 b.maxHitPoints (b.hitPoints + amt) }
+
+takeDamage : Int -> Battler a -> Battler a
+takeDamage dmg b =
+    { b | hitPoints = Util.boundedBy 0 b.maxHitPoints (b.hitPoints - dmg) }
 
 runAction : Action -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 runAction action ( attacker, defender ) =
@@ -55,34 +79,22 @@ applyEffects effects battlers =
     List.foldl applyEffect battlers effects
 
 applyFormula : Formula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
-applyFormula formula ( self, enemy ) =
+applyFormula formula ( a, b ) =
     case formula of
         Formula.Attack ->
-            let
-                dmg =
-                    self.attack + Maybe.withDefault 0 (Maybe.map .attack self.equippedWeapon)
-                
-                newEnemy =
-                    { enemy | hitPoints = Util.boundedBy 0 enemy.maxHitPoints (enemy.hitPoints - dmg) }
-            in
-            ( self, newEnemy )
+            ( a 
+            , b
+                |> takeDamage (totalAttack a - totalDefense b)
+            )
         
         Formula.Fireball ->
-            let
-                dmg =
-                    3
-                
-                newEnemy =
-                    { enemy | hitPoints = Util.boundedBy 0 enemy.maxHitPoints (enemy.hitPoints - dmg) }
-            in
-            ( self, newEnemy )
+            ( a 
+            , b
+                |> takeDamage (3 * totalMagic a)
+            )
         
         Formula.Heal ->
-            let
-                d =
-                    2
-                
-                newSelf =
-                    { self | hitPoints = Util.boundedBy 0 self.maxHitPoints (self.hitPoints + d ) }
-            in
-            ( newSelf, enemy )
+            ( a
+                |> recoverhitPoints (2 * totalMagic a)
+            , b
+            )

@@ -442,6 +442,8 @@ update msg model =
                     , actionPoints = 3
                     , maxActionPoints = 3
                     , attack = 1
+                    , magic = 1
+                    , defense = 0
                     , agility = 1
                     , actions =
                         [ Action.byId "attack"

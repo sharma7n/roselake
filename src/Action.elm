@@ -85,6 +85,38 @@ byId id =
                 ]
             }
         
+        "chargeup" ->
+            { id = "chargeup"
+            , name = "Charge Up"
+            , context = Context.Battle
+            , learnCost = 20
+            , actionPointCost = 1
+            , magicPointCost = 0
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.ChargeUp 1
+                    ]
+                  }
+                ]
+            }
+        
+        "chargeup4" ->
+            { id = "chargeup4"
+            , name = "Charge Up 4"
+            , context = Context.Battle
+            , learnCost = 20
+            , actionPointCost = 1
+            , magicPointCost = 0
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.ChargeUp 4
+                    ]
+                  }
+                ]
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Action"
@@ -99,4 +131,5 @@ learnable : List Action
 learnable =
     [ byId "fireball"
     , byId "heal"
+    , byId "chargeup"
     ]

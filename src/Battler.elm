@@ -32,7 +32,13 @@ type alias Battler a =
 
 totalAttack : Battler a -> Int
 totalAttack b =
-    b.attack + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
+    b.attack 
+        + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
+        + List.foldl (\s -> \n ->
+            case s of
+                Status.ModifyAttack i ->
+                    n + i
+        ) 0 b.statuses
 
 totalDefense : Battler a -> Int
 totalDefense b =
@@ -80,6 +86,25 @@ applyEffects : List Effect -> ( Battler a, Battler b ) -> (Battler a, Battler b 
 applyEffects effects battlers =
     List.foldl applyEffect battlers effects
 
+applyStatus : Status -> Battler a -> Battler a
+applyStatus status b =
+    case status of
+        Status.ModifyAttack i ->
+            let
+                ( filtered, existingMod ) =
+                    b.statuses
+                        |> List.foldl (\s -> \(f, e) ->
+                            case s of
+                                Status.ModifyAttack j ->
+                                    (f, e + j)
+                        ) ([], 0)
+                
+                newStatus =
+                    Status.ModifyAttack <| existingMod + i
+
+            in
+            { b | statuses = newStatus :: filtered }
+            
 applyFormula : Formula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 applyFormula formula ( a, b ) =
     case formula of
@@ -98,5 +123,11 @@ applyFormula formula ( a, b ) =
         Formula.Heal ->
             ( a
                 |> recoverhitPoints (2 * totalMagic a)
+            , b
+            )
+        
+        Formula.ChargeUp i ->
+            ( a
+                |> applyStatus (Status.ModifyAttack i)
             , b
             )

@@ -105,9 +105,10 @@ byId id =
             , agility = 1
             , actions =
                 Distribution.new
-                    ( 33, Action.byId "attack" )
-                    [ ( 33, Action.byId "fireball" )
-                    , ( 33, Action.byId "heal" )
+                    ( 25, Action.byId "attack" )
+                    [ ( 25, Action.byId "fireball" )
+                    , ( 25, Action.byId "heal" )
+                    , ( 25, Action.byId "chargeup4" )
                     ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing

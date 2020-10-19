@@ -6,3 +6,4 @@ type Formula
     = Attack
     | Fireball
     | Heal
+    | ChargeUp Int

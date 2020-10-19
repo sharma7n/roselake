@@ -38,6 +38,7 @@ import Object exposing (Object)
 import Shop exposing (Shop)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
+import Status exposing (Status)
 
 import Scene exposing (Scene)
 import SceneModel exposing (SceneModel)
@@ -414,49 +415,7 @@ update msg model =
             updateCharacterCreationConfirmation model characterCreationModel
         
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase _ ) ->
-            let
-                avatar =
-                    { hairStyle = HairStyle.Plain
-                    , hairColor = HairColor.Brown
-                    , complexion = Complexion.Medium
-                    , eyeColor = EyeColor.Brown
-                    , height = Height.Average
-                    , build = Build.Sturdy
-                    }
-                
-                sceneModel =
-                    { name = "Dev"
-                    , avatar = avatar
-                    , gold = 10
-                    , inventory = Inventory.new
-                    , level = 1
-                    , experience = 0
-                    , freeAbilityPoints = 0
-                    , totalAbilityPoints = 0
-                    , satiety = 10
-                    , maxSatiety = 10
-                    , hitPoints = 10
-                    , maxHitPoints = 10
-                    , magicPoints = 5
-                    , maxMagicPoints = 5
-                    , actionPoints = 3
-                    , maxActionPoints = 3
-                    , attack = 1
-                    , magic = 1
-                    , defense = 0
-                    , agility = 1
-                    , actions =
-                        [ Action.byId "attack"
-                        , Action.byId "fireball"
-                        ]
-                    , equippedWeapon = Just <| Weapon.byId "sword"
-                    , equippedArmor = Just <| Armor.byId "shirt"
-                    }
-                
-                newModel =
-                    { model | phase = Phase.ScenePhase Scene.PlayerScene sceneModel } 
-            in
-            ( newModel, Cmd.none )
+            ( { model | phase = Phase.ScenePhase Scene.PlayerScene SceneModel.dev } , Cmd.none )
         
         _ ->
             ( model, Cmd.none )

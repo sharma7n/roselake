@@ -13,6 +13,7 @@ import Distribution exposing (Distribution)
 import Action exposing (Action)
 import Armor exposing (Armor)
 import Reward exposing (Reward)
+import Status exposing (Status)
 import Weapon exposing (Weapon)
 
 type alias Monster =
@@ -33,6 +34,7 @@ type alias Monster =
     , actions : Distribution Action
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
+    , statuses : List Status
     }
 
 byId : String -> Monster
@@ -60,6 +62,7 @@ byId id =
                     ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
+            , statuses = []
             }
         
         "dummy" ->
@@ -82,6 +85,7 @@ byId id =
                 []
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
+            , statuses = []
             }
         
         "gremlin" ->
@@ -107,6 +111,7 @@ byId id =
                     ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
+            , statuses = []
             }
         
         _ ->
@@ -130,6 +135,7 @@ byId id =
                     []
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
+            , statuses = []
             }
 
 generator : Random.Generator Monster

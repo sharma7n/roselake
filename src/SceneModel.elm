@@ -18,6 +18,7 @@ import Avatar exposing (Avatar)
 import Effect exposing (Effect)
 import Inventory exposing (Inventory)
 import Reward exposing (Reward)
+import Status exposing (Status)
 import Weapon exposing (Weapon)
 
 type alias SceneModel =
@@ -44,6 +45,7 @@ type alias SceneModel =
     , actions : List Action
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
+    , statuses : List Status
     }
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
@@ -150,6 +152,7 @@ characterCreationSettingsToSceneModel settings =
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
+            , statuses = []
             }
         )))))))
 

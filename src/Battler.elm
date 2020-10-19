@@ -10,6 +10,7 @@ import Effect exposing (Effect)
 import Formula exposing (Formula)
 
 import Armor exposing (Armor)
+import Status exposing (Status)
 import Weapon exposing (Weapon)
 
 type alias Battler a =
@@ -26,6 +27,7 @@ type alias Battler a =
         , agility : Int
         , equippedWeapon : Maybe Weapon
         , equippedArmor : Maybe Armor
+        , statuses : List Status
     }
 
 totalAttack : Battler a -> Int

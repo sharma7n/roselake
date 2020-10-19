@@ -332,6 +332,7 @@ update msg model =
                 newSceneModel =
                     sceneModel
                         |> SceneModel.applyReward reward
+                        |> SceneModel.completeBattle
             in
             ( { model | phase = Phase.ScenePhase (Scene.VictoryScene monster reward) newSceneModel }, Cmd.none )
         
@@ -340,6 +341,7 @@ update msg model =
                 newSceneModel =
                     sceneModel
                         |> SceneModel.applyReward reward
+                        |> SceneModel.completeBattle
             in
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve) newSceneModel }, Cmd.none )
         
@@ -348,6 +350,7 @@ update msg model =
                 newSceneModel =
                     sceneModel
                         |> SceneModel.applyReward reward
+                        |> SceneModel.completeBattle
                 
                 newSceneModel2 =
                         List.foldl (\(item, qty) -> \s ->
@@ -522,7 +525,7 @@ updateBattleAction model monster action monsterAction sceneModel =
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newMonster, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
@@ -538,7 +541,7 @@ updateDungeonBattleAction model monster action monsterAction delve sceneModel =
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
@@ -556,7 +559,7 @@ updateEndBattleTurn model monster monsterAction sceneModel =
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newMonster, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else
@@ -575,7 +578,7 @@ updateDungeonEndBattleTurn model monster monsterAction delve sceneModel =
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
-                ( Scene.GameOverScene, newSceneModel, Cmd.none )
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward monster) )
             else

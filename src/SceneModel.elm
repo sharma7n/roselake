@@ -3,6 +3,7 @@ module SceneModel exposing
     , characterCreationSettingsToSceneModel
     , applyEffectsToSceneModel
     , applyReward
+    , completeBattle
     )
 
 import FormResult
@@ -159,4 +160,11 @@ applyReward reward m =
             m.inventory
                 |> (\i -> List.foldl (Util.uncurry Inventory.modifyItemQuantity) i reward.items)
                 |> (\i -> List.foldl (Util.uncurry Inventory.modifyWeaponQuantity) i reward.weapons)
+                |> (\i -> List.foldl (Util.uncurry Inventory.modifyArmorQuantity) i reward.armors)
+    }
+
+completeBattle : SceneModel -> SceneModel
+completeBattle m =
+    { m
+        | actionPoints = m.maxActionPoints
     }

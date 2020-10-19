@@ -4,3 +4,4 @@ module Status exposing
 
 type Status
     = ModifyAttack Int
+    | ModifyDefense Int

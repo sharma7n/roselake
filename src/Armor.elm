@@ -20,21 +20,21 @@ byId id =
             { id = "shirt"
             , name = "Shirt"
             , cost = 10
-            , defense = 0
+            , defense = 1
             }
         
         "mail" ->
             { id = "mail"
             , name = "Mail"
             , cost = 20
-            , defense = 1
+            , defense = 2
             }
         
         "plate" ->
             { id = "plate"
             , name = "Plate"
             , cost = 60
-            , defense = 2
+            , defense = 3
             }
         
         _ ->

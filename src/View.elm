@@ -582,11 +582,19 @@ viewBattleMonsterScene sceneModel monster intent =
     Html.div
         []
         [ textList
-            [ monster.name
-            , "HP: " ++ String.fromInt monster.hitPoints
+            [ "Enemy"
+            , monster.name
+            , "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt monster.maxHitPoints
             , "Intent: " ++ intent.name
+            , "Block: " ++ String.fromInt monster.block
             ]
-        , Html.text <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
+        , textList
+            [ "Player"
+            , sceneModel.name
+            , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
+            , "Block: " ++ String.fromInt (Debug.log "displayedBlock" sceneModel.block)
+            ]
         , actionTable sceneModel.actionPoints sceneModel.actions
         , Html.button
             [ Html.Events.onClick Msg.UserSelectedEndBattleTurn ]

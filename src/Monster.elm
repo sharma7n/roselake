@@ -35,6 +35,7 @@ type alias Monster =
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     , statuses : List Status
+    , block : Int
     }
 
 byId : String -> Monster
@@ -53,7 +54,7 @@ byId id =
             , maxActionPoints = 0
             , attack = 1
             , magic = 1
-            , defense = 0
+            , defense = 1
             , agility = 1
             , actions =
                 Distribution.new
@@ -63,6 +64,7 @@ byId id =
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
+            , block = 0
             }
         
         "dummy" ->
@@ -78,7 +80,7 @@ byId id =
             , maxActionPoints = 0
             , attack = 1
             , magic = 1
-            , defense = 0
+            , defense = 1
             , agility = 1
             , actions = Distribution.new
                 ( 1, Action.byId "nothing" )
@@ -86,6 +88,7 @@ byId id =
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
+            , block = 0
             }
         
         "gremlin" ->
@@ -101,18 +104,20 @@ byId id =
             , maxActionPoints = 0
             , attack = 4
             , magic = 2
-            , defense = 0
+            , defense = 4
             , agility = 1
             , actions =
                 Distribution.new
-                    ( 25, Action.byId "attack" )
-                    [ ( 25, Action.byId "fireball" )
-                    , ( 25, Action.byId "heal" )
-                    , ( 25, Action.byId "chargeup4" )
+                    ( 20, Action.byId "attack" )
+                    [ ( 20, Action.byId "defend" )
+                    , ( 20, Action.byId "fireball" )
+                    , ( 20, Action.byId "heal" )
+                    , ( 20, Action.byId "chargeup4" )
                     ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
+            , block = 0
             }
         
         _ ->
@@ -137,6 +142,7 @@ byId id =
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
+            , block = 0
             }
 
 generator : Random.Generator Monster

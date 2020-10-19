@@ -54,6 +54,7 @@ type alias SceneModel =
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     , statuses : List Status
+    , block : Int
     }
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
@@ -156,11 +157,13 @@ characterCreationSettingsToSceneModel settings =
             , agility = 1
             , actions =
                 [ Action.byId "attack"
+                , Action.byId "defend"
                 , Action.byId "fireball"
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
             , statuses = []
+            , block = 0
             }
         )))))))
 
@@ -198,11 +201,13 @@ dev =
     , agility = 1
     , actions =
         [ Action.byId "attack"
+        , Action.byId "defend"
         , Action.byId "fireball"
         ]
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"
     , statuses = []
+    , block = 0
     }
 
 applyReward : Reward -> SceneModel -> SceneModel

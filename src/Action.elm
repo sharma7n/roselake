@@ -53,6 +53,22 @@ byId id =
                 ]
             }
         
+        "defend" ->
+            { id = "defend"
+            , name = "Defend"
+            , context = Context.Battle
+            , learnCost = 0
+            , actionPointCost = 1
+            , magicPointCost = 0
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.BattleFormula Formula.Block
+                    ]
+                  }
+                ]
+            }
+        
         "fireball" ->
             { id = "fireball"
             , name = "Fireball"

@@ -7,6 +7,7 @@ module DungeonScene exposing
 import Random
 
 import Action exposing (Action)
+import Battle exposing (Battle)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Object exposing (Object)
@@ -16,10 +17,10 @@ type Scene
     = Empty
     | Trap
     | Battle
-    | BattleMonsterLoadingIntent Monster
-    | BattleMonster Monster Action
-    | VictoryLoading Monster
-    | Victory Monster Reward
+    | BattleMonsterLoadingIntent Battle
+    | BattleMonster Battle Action
+    | VictoryLoading Battle
+    | Victory Battle Reward
     | Treasure
     | ReceiveTreasure Object
     | Event
@@ -59,8 +60,8 @@ toString s =
         BattleMonsterLoadingIntent _ ->
             "Loading..."
         
-        BattleMonster monster _ ->
-            "Battling: " ++ monster.name
+        BattleMonster battle _ ->
+            "Battling: " ++ battle.monster.name
         
         VictoryLoading _ ->
             "Loading Victory..."

@@ -25,6 +25,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Battle exposing (Battle)
 import Battler exposing (Battler)
 import Target exposing (Target)
 import Avatar exposing (Avatar)
@@ -360,18 +361,18 @@ viewSceneModel scene sceneModel =
                 , Monster.byId "gremlin"
                 ]
         
-        Scene.BattleMonsterLoadingIntentScene monster ->
-            Html.text <| monster.name ++ " is thinking..."
+        Scene.BattleMonsterLoadingIntentScene battle ->
+            Html.text <| battle.monster.name ++ " is thinking..."
         
-        Scene.BattleMonsterScene monster intent ->
-            viewBattleMonsterScene sceneModel monster intent
+        Scene.BattleMonsterScene battle intent ->
+            viewBattleMonsterScene sceneModel battle intent
         
-        Scene.VictoryLoadingScene monster ->
+        Scene.VictoryLoadingScene _ ->
             Html.text "Loading..."
         
-        Scene.VictoryScene monster reward ->
+        Scene.VictoryScene battle reward ->
             textList
-                [ "You defeated " ++ monster.name ++ "!"
+                [ "You defeated " ++ battle.monster.name ++ "!"
                 , "Reward:"
                 , "EXP: " ++ String.fromInt reward.experience
                 ]
@@ -416,8 +417,8 @@ viewExploreDungeonScene sceneModel delvePhase delve =
             
             DelvePhase.ActionPhase scene ->
                 case scene of
-                    DungeonScene.BattleMonster monster intent ->
-                        viewBattleMonsterScene sceneModel monster intent
+                    DungeonScene.BattleMonster battle intent ->
+                        viewBattleMonsterScene sceneModel battle intent
                     
                     DungeonScene.RestArea ->
                         buttonList
@@ -577,11 +578,17 @@ explainSceneDistribution d =
     in
     textList (List.map explainOneScene (Distribution.toList d))
 
-viewBattleMonsterScene : SceneModel -> Monster -> Action -> Html Msg
-viewBattleMonsterScene sceneModel monster intent =
+viewBattleMonsterScene : SceneModel -> Battle -> Action -> Html Msg
+viewBattleMonsterScene sceneModel battle intent =
+    let
+        monster = battle.monster
+    in
     Html.div
         []
         [ textList
+            [ "Round: " ++ String.fromInt battle.round
+            ]
+        , textList
             [ "Enemy"
             , monster.name
             , "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt monster.maxHitPoints

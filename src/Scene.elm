@@ -3,6 +3,7 @@ module Scene exposing
     )
 
 import Action exposing (Action)
+import Battle exposing (Battle)
 import Delve exposing (Delve)
 import DelvePhase exposing (DelvePhase)
 import Monster exposing (Monster)
@@ -19,8 +20,8 @@ type Scene
     | ExploreScene
     | ExploreDungeonScene DelvePhase Delve
     | BattleScene
-    | BattleMonsterLoadingIntentScene Monster
-    | BattleMonsterScene Monster Action
-    | VictoryLoadingScene Monster
-    | VictoryScene Monster Reward
+    | BattleMonsterLoadingIntentScene Battle
+    | BattleMonsterScene Battle Action
+    | VictoryLoadingScene Battle
+    | VictoryScene Battle Reward
     | GameOverScene

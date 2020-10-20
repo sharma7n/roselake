@@ -142,14 +142,14 @@ viewScenePhase scene sceneModel =
             
             _ ->
                  buttonList
-                    [ ( "Player", Msg.UserSelectedPlayerScene )
-                    , ( "Learn", Msg.UserSelectedLearnSelectScene )
-                    , ( "Equip", Msg.UserSelectedEquipScene )
-                    , ( "Home", Msg.UserSelectedHomeScene )
-                    , ( "Shop", Msg.UserSelectedShopSelectScene )
+                    [ ( "Player", Msg.UserSelectedScene Scene.PlayerScene )
+                    , ( "Learn", Msg.UserSelectedScene Scene.LearnSelectScene )
+                    , ( "Equip", Msg.UserSelectedScene Scene.EquipScene )
+                    , ( "Home", Msg.UserSelectedScene Scene.HomeScene )
+                    , ( "Shop", Msg.UserSelectedScene Scene.ShopSelectScene )
                     , ( "Town", Msg.NoOp )
-                    , ( "Explore", Msg.UserSelectedExploreScene )
-                    , ( "Battle", Msg.UserSelectedBattleScene )
+                    , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
+                    , ( "Battle", Msg.UserSelectedScene Scene.BattleScene )
                     ]
         , viewSceneModel scene sceneModel
         ]
@@ -681,7 +681,7 @@ monsterTable monsters =
                 , Html.text <| " | HP: " ++ String.fromInt monster.hitPoints
                 , Html.text <| " | EXP: " ++ String.fromInt monster.experience ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedBattleMonsterScene monster ]
+                    [ Html.Events.onClick <| Msg.UserSelectedMonster monster ]
                     [ Html.text "Fight" ]
                 ]
     in

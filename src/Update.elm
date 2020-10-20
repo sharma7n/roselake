@@ -51,12 +51,21 @@ import Msg exposing (Msg)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model.phase ) of
-        ( Msg.UserSelectedPlayerScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.PlayerScene sceneModel }, Cmd.none )
+    case ( msg, model.phase ) of        
+        ( Msg.UserSelectedScene scene, Phase.ScenePhase _ sceneModel ) ->
+            ( { model | phase = Phase.ScenePhase scene sceneModel }, Cmd.none )
         
-        ( Msg.UserSelectedLearnSelectScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.LearnSelectScene sceneModel }, Cmd.none )
+        ( Msg.UserSelectedMonster monster, Phase.ScenePhase _ sceneModel ) ->
+            let
+                battle =
+                    { round = 1
+                    , monster = monster
+                    }
+                
+                cmd =
+                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
+            in
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) sceneModel }, cmd )
         
         ( Msg.UserSelectedLearnSkill action, Phase.ScenePhase scene sceneModel ) ->
             let
@@ -72,9 +81,6 @@ update msg model =
                         sceneModel
             in
             ( { model | phase = Phase.ScenePhase scene newSceneModel }, Cmd.none )
-        
-        ( Msg.UserSelectedEquipScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.EquipScene sceneModel }, Cmd.none )
         
         ( Msg.UserSelectedEquipWeapon weapon, Phase.ScenePhase scene sceneModel ) ->
             let
@@ -155,10 +161,7 @@ update msg model =
                 
             in
             ( newModel, Cmd.none )
-        
-        ( Msg.UserSelectedHomeScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.HomeScene sceneModel }, Cmd.none )
-        
+           
         ( Msg.UserSelectedHomeRest, Phase.ScenePhase scene sceneModel ) ->
             let
                 newSceneModel =
@@ -168,10 +171,7 @@ update msg model =
                     }
             in
             ( { model | phase = Phase.ScenePhase scene newSceneModel }, Cmd.none )
-        
-        ( Msg.UserSelectedShopSelectScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.ShopSelectScene sceneModel }, Cmd.none )
-        
+               
         ( Msg.UserSelectedShop shop, Phase.ScenePhase Scene.ShopSelectScene sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ShopScene shop) sceneModel }, Cmd.none )
         
@@ -202,9 +202,6 @@ update msg model =
                         |> SceneModel.applyEffectsToSceneModel item.effects
             in
             ( { model | phase = Phase.ScenePhase scene newSceneModel }, Cmd.none )
-        
-        ( Msg.UserSelectedExploreScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.ExploreScene sceneModel }, Cmd.none )
         
         ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.ExploreScene _ ) ->
             let
@@ -358,33 +355,16 @@ update msg model =
                     sceneModel
                         |> SceneModel.applyReward reward
                         |> SceneModel.completeBattle
-                
-                newSceneModel2 =
-                        List.foldl (\(item, qty) -> \s ->
+                        |> Util.forEach reward.items (\(item, qty) -> \s ->
                             { s | inventory = Inventory.modifyItemQuantity item qty s.inventory }
-                        ) newSceneModel reward.items
+                        )
                 
                 newModel =
                     { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Goal reward)) delve) newSceneModel2
+                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Goal reward)) delve) newSceneModel
                     }
             in
             ( newModel, Cmd.none )
-        
-        ( Msg.UserSelectedBattleScene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.BattleScene sceneModel }, Cmd.none )
-        
-        ( Msg.UserSelectedBattleMonsterScene monster, Phase.ScenePhase _ sceneModel ) ->
-            let
-                battle =
-                    { round = 1
-                    , monster = monster
-                    }
-                
-                cmd =
-                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
-            in
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) sceneModel }, cmd )
         
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene monster) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterScene monster intent) sceneModel }, Cmd.none )

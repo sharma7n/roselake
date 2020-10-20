@@ -16,15 +16,14 @@ import Reward exposing (Reward)
 import Shop exposing (Shop)
 import Weapon exposing (Weapon)
 
+import Scene exposing (Scene)
+
 type Msg
     = NoOp
-    | UserSelectedPlayerScene
-    | UserSelectedLearnSelectScene
+    | UserSelectedScene Scene
+    | UserSelectedMonster Monster
     | UserSelectedLearnSkill Action
-    | UserSelectedEquipScene
-    | UserSelectedHomeScene
     | UserSelectedHomeRest
-    | UserSelectedShopSelectScene
     | UserSelectedShop Shop
     | UserSelectedBuy Item
     | UserSelectedUseItem Item
@@ -32,7 +31,6 @@ type Msg
     | UserSelectedUnEquipWeapon Weapon
     | UserSelectedEquipArmor Armor
     | UserSelectedUnEquipArmor Armor
-    | UserSelectedExploreScene
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath DungeonPath.Path
@@ -45,8 +43,6 @@ type Msg
     | SystemGotObject Object
     | SystemGotReward Reward
     | SystemGotShop Shop
-    | UserSelectedBattleScene
-    | UserSelectedBattleMonsterScene Monster
     | UserSelectedBattleAction Action
     | UserSelectedEndBattleTurn
     | UserSelectedRest

@@ -2,7 +2,6 @@ module Monster exposing
     ( Monster
     , byId
     , generator
-    , chooseAction
     , generateReward
     )
 
@@ -11,6 +10,7 @@ import Random
 import Distribution exposing (Distribution)
 
 import Action exposing (Action)
+import Behavior exposing (Behavior)
 import Armor exposing (Armor)
 import Reward exposing (Reward)
 import Status exposing (Status)
@@ -31,12 +31,23 @@ type alias Monster =
     , magic : Int
     , defense : Int
     , agility : Int
-    , actions : Distribution Action
+    , behaviors : List Behavior
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     , statuses : List Status
     , block : Int
     }
+
+generateReward : Monster -> Random.Generator Reward
+generateReward monster =
+    Random.constant <|
+        { experience = monster.experience
+        , gold = monster.gold
+        , abilityPoints = monster.abilityPoints
+        , items = []
+        , weapons = []
+        , armors = []
+        }
 
 byId : String -> Monster
 byId id =
@@ -56,11 +67,17 @@ byId id =
             , magic = 1
             , defense = 1
             , agility = 1
-            , actions =
-                Distribution.new
-                    ( 50, Action.byId "nothing" )
-                    [ ( 50, Action.byId "attack" )
-                    ]
+            , behaviors =
+                let
+                    primary = 
+                        Behavior.new 5 Behavior.Any <|
+                            Distribution.new
+                                ( 50, Action.byId "nothing" )
+                                [ ( 50, Action.byId "attack" )
+                                ]
+                in
+                [ primary
+                ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
@@ -82,9 +99,17 @@ byId id =
             , magic = 1
             , defense = 1
             , agility = 1
-            , actions = Distribution.new
-                ( 1, Action.byId "nothing" )
-                []
+            , behaviors =
+                let
+                    primary =
+                        Behavior.new 5 Behavior.Any <|
+                            Distribution.new
+                                ( 100, Action.byId "nothing" )
+                                []
+
+                in
+                [ primary
+                ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
@@ -106,14 +131,24 @@ byId id =
             , magic = 2
             , defense = 4
             , agility = 1
-            , actions =
-                Distribution.new
-                    ( 20, Action.byId "attack" )
-                    [ ( 20, Action.byId "defend" )
-                    , ( 20, Action.byId "fireball" )
-                    , ( 20, Action.byId "heal" )
-                    , ( 20, Action.byId "chargeup4" )
-                    ]
+            , behaviors =
+                let
+                    primary =
+                        Behavior.new 5 Behavior.Any <|
+                            Distribution.new
+                                ( 50, Action.byId "attack" )
+                                [ ( 50, Action.byId "defend" )
+                                ]
+                    
+                    fireball =
+                        Behavior.new 10 (Behavior.RoundSchedule 1 4) <|
+                            Distribution.new
+                                ( 100, Action.byId "fireball" )
+                                []
+                in
+                [ primary
+                , fireball
+                ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
@@ -135,10 +170,16 @@ byId id =
             , magic = 0
             , defense = 0
             , agility = 0
-            , actions =
-                Distribution.new
-                    ( 0, Action.byId "null" )
-                    []
+            , behaviors =
+                let
+                    primary =
+                        Behavior.new 5 Behavior.Any <|
+                            Distribution.new
+                                ( 100, Action.byId "null" )
+                                []
+                in
+                [ primary
+                ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
             , statuses = []
@@ -151,31 +192,3 @@ generator =
         ( 0, byId "" )
         [ ( 1, byId "slime" )
         ]
-
-chooseAction : Monster -> Random.Generator Action
-chooseAction monster =
-    chooseActionInternal monster 0
-
-chooseActionInternal : Monster -> Int -> Random.Generator Action
-chooseActionInternal monster retries =
-    if retries > 2 then
-        Random.constant <| Action.byId "attack"
-    else
-        Distribution.random monster.actions
-            |> Random.andThen (\action ->
-                if action.magicPointCost <= monster.magicPoints then
-                    Random.constant action
-                else
-                    chooseActionInternal monster (retries + 1)
-            )
-
-generateReward : Monster -> Random.Generator Reward
-generateReward monster =
-    Random.constant <|
-        { experience = monster.experience
-        , gold = monster.gold
-        , abilityPoints = monster.abilityPoints
-        , items = []
-        , weapons = []
-        , armors = []
-        }

@@ -1,5 +1,6 @@
 module Behavior exposing
     ( Behavior
+    , new
     , Condition(..)
     , chooseAction
     )
@@ -16,10 +17,17 @@ type alias Behavior =
     , actionDistribution : Distribution Action
     }
 
+new : Int -> Condition -> Distribution Action -> Behavior
+new priority condition actionDistribution =
+    { priority = priority
+    , condition = condition
+    , actionDistribution = actionDistribution
+    }
+
 type Condition
     = Any
     | BelowHitPointThreshold Float
-    | RoundModulo Int
+    | RoundSchedule Int Int
 
 chooseAction : List Behavior -> Random.Generator Action
 chooseAction s =

@@ -21,6 +21,7 @@ import Height exposing (Height)
 import Build exposing (Build)
 
 import Armor exposing (Armor)
+import Battle exposing (Battle)
 import Battler exposing (Battler)
 import Target exposing (Target)
 import Avatar exposing (Avatar)
@@ -63,7 +64,7 @@ update msg model =
                     }
                 
                 cmd =
-                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
+                    Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
             in
             ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) sceneModel }, cmd )
         
@@ -259,7 +260,7 @@ update msg model =
                     }
                 
                 cmd =
-                    Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction monster)
+                    Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
             in
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel }, cmd )
         
@@ -484,7 +485,7 @@ updateBattleAction model battle action monsterAction sceneModel =
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.BattleMonsterScene newBattle monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction newBattle.monster) )
+                ( Scene.BattleMonsterScene newBattle monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
 
@@ -503,7 +504,7 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction newBattle.monster) )
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
 
@@ -517,6 +518,7 @@ updateEndBattleTurn model battle monsterAction sceneModel =
         
         newBattle =
             { battle | monster = newMonster }
+                |> Battle.completeRound
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
@@ -524,7 +526,7 @@ updateEndBattleTurn model battle monsterAction sceneModel =
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.BattleMonsterLoadingIntentScene (Battle.completeRound newBattle), Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction newBattle.monster) )
+                ( Scene.BattleMonsterLoadingIntentScene newBattle, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
             { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}
@@ -539,6 +541,7 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
         
         newBattle =
             { battle | monster = newMonster }
+                |> Battle.completeRound
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
@@ -546,7 +549,7 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent (Battle.completeRound newBattle))) delve, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Monster.chooseAction newBattle.monster) )
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
             { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}

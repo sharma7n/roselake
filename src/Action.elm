@@ -164,6 +164,22 @@ byId id =
                 ]
             }
         
+        "chargeup2" ->
+            { id = "chargeup2"
+            , name = "Charge Up 2"
+            , context = Context.Battle
+            , learnCost = 10
+            , actionPointCost = 1
+            , magicPointCost = 0
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.ChargeUp 2
+                    ]
+                  }
+                ]
+            }
+        
         "chargeup4" ->
             { id = "chargeup4"
             , name = "Charge Up 4"

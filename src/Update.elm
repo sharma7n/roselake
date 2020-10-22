@@ -235,7 +235,7 @@ update msg model =
                 cmd =
                     case scene of
                         DungeonScene.Battle ->
-                            Random.generate Msg.SystemGotMonster Monster.generator
+                            Random.generate Msg.SystemGotMonster (Dungeon.generateMonster delve.dungeon)
                         
                         DungeonScene.Shop ->
                             Random.generate Msg.SystemGotShop Shop.generator

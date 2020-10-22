@@ -1,7 +1,6 @@
 module Monster exposing
     ( Monster
     , byId
-    , generator
     , generateReward
     )
 
@@ -74,6 +73,38 @@ byId id =
                             Distribution.new
                                 ( 50, Action.byId "nothing" )
                                 [ ( 50, Action.byId "attack" )
+                                ]
+                in
+                [ primary
+                ]
+            , equippedWeapon = Nothing
+            , equippedArmor = Nothing
+            , statuses = []
+            , block = 0
+            }
+        
+        "wolf" ->
+            { name = "Wolf"
+            , experience = 1
+            , gold = 1
+            , abilityPoints = 1
+            , hitPoints = 20
+            , maxHitPoints = 20
+            , magicPoints = 0
+            , maxMagicPoints = 0
+            , actionPoints = 0
+            , maxActionPoints = 0
+            , attack = 5
+            , magic = 0
+            , defense = 2
+            , agility = 3
+            , behaviors =
+                let
+                    primary = 
+                        Behavior.new 5 Behavior.Always <|
+                            Distribution.new
+                                ( 50, Action.byId "attack" )
+                                [ ( 50, Action.byId "chargeup2" )
                                 ]
                 in
                 [ primary
@@ -224,10 +255,3 @@ byId id =
             , statuses = []
             , block = 0
             }
-
-generator : Random.Generator Monster
-generator =
-    Random.weighted
-        ( 0, byId "" )
-        [ ( 1, byId "slime" )
-        ]

@@ -178,6 +178,12 @@ applyFormula formula ( a, b ) =
             , b
                 |> takeDamage (3 * totalMagic a)
             )
+
+        Formula.FireBreath ->
+            ( a 
+            , b
+                |> takeDamage (3 * totalMagic a)
+            )
         
         Formula.Heal ->
             ( a

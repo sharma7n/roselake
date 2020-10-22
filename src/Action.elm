@@ -85,6 +85,22 @@ byId id =
                 ]
             }
         
+        "firebreath" ->
+            { id = "firebreath"
+            , name = "Fire Breath"
+            , context = Context.Battle
+            , learnCost = 1
+            , actionPointCost = 1
+            , magicPointCost = 1
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.BattleFormula Formula.FireBreath
+                    ]
+                  }
+                ]
+            }
+        
         "heal" ->
             { id = "heal"
             , name = "Heal"

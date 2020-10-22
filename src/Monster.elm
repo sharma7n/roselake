@@ -70,7 +70,7 @@ byId id =
             , behaviors =
                 let
                     primary = 
-                        Behavior.new 5 Behavior.Any <|
+                        Behavior.new 5 Behavior.Always <|
                             Distribution.new
                                 ( 50, Action.byId "nothing" )
                                 [ ( 50, Action.byId "attack" )
@@ -102,7 +102,7 @@ byId id =
             , behaviors =
                 let
                     primary =
-                        Behavior.new 5 Behavior.Any <|
+                        Behavior.new 5 Behavior.Always <|
                             Distribution.new
                                 ( 100, Action.byId "nothing" )
                                 []
@@ -134,7 +134,7 @@ byId id =
             , behaviors =
                 let
                     primary =
-                        Behavior.new 5 Behavior.Any <|
+                        Behavior.new 5 Behavior.Always <|
                             Distribution.new
                                 ( 50, Action.byId "attack" )
                                 [ ( 50, Action.byId "defend" )
@@ -148,6 +148,45 @@ byId id =
                 in
                 [ primary
                 , fireball
+                ]
+            , equippedWeapon = Nothing
+            , equippedArmor = Nothing
+            , statuses = []
+            , block = 0
+            }
+        
+        "dragon" ->
+            { name = "Dragon"
+            , experience = 1
+            , gold = 1
+            , abilityPoints = 1
+            , hitPoints = 60
+            , maxHitPoints = 60
+            , magicPoints = 20
+            , maxMagicPoints = 20
+            , actionPoints = 0
+            , maxActionPoints = 0
+            , attack = 3
+            , magic = 3
+            , defense = 0
+            , agility = 0
+            , behaviors =
+                let
+                    spike =
+                        Behavior.new 10 (Behavior.RoundSchedule 1 6) <|
+                            Distribution.new
+                                ( 100, Action.byId "firebreath" )
+                                []
+                    
+                    attrition =
+                        Behavior.new 5 Behavior.Always <|
+                            Distribution.new
+                                ( 100, Action.byId "attack" )
+                                []
+                    
+                in
+                [ spike
+                , attrition
                 ]
             , equippedWeapon = Nothing
             , equippedArmor = Nothing
@@ -173,7 +212,7 @@ byId id =
             , behaviors =
                 let
                     primary =
-                        Behavior.new 5 Behavior.Any <|
+                        Behavior.new 5 Behavior.Always <|
                             Distribution.new
                                 ( 100, Action.byId "null" )
                                 []

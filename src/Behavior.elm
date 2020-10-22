@@ -25,7 +25,7 @@ new priority condition actionDistribution =
     }
 
 type Condition
-    = Any
+    = Always
     | BelowHitPointThreshold Float
     | RoundSchedule Int Int
 

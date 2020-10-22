@@ -41,7 +41,7 @@ chooseMonsterActionInternal battle retries =
                 battle.monster.behaviors
                     |> List.filter (\b ->
                         case b.condition of
-                            Behavior.Any ->
+                            Behavior.Always ->
                                 True
                             
                             Behavior.BelowHitPointThreshold threshold ->

@@ -359,6 +359,7 @@ viewSceneModel scene sceneModel =
             monsterTable
                 [ Monster.byId "dummy"
                 , Monster.byId "gremlin"
+                , Monster.byId "dragon"
                 ]
         
         Scene.BattleMonsterLoadingIntentScene battle ->

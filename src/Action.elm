@@ -118,6 +118,22 @@ byId id =
                 ]
             }
         
+        "explode" ->
+            { id = "explode"
+            , name = "Explode"
+            , context = Context.Battle
+            , learnCost = 1
+            , actionPointCost = 1
+            , magicPointCost = 1
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.BattleFormula Formula.Explode
+                    ]
+                  }
+                ]
+            }
+        
         "fire0" ->
             fireSkill 0
         

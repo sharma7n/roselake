@@ -34,7 +34,7 @@ chooseMonsterAction battle =
 chooseMonsterActionInternal : Battle -> Int -> Random.Generator Action
 chooseMonsterActionInternal battle retries =
     if retries > 2 then
-        Random.constant <| Action.byId "attack"
+        Random.constant <| Action.byId "nothing"
     else
         let
             selectedDistribution =

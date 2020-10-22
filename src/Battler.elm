@@ -204,3 +204,10 @@ applyFormula formula ( a, b ) =
                 |> applyStatus (Status.ModifyAttack i)
             , b
             )
+        
+        Formula.Explode ->
+            ( a
+                |> takeDamage a.hitPoints
+            , b
+                |> takeDamage a.hitPoints
+            )

@@ -33,8 +33,9 @@ generateMonster : Dungeon -> Random.Generator Monster
 generateMonster _ =
     Random.weighted
         ( 0, Monster.byId "" )
-        [ ( 50, Monster.byId "slime" )
-        , ( 50, Monster.byId "wolf" )
+        [ ( 33, Monster.byId "slime" )
+        , ( 33, Monster.byId "wolf" )
+        , ( 33, Monster.byId "bomb" )
         ]
 
 generateReward : Dungeon -> Random.Generator Reward

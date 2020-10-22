@@ -9,3 +9,4 @@ type Formula
     | Fire Int
     | Heal Int
     | ChargeUp Int
+    | Explode

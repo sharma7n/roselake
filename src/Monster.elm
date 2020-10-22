@@ -115,6 +115,45 @@ byId id =
             , block = 0
             }
         
+        "bomb" ->
+            { name = "Bomb"
+            , experience = 1
+            , gold = 1
+            , abilityPoints = 1
+            , hitPoints = 30
+            , maxHitPoints = 30
+            , magicPoints = 60
+            , maxMagicPoints = 60
+            , actionPoints = 0
+            , maxActionPoints = 0
+            , attack = 1
+            , magic = 2
+            , defense = 1
+            , agility = 1
+            , behaviors =
+                let
+                    primary = 
+                        Behavior.new 5 Behavior.Always <|
+                            Distribution.new
+                                ( 50, Action.byId "nothing" )
+                                [ ( 50, Action.byId "fire0" )
+                                ]
+                    
+                    explode =
+                        Behavior.new 10 (Behavior.BelowHitPointThreshold 0.5) <|
+                            Distribution.new
+                                ( 100, Action.byId "explode" )
+                                []
+                in
+                [ primary
+                , explode
+                ]
+            , equippedWeapon = Nothing
+            , equippedArmor = Nothing
+            , statuses = []
+            , block = 0
+            }
+        
         "dummy" ->
             { name = "Dummy"
             , experience = 1

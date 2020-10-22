@@ -29,6 +29,8 @@ import Reward exposing (Reward)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
 
+import StatusSet exposing (StatusSet)
+
 type alias SceneModel =
     { name : String
     , avatar : Avatar
@@ -53,7 +55,7 @@ type alias SceneModel =
     , actions : List Action
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
-    , statuses : List Status
+    , statusSet : StatusSet
     , block : Int
     }
 
@@ -161,7 +163,7 @@ characterCreationSettingsToSceneModel settings =
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
-            , statuses = []
+            , statusSet = StatusSet.empty
             , block = 0
             }
         )))))))
@@ -204,7 +206,7 @@ dev =
         ]
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"
-    , statuses = []
+    , statusSet = StatusSet.empty
     , block = 0
     }
 

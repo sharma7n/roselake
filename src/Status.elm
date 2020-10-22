@@ -1,7 +1,17 @@
 module Status exposing
-    ( Status(..)
+    ( Status
+    , id
     )
 
 type Status
-    = ModifyAttack Int
-    | ModifyDefense Int
+    = ModifyAttack
+    | ModifyDefense
+
+id : Status -> String
+id s =
+    case s of
+        ModifyAttack ->
+            "modifyattack"
+        
+        ModifyDefense ->
+            "modifydefense"

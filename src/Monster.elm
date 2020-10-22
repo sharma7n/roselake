@@ -15,6 +15,8 @@ import Reward exposing (Reward)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
 
+import StatusSet exposing (StatusSet)
+
 type alias Monster =
     { name : String
     , experience : Int
@@ -33,7 +35,7 @@ type alias Monster =
     , behaviors : List Behavior
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
-    , statuses : List Status
+    , statusSet : StatusSet
     , block : Int
     }
 
@@ -48,71 +50,74 @@ generateReward monster =
         , armors = []
         }
 
+base : Monster
+base =
+    { name = "Base"
+    , experience = 0
+    , gold = 0
+    , abilityPoints = 0
+    , hitPoints = 1
+    , maxHitPoints = 1
+    , magicPoints = 1
+    , maxMagicPoints = 1
+    , actionPoints = 0
+    , maxActionPoints = 0
+    , attack = 0
+    , magic = 0
+    , defense = 0
+    , agility = 0
+    , behaviors = []
+    , equippedWeapon = Nothing
+    , equippedArmor = Nothing
+    , statusSet = StatusSet.empty
+    , block = 0
+    }
+
 byId : String -> Monster
 byId id =
     case id of
         "slime" ->
-            { name = "Slime"
-            , experience = 1
-            , gold = 1
-            , abilityPoints = 1
-            , hitPoints = 15
-            , maxHitPoints = 15
-            , magicPoints = 0
-            , maxMagicPoints = 0
-            , actionPoints = 0
-            , maxActionPoints = 0
-            , attack = 4
-            , magic = 1
-            , defense = 1
-            , agility = 1
-            , behaviors =
-                let
-                    primary = 
-                        Behavior.new 5 Behavior.Always <|
-                            Distribution.new
-                                ( 50, Action.byId "nothing" )
-                                [ ( 50, Action.byId "attack" )
-                                ]
-                in
-                [ primary
-                ]
-            , equippedWeapon = Nothing
-            , equippedArmor = Nothing
-            , statuses = []
-            , block = 0
+            { base
+                | name = "Slime"
+                , experience = 1
+                , gold = 1
+                , abilityPoints = 1
+                , hitPoints = 15
+                , maxHitPoints = 15
+                , attack = 4
+                , behaviors =
+                    let
+                        primary = 
+                            Behavior.new 5 Behavior.Always <|
+                                Distribution.new
+                                    ( 50, Action.byId "nothing" )
+                                    [ ( 50, Action.byId "attack" )
+                                    ]
+                    in
+                    [ primary
+                    ]
             }
         
         "wolf" ->
-            { name = "Wolf"
-            , experience = 1
-            , gold = 1
-            , abilityPoints = 1
-            , hitPoints = 20
-            , maxHitPoints = 20
-            , magicPoints = 0
-            , maxMagicPoints = 0
-            , actionPoints = 0
-            , maxActionPoints = 0
-            , attack = 5
-            , magic = 0
-            , defense = 2
-            , agility = 3
-            , behaviors =
-                let
-                    primary = 
-                        Behavior.new 5 Behavior.Always <|
-                            Distribution.new
-                                ( 50, Action.byId "attack" )
-                                [ ( 50, Action.byId "chargeup2" )
-                                ]
-                in
-                [ primary
-                ]
-            , equippedWeapon = Nothing
-            , equippedArmor = Nothing
-            , statuses = []
-            , block = 0
+            { base
+                | name = "Wolf"
+                , experience = 2
+                , gold = 1
+                , abilityPoints = 1
+                , hitPoints = 20
+                , maxHitPoints = 20
+                , attack = 5
+                , behaviors =
+                    let
+                        primary = 
+                            Behavior.new 5 Behavior.Always <|
+                                Distribution.new
+                                    ( 50, Action.byId "attack" )
+                                    [ ( 50, Action.byId "chargeup2" )
+                                    ]
+                    in
+                    [ primary
+                    ]
             }
         
         "bomb" ->

@@ -14,6 +14,8 @@ import Armor exposing (Armor)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
 
+import StatusSet exposing (StatusSet)
+
 type alias Battler a =
     { a
         | hitPoints : Int
@@ -28,7 +30,7 @@ type alias Battler a =
         , agility : Int
         , equippedWeapon : Maybe Weapon
         , equippedArmor : Maybe Armor
-        , statuses : List Status
+        , statusSet : StatusSet
         , block : Int
     }
 

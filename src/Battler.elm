@@ -172,12 +172,6 @@ applyFormula formula ( a, b ) =
                 |> gainBlock (Debug.log "totalDef" (totalDefense a))
             , b
             )
-        
-        Formula.Fireball ->
-            ( a 
-            , b
-                |> takeDamage (3 * totalMagic a)
-            )
 
         Formula.FireBreath ->
             ( a 
@@ -185,9 +179,23 @@ applyFormula formula ( a, b ) =
                 |> takeDamage (3 * totalMagic a)
             )
         
-        Formula.Heal ->
+        Formula.Fire level ->
+            let
+                multiplier =
+                    1 + (2 * level)  
+            in
+            ( a 
+            , b
+                |> takeDamage (multiplier * totalMagic a)
+            )
+        
+        Formula.Heal level ->
+            let
+                multiplier =
+                    1 + (2 * level)
+            in
             ( a
-                |> recoverhitPoints (2 * totalMagic a)
+                |> recoverhitPoints (multiplier * totalMagic a)
             , b
             )
         

@@ -158,7 +158,6 @@ characterCreationSettingsToSceneModel settings =
             , actions =
                 [ Action.byId "attack"
                 , Action.byId "defend"
-                , Action.byId "fireball"
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
@@ -202,7 +201,6 @@ dev =
     , actions =
         [ Action.byId "attack"
         , Action.byId "defend"
-        , Action.byId "fireball"
         ]
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"

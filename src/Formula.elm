@@ -5,7 +5,7 @@ module Formula exposing
 type Formula
     = Attack
     | Block
-    | Fireball
     | FireBreath
-    | Heal
+    | Fire Int
+    | Heal Int
     | ChargeUp Int

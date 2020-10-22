@@ -26,6 +26,39 @@ type alias Sub =
 
 byId : String -> Action
 byId id =
+    let
+        fireSkill level =
+            { id = "fire" ++ String.fromInt level
+            , name = "Fire " ++ String.fromInt level
+            , context = Context.Battle
+            , learnCost = 5 * (level + 1) * (level + 1)
+            , actionPointCost = level
+            , magicPointCost = (level + 1) * (level + 2)
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.Fire level
+                    ]
+                  }
+                ]
+            }
+        
+        healSkill level =
+            { id = "heal" ++ String.fromInt level
+            , name = "Heal " ++ String.fromInt level
+            , context = Context.Any
+            , learnCost = 5 * (level + 1) * (level + 1)
+            , actionPointCost = level
+            , magicPointCost = (level + 1) * (level + 2)
+            , subs =
+                [ { target = Target.Self
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.Heal level
+                    ]
+                  }
+                ]
+            }
+    in
     case id of
         "nothing" ->
             { id = "nothing"
@@ -69,22 +102,6 @@ byId id =
                 ]
             }
         
-        "fireball" ->
-            { id = "fireball"
-            , name = "Fireball"
-            , context = Context.Battle
-            , learnCost = 1
-            , actionPointCost = 1
-            , magicPointCost = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula Formula.Fireball
-                    ]
-                  }
-                ]
-            }
-        
         "firebreath" ->
             { id = "firebreath"
             , name = "Fire Breath"
@@ -101,21 +118,35 @@ byId id =
                 ]
             }
         
-        "heal" ->
-            { id = "heal"
-            , name = "Heal"
-            , context = Context.Any
-            , learnCost = 1
-            , actionPointCost = 1
-            , magicPointCost = 2
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula Formula.Heal
-                    ]
-                  }
-                ]
-            }
+        "fire0" ->
+            fireSkill 0
+        
+        "fire1" ->
+            fireSkill 1
+        
+        "fire2" ->
+            fireSkill 2
+        
+        "fire3" ->
+            fireSkill 3
+        
+        "fire4" ->
+            fireSkill 4
+        
+        "heal0" ->
+            healSkill 0
+        
+        "heal1"->
+            healSkill 1
+        
+        "heal2"->
+            healSkill 2
+        
+        "heal3"->
+            healSkill 3
+        
+        "heal4" ->
+            healSkill 4
         
         "chargeup" ->
             { id = "chargeup"
@@ -161,7 +192,14 @@ byId id =
 
 learnable : List Action
 learnable =
-    [ byId "fireball"
-    , byId "heal"
-    , byId "chargeup"
+    [ byId "heal0"
+    , byId "heal1"
+    , byId "heal2"
+    , byId "heal3"
+    , byId "heal4"
+    , byId "fire0"
+    , byId "fire1"
+    , byId "fire2"
+    , byId "fire3"
+    , byId "fire4"
     ]

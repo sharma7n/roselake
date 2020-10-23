@@ -1,6 +1,5 @@
 module Status exposing
     ( Status(..)
-    , id
     , toString
     )
 
@@ -8,18 +7,7 @@ type Status
     = ModifyAttack
     | ModifyDefense
     | Curse
-
-id : Status -> String
-id s =
-    case s of
-        ModifyAttack ->
-            "modifyattack"
-        
-        ModifyDefense ->
-            "modifydefense"
-        
-        Curse ->
-            "curse"
+    | Poison
 
 toString : Status -> String
 toString s =
@@ -32,3 +20,6 @@ toString s =
         
         Curse ->
             "Curse"
+        
+        Poison ->
+            "Poison"

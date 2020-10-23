@@ -9,6 +9,7 @@ module StatusSet exposing
     , defense
     , toList
     , maxHitPoints
+    , hpLoss
     )
 
 import Dict exposing (Dict)
@@ -34,7 +35,7 @@ apply status duration stacks (StatusSet dict) =
     let
         maybeData =
             dict
-                |> Dict.get (Status.id status)
+                |> Dict.get (Status.toString status)
         
         newData =
             case maybeData of
@@ -52,7 +53,7 @@ apply status duration stacks (StatusSet dict) =
         
         newDict =
             dict
-                |> Dict.insert (Status.id status) newData
+                |> Dict.insert (Status.toString status) newData
     in
     StatusSet newDict
 
@@ -118,3 +119,11 @@ maxHitPoints (StatusSet dict) =
                 _ ->
                     a
         ) 0
+
+hpLoss : StatusSet -> Int
+hpLoss (StatusSet dict) =
+    dict
+        |> Dict.filter (\_ -> \data ->
+            data.status == Status.Poison
+        )
+        |> sumStacks

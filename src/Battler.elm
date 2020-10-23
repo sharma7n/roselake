@@ -112,6 +112,8 @@ completeRound b =
         , statusSet =
             b.statusSet
                 |> StatusSet.tick
+        , hitPoints =
+            Util.boundedBy 0 (totalMaxHitPoints b) (b.hitPoints - (StatusSet.hpLoss b.statusSet))
     }
 
 applyStatus : Status -> Duration -> Int -> Battler a -> Battler a
@@ -179,4 +181,10 @@ applyFormula formula ( a, b ) =
             ( a
             , b
                 |> applyStatus Status.Curse Duration.Persistent 1
+            )
+        
+        Formula.Poison ->
+            ( a
+            , b
+                |> applyStatus Status.Poison Duration.Persistent 1
             )

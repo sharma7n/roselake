@@ -113,6 +113,21 @@ byId id =
                     ]
             }
         
+        "spider" ->
+            { base
+                | name = "Spider"
+                , behaviors =
+                    let
+                        poison =
+                            Behavior.new 5 Behavior.Always <|
+                                Distribution.new
+                                    ( 50, Action.byId "poison" )
+                                    []
+                    in
+                    [ poison
+                    ]
+            }
+        
         "wolf" ->
             { base
                 | name = "Wolf"

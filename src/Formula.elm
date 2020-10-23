@@ -11,3 +11,4 @@ type Formula
     | ChargeUp Int
     | Explode
     | Curse
+    | Poison

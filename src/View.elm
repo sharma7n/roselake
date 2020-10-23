@@ -145,7 +145,7 @@ viewScenePhase scene sceneModel =
             , textListItem <| "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
             , statusSetListItem sceneModel.statusSet
             , textListItem <| "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
-            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
             , textListItem <| "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
         , viewInventory sceneModel.inventory
@@ -614,7 +614,7 @@ viewBattleMonsterScene sceneModel battle intent =
             [ textListItem <| "Enemy"
             , textListItem <| monster.name
             , statusSetListItem <| monster.statusSet
-            , textListItem <| "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt monster.maxHitPoints
+            , textListItem <| "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints monster)
             , textListItem <| "Intent: " ++ intent.name
             , textListItem <| "Block: " ++ String.fromInt monster.block
             ]
@@ -623,7 +623,7 @@ viewBattleMonsterScene sceneModel battle intent =
             [ textListItem <| "Player"
             , textListItem <| sceneModel.name
             , statusSetListItem <| sceneModel.statusSet
-            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
             , textListItem <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
             , textListItem <| "Block: " ++ String.fromInt sceneModel.block
             ]

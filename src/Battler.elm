@@ -2,6 +2,7 @@ module Battler exposing
     ( Battler
     , runAction
     , completeRound
+    , totalMaxHitPoints
     )
 
 import Util
@@ -51,9 +52,13 @@ totalMagic : Battler a -> Int
 totalMagic b =
     b.magic + Maybe.withDefault 0 (Maybe.map .magic b.equippedWeapon)
 
+totalMaxHitPoints : Battler a -> Int
+totalMaxHitPoints b =
+    max 1 (b.maxHitPoints + StatusSet.maxHitPoints b.statusSet)
+
 recoverhitPoints : Int -> Battler a -> Battler a
 recoverhitPoints amt b =
-    { b | hitPoints = Util.boundedBy 0 b.maxHitPoints (b.hitPoints + amt) }
+    { b | hitPoints = Util.boundedBy 0 (totalMaxHitPoints b) (b.hitPoints + amt) }
 
 takeDamage : Int -> Battler a -> Battler a
 takeDamage dmg b =
@@ -62,7 +67,7 @@ takeDamage dmg b =
             max 0 dmg
     in  
     { b 
-        | hitPoints = Util.boundedBy 0 b.maxHitPoints (b.hitPoints - receivedDamage)
+        | hitPoints = Util.boundedBy 0 (totalMaxHitPoints b) (b.hitPoints - receivedDamage)
         , block = max 0 (b.block - receivedDamage)
     }
 
@@ -168,4 +173,10 @@ applyFormula formula ( a, b ) =
                 |> takeDamage a.hitPoints
             , b
                 |> takeDamage a.hitPoints
+            )
+        
+        Formula.Curse ->
+            ( a
+            , b
+                |> applyStatus Status.Curse Duration.Persistent 1
             )

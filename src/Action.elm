@@ -212,6 +212,22 @@ byId id =
                 ]
             }
         
+        "curse" ->
+            { id = "curse"
+            , name = "Curse"
+            , context = Context.Battle
+            , learnCost = 0
+            , actionPointCost = 1
+            , magicPointCost = 1
+            , subs =
+                [ { target = Target.Enemy
+                  , effects =
+                    [ Effect.BattleFormula <| Formula.Curse
+                    ]
+                  }
+                ]
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Action"

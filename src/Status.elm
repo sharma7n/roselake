@@ -7,6 +7,7 @@ module Status exposing
 type Status
     = ModifyAttack
     | ModifyDefense
+    | Curse
 
 id : Status -> String
 id s =
@@ -16,6 +17,9 @@ id s =
         
         ModifyDefense ->
             "modifydefense"
+        
+        Curse ->
+            "curse"
 
 toString : Status -> String
 toString s =
@@ -25,3 +29,6 @@ toString s =
         
         ModifyDefense ->
             "Defense"
+        
+        Curse ->
+            "Curse"

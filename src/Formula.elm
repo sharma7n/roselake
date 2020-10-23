@@ -10,3 +10,4 @@ type Formula
     | Heal Int
     | ChargeUp Int
     | Explode
+    | Curse

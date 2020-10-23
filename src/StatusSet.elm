@@ -8,6 +8,7 @@ module StatusSet exposing
     , attack
     , defense
     , toList
+    , maxHitPoints
     )
 
 import Dict exposing (Dict)
@@ -105,3 +106,15 @@ toList (StatusSet dict) =
     dict
         |> Dict.toList
         |> List.map (\(_, d) -> d)
+
+maxHitPoints : StatusSet -> Int
+maxHitPoints (StatusSet dict) =
+    dict
+        |> Dict.foldl (\_ -> \data -> \a ->
+            case data.status of
+                Status.Curse ->
+                    a - data.stacks
+                
+                _ ->
+                    a
+        ) 0

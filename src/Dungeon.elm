@@ -36,6 +36,7 @@ generateMonster _ =
         [ ( 33, Monster.byId "slime" )
         , ( 33, Monster.byId "wolf" )
         , ( 33, Monster.byId "bomb" )
+        , ( 3333, Monster.byId "ghost" )
         ]
 
 generateReward : Dungeon -> Random.Generator Reward

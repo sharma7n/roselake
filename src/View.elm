@@ -43,6 +43,9 @@ import Object exposing (Object)
 import Shop exposing (Shop)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
+import Status exposing (Status)
+
+import StatusSet exposing (StatusSet)
 
 import Scene exposing (Scene)
 import SceneModel exposing (SceneModel)
@@ -113,20 +116,37 @@ viewCharacterCreationPhase model =
         , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
         ]
 
+textListItem : String -> Html Msg
+textListItem text =
+    Html.li
+        []
+        [ Html.text text
+        ]
+
+statusSetListItem : StatusSet -> Html Msg
+statusSetListItem statusSet =
+    Html.li
+        []
+        [ viewStatusSet statusSet
+        ]
+
+
 viewScenePhase : Scene -> SceneModel -> Html Msg
 viewScenePhase scene sceneModel =
     Html.div
         []
-        [ textList
-            [ sceneModel.name
-            , Avatar.description sceneModel.avatar
-            , "G: " ++ String.fromInt sceneModel.gold
-            , "LV: " ++ String.fromInt sceneModel.level
-            , "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
-            , "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
-            , "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
-            , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
-            , "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
+        [ Html.ul
+            []
+            [ textListItem <| sceneModel.name
+            , textListItem <| Avatar.description sceneModel.avatar
+            , textListItem <| "G: " ++ String.fromInt sceneModel.gold
+            , textListItem <| "LV: " ++ String.fromInt sceneModel.level
+            , textListItem <| "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
+            , textListItem <| "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
+            , statusSetListItem sceneModel.statusSet
+            , textListItem <| "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
+            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , textListItem <| "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
         , viewInventory sceneModel.inventory
         , case scene of
@@ -589,19 +609,23 @@ viewBattleMonsterScene sceneModel battle intent =
         [ textList
             [ "Round: " ++ String.fromInt battle.round
             ]
-        , textList
-            [ "Enemy"
-            , monster.name
-            , "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt monster.maxHitPoints
-            , "Intent: " ++ intent.name
-            , "Block: " ++ String.fromInt monster.block
+        , Html.ul
+            []
+            [ textListItem <| "Enemy"
+            , textListItem <| monster.name
+            , statusSetListItem <| monster.statusSet
+            , textListItem <| "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt monster.maxHitPoints
+            , textListItem <| "Intent: " ++ intent.name
+            , textListItem <| "Block: " ++ String.fromInt monster.block
             ]
-        , textList
-            [ "Player"
-            , sceneModel.name
-            , "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
-            , "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
-            , "Block: " ++ String.fromInt (Debug.log "displayedBlock" sceneModel.block)
+        , Html.ul
+            []
+            [ textListItem <| "Player"
+            , textListItem <| sceneModel.name
+            , statusSetListItem <| sceneModel.statusSet
+            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt sceneModel.maxHitPoints
+            , textListItem <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
+            , textListItem <| "Block: " ++ String.fromInt sceneModel.block
             ]
         , actionTable sceneModel.actionPoints sceneModel.actions
         , Html.button
@@ -689,3 +713,24 @@ monsterTable monsters =
     Html.ul
         []
         ( List.map monsterFn monsters )
+
+viewStatusSet : StatusSet -> Html Msg
+viewStatusSet s =
+    Html.div
+        []
+        [ Html.text "Statuses: "
+        , viewStatusData (StatusSet.toList s)
+        ]
+
+viewStatusData : List StatusSet.Data -> Html Msg
+viewStatusData data =
+    let
+        viewOneStatusData datum =
+            Html.li
+                []
+                [ Html.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
+                ]
+    in
+    Html.ul
+        []
+        ( List.map viewOneStatusData data )

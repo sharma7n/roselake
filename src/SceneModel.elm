@@ -203,6 +203,7 @@ dev =
     , actions =
         [ Action.byId "attack"
         , Action.byId "defend"
+        , Action.byId "chargeup"
         ]
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"

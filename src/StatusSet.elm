@@ -1,11 +1,13 @@
 module StatusSet exposing
     ( StatusSet
+    , Data
     , empty
     , apply
     , tick
     , completeBattle
     , attack
     , defense
+    , toList
     )
 
 import Dict exposing (Dict)
@@ -97,3 +99,9 @@ defense (StatusSet dict) =
             data.status == Status.ModifyDefense
         )
         |> sumStacks
+
+toList : StatusSet -> List Data
+toList (StatusSet dict) =
+    dict
+        |> Dict.toList
+        |> List.map (\(_, d) -> d)

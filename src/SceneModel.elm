@@ -228,5 +228,7 @@ completeBattle : SceneModel -> SceneModel
 completeBattle m =
     { m
         | actionPoints = m.maxActionPoints
-        , statuses = []
+        , statusSet =
+            m.statusSet
+                |> StatusSet.completeBattle
     }

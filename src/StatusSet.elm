@@ -4,6 +4,8 @@ module StatusSet exposing
     , apply
     , tick
     , completeBattle
+    , attack
+    , defense
     )
 
 import Dict exposing (Dict)
@@ -69,9 +71,29 @@ completeBattle : StatusSet -> StatusSet
 completeBattle (StatusSet dict) =
     let
         newDict =
-            dict |>
-                Dict.filter (\_ -> \data ->
+            dict 
+                |> Dict.filter (\_ -> \data ->
                     data.duration == Duration.Persistent
                 )
     in
     StatusSet newDict
+
+sumStacks : Dict a Data -> Int
+sumStacks =
+    Dict.foldl (\_ -> \data -> \stacks -> data.stacks + stacks) 0
+
+attack : StatusSet -> Int
+attack (StatusSet dict) =
+    dict
+        |> Dict.filter (\_ -> \data ->
+            data.status == Status.ModifyAttack
+        )
+        |> sumStacks
+
+defense : StatusSet -> Int
+defense (StatusSet dict) =
+    dict
+        |> Dict.filter (\_ -> \data ->
+            data.status == Status.ModifyDefense
+        )
+        |> sumStacks

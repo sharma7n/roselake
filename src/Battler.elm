@@ -7,6 +7,7 @@ module Battler exposing
 import Util
 
 import Action exposing (Action)
+import Duration exposing (Duration)
 import Effect exposing (Effect)
 import Formula exposing (Formula)
 
@@ -38,27 +39,13 @@ totalAttack : Battler a -> Int
 totalAttack b =
     b.attack 
         + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
-        + List.foldl (\s -> \n ->
-            case s of
-                Status.ModifyAttack i ->
-                    n + i
-                
-                _ ->
-                    n
-        ) 0 b.statuses
+        + StatusSet.attack b.statusSet
 
 totalDefense : Battler a -> Int
 totalDefense b =
     b.defense 
-        + Debug.log "armordef" (Maybe.withDefault 0 (Maybe.map .defense b.equippedArmor))
-        + List.foldl (\s -> \n ->
-            case s of
-                Status.ModifyDefense i ->
-                    n + i
-                
-                _ ->
-                    n
-        ) 0 b.statuses
+        + Maybe.withDefault 0 (Maybe.map .defense b.equippedArmor)
+        + StatusSet.defense b.statusSet
 
 totalMagic : Battler a -> Int
 totalMagic b =
@@ -81,7 +68,7 @@ takeDamage dmg b =
 
 gainBlock : Int -> Battler a -> Battler a
 gainBlock d b =
-    Debug.log "new" { b | block = max 0 (b.block + d) }
+    { b | block = max 0 (b.block + d) }
 
 runAction : Action -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 runAction action ( attacker, defender ) =
@@ -117,49 +104,18 @@ completeRound : Battler a -> Battler a
 completeRound b =
     { b
         | block = 0
+        , statusSet =
+            b.statusSet
+                |> StatusSet.tick
     }
 
-applyStatus : Status -> Battler a -> Battler a
-applyStatus status b =
-    case status of
-        Status.ModifyAttack i ->
-            let
-                ( filtered, existingMod ) =
-                    b.statuses
-                        |> List.foldl (\s -> \(f, e) ->
-                            case s of
-                                Status.ModifyAttack j ->
-                                    (f, e + j)
-                                
-                                _ ->
-                                    (s :: f, e)
-                        ) ([], 0)
-                
-                newStatus =
-                    Status.ModifyAttack <| existingMod + i
+applyStatus : Status -> Duration -> Int -> Battler a -> Battler a
+applyStatus status duration stacks b =
+    { b | statusSet =
+        b.statusSet
+            |> StatusSet.apply status duration stacks
+    }
 
-            in
-            { b | statuses = newStatus :: filtered }
-        
-        Status.ModifyDefense i ->
-            let
-                ( filtered, existingMod ) =
-                    b.statuses
-                        |> List.foldl (\s -> \(f, e) ->
-                            case s of
-                                Status.ModifyDefense j ->
-                                    (f, e + j)
-                                
-                                _ ->
-                                    (s :: f, e)
-                        ) ([], 0)
-                
-                newStatus =
-                    Status.ModifyDefense <| existingMod + i
-
-            in
-            { b | statuses = newStatus :: filtered }
-            
 applyFormula : Formula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 applyFormula formula ( a, b ) =
     case formula of
@@ -171,7 +127,7 @@ applyFormula formula ( a, b ) =
         
         Formula.Block ->
             ( a
-                |> gainBlock (Debug.log "totalDef" (totalDefense a))
+                |> gainBlock (totalDefense a)
             , b
             )
 
@@ -203,7 +159,7 @@ applyFormula formula ( a, b ) =
         
         Formula.ChargeUp i ->
             ( a
-                |> applyStatus (Status.ModifyAttack i)
+                |> applyStatus Status.ModifyAttack Duration.Battle i
             , b
             )
         

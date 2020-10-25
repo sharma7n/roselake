@@ -7,6 +7,8 @@ module SceneModel exposing
     , dev
     )
 
+import Set exposing (Set)
+
 import FormResult
 import Util
 
@@ -23,6 +25,7 @@ import Build exposing (Build)
 import Action exposing (Action)
 import Armor exposing (Armor)
 import Avatar exposing (Avatar)
+import Context exposing (Context)
 import Effect exposing (Effect)
 import Essentia exposing (Essentia)
 import Inventory exposing (Inventory)
@@ -43,6 +46,7 @@ type alias SceneModel =
     , experience : Int
     , freeAbilityPoints : Int
     , totalAbilityPoints : Int
+    , learned : Set String
     , satiety : Int
     , maxSatiety : Int
     , hitPoints : Int
@@ -150,6 +154,7 @@ characterCreationSettingsToSceneModel settings =
             , experience = 0
             , freeAbilityPoints = 0
             , totalAbilityPoints = 0
+            , learned = Set.empty
             , satiety = 10
             , maxSatiety = 10
             , hitPoints = 10
@@ -162,10 +167,7 @@ characterCreationSettingsToSceneModel settings =
             , magic = 1
             , defense = 0
             , agility = 1
-            , actions =
-                [ Action.byId "attack"
-                , Action.byId "defend"
-                ]
+            , actions = initActions Set.empty
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
             , essentiaContainer = EssentiaContainer.new
@@ -190,11 +192,16 @@ dev =
     , avatar = avatar
     , gold = 10
     , inventory = Inventory.new
-    , essentia = []
+    , essentia = 
+        [ Essentia.byId "green"
+        , Essentia.byId "red"
+        , Essentia.byId "blue"
+        ]
     , level = 1
     , experience = 0
     , freeAbilityPoints = 0
     , totalAbilityPoints = 0
+    , learned = Set.empty
     , satiety = 10
     , maxSatiety = 10
     , hitPoints = 10
@@ -207,11 +214,7 @@ dev =
     , magic = 1
     , defense = 0
     , agility = 1
-    , actions =
-        [ Action.byId "attack"
-        , Action.byId "defend"
-        , Action.byId "chargeup"
-        ]
+    , actions = initActions Set.empty
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"
     , essentiaContainer = EssentiaContainer.new
@@ -233,6 +236,21 @@ applyReward reward m =
                 |> (\i -> List.foldl (Util.uncurry Inventory.modifyArmorQuantity) i reward.armors)
     }
 
+initActions : Set String -> List Action
+initActions learned =
+    let
+        baseActions =
+            [ Action.byId "attack"
+            , Action.byId "defend"
+            ]
+        
+        learnedActions =
+            learned
+                |> Set.toList
+                |> List.map Action.byId
+    in
+    baseActions ++ learnedActions
+
 completeBattle : SceneModel -> SceneModel
 completeBattle m =
     { m
@@ -240,4 +258,5 @@ completeBattle m =
         , statusSet =
             m.statusSet
                 |> StatusSet.completeBattle
+        , actions = initActions m.learned
     }

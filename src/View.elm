@@ -163,7 +163,7 @@ viewScenePhase scene sceneModel =
                     []
             
             _ ->
-                 buttonList
+                 buttonBar
                     [ ( "Player", Msg.UserSelectedScene Scene.PlayerScene )
                     , ( "Essentia", Msg.UserSelectedScene Scene.EssentiaScene )
                     , ( "Learn", Msg.UserSelectedScene Scene.LearnSelectScene )
@@ -227,6 +227,21 @@ buttonList items =
                 ]
     in
     Html.ul
+        []
+        ( List.map itemFn items )
+
+buttonBar : List ( String, Msg ) -> Html Msg
+buttonBar items =
+    let
+        itemFn ( label, msg ) =
+            Html.span
+                []
+                [ Html.button
+                    [ Html.Events.onClick msg ]
+                    [ Html.text label ]
+                ]
+    in
+    Html.div
         []
         ( List.map itemFn items )
 

@@ -44,7 +44,9 @@ import Shop exposing (Shop)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
 import Status exposing (Status)
+import Essentia exposing (Essentia)
 
+import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
 import Scene exposing (Scene)
@@ -163,6 +165,7 @@ viewScenePhase scene sceneModel =
             _ ->
                  buttonList
                     [ ( "Player", Msg.UserSelectedScene Scene.PlayerScene )
+                    , ( "Essentia", Msg.UserSelectedScene Scene.EssentiaScene )
                     , ( "Learn", Msg.UserSelectedScene Scene.LearnSelectScene )
                     , ( "Equip", Msg.UserSelectedScene Scene.EquipScene )
                     , ( "Home", Msg.UserSelectedScene Scene.HomeScene )
@@ -275,6 +278,9 @@ viewSceneModel scene sceneModel =
                     , "AGI: " ++ String.fromInt sceneModel.agility
                     ]
                 ]
+        
+        Scene.EssentiaScene ->
+            viewEssentiaScene sceneModel.essentia sceneModel.essentiaContainer
         
         Scene.LearnSelectScene ->
             learnTable Action.learnable sceneModel.actions
@@ -734,3 +740,46 @@ viewStatusData data =
     Html.ul
         []
         ( List.map viewOneStatusData data )
+
+viewEssentiaScene : List Essentia -> EssentiaContainer -> Html Msg
+viewEssentiaScene e c =
+    let
+        containerSlotFn ( slotIndex, slot ) =
+            case slot of
+                Just essentia ->
+                    Html.li
+                        []
+                        [ Html.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
+                        , Html.button
+                            [ Html.Events.onClick <| Msg.UserSelectedUnEquipEssentia slotIndex essentia ]
+                            [ Html.text "Un-Equip" ]
+                        ]
+                
+                Nothing ->
+                    Html.li
+                        []
+                        [ Html.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": -"
+                        ]
+
+        equipEssentiaButtonFn esn listIdx slotIndex =
+            Html.button
+                [ Html.Events.onClick <| Msg.UserSelectedEquipEssentia slotIndex listIdx esn ]
+                [ Html.text <| "Equip in Slot " ++ EssentiaContainer.indexToString slotIndex ]
+        essentiaFn listIdx esn =
+            Html.div
+                []
+                ( Html.text esn.name
+                :: ( List.map (equipEssentiaButtonFn esn listIdx) EssentiaContainer.listIndices )
+                )
+    in
+    Html.ul
+        []
+        [ Html.text "Equipped"
+        , Html.ul
+            []
+            ( List.map containerSlotFn (EssentiaContainer.toList c))
+        , Html.text "Equipable"
+        , Html.ul
+            []
+            ( List.indexedMap essentiaFn e )
+        ]

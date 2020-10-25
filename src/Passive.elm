@@ -36,3 +36,6 @@ byId id =
                     [ PassiveFormula.Counter
                     ]
             }
+        
+        _ ->
+            base

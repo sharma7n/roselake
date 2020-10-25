@@ -24,11 +24,13 @@ import Action exposing (Action)
 import Armor exposing (Armor)
 import Avatar exposing (Avatar)
 import Effect exposing (Effect)
+import Essentia exposing (Essentia)
 import Inventory exposing (Inventory)
 import Reward exposing (Reward)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
 
+import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
 type alias SceneModel =
@@ -36,6 +38,7 @@ type alias SceneModel =
     , avatar : Avatar
     , gold : Int
     , inventory : Inventory
+    , essentia : List Essentia
     , level : Int
     , experience : Int
     , freeAbilityPoints : Int
@@ -55,6 +58,7 @@ type alias SceneModel =
     , actions : List Action
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
+    , essentiaContainer : EssentiaContainer
     , statusSet : StatusSet
     , block : Int
     }
@@ -141,6 +145,7 @@ characterCreationSettingsToSceneModel settings =
             , avatar = avatar
             , gold = 0
             , inventory = Inventory.new
+            , essentia = []
             , level = 1
             , experience = 0
             , freeAbilityPoints = 0
@@ -163,6 +168,7 @@ characterCreationSettingsToSceneModel settings =
                 ]
             , equippedWeapon = Just <| Weapon.byId "sword"
             , equippedArmor = Just <| Armor.byId "shirt"
+            , essentiaContainer = EssentiaContainer.new
             , statusSet = StatusSet.empty
             , block = 0
             }
@@ -184,6 +190,7 @@ dev =
     , avatar = avatar
     , gold = 10
     , inventory = Inventory.new
+    , essentia = []
     , level = 1
     , experience = 0
     , freeAbilityPoints = 0
@@ -207,6 +214,7 @@ dev =
         ]
     , equippedWeapon = Just <| Weapon.byId "sword"
     , equippedArmor = Just <| Armor.byId "shirt"
+    , essentiaContainer = EssentiaContainer.new
     , statusSet = StatusSet.empty
     , block = 0
     }

@@ -30,6 +30,7 @@ import DelvePhase exposing (DelvePhase)
 import DungeonPath
 import DungeonScene
 import Dungeon exposing (Dungeon)
+import Essentia exposing (Essentia)
 import Action exposing (Action)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
@@ -41,6 +42,8 @@ import Item exposing (Item)
 import Weapon exposing (Weapon)
 import Status exposing (Status)
 import Battle exposing (Battle)
+
+import EssentiaContainer exposing (EssentiaContainer)
 
 import Scene exposing (Scene)
 import SceneModel exposing (SceneModel)
@@ -157,6 +160,57 @@ update msg model =
                             sceneModel.inventory
                                 |> Inventory.modifyArmorQuantity armor 1
                     }
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
+        ( Msg.UserSelectedEquipEssentia idx listIdx essentia, Phase.ScenePhase scene sceneModel ) ->
+            let
+                equippedEssentia =
+                    EssentiaContainer.getSlot idx sceneModel.essentiaContainer
+                
+                newEssentia =
+                    sceneModel.essentia
+                        |> Util.removeListAt listIdx
+                        |> Util.appendMaybe equippedEssentia
+                
+                newEssentiaContainer =
+                    sceneModel.essentiaContainer
+                        |> EssentiaContainer.setSlot idx essentia
+                
+                newSceneModel =
+                    { sceneModel
+                        | essentia = newEssentia
+                        , essentiaContainer = newEssentiaContainer
+                    }
+                
+                newModel =
+                    { model | phase = Phase.ScenePhase scene newSceneModel }
+                
+            in
+            ( newModel, Cmd.none )
+        
+        ( Msg.UserSelectedUnEquipEssentia idx essentia, Phase.ScenePhase scene sceneModel ) ->
+            let
+                equippedEssentia =
+                    EssentiaContainer.getSlot idx sceneModel.essentiaContainer
+                
+                newEssentia =
+                    sceneModel.essentia
+                        |> Util.appendMaybe equippedEssentia
+                
+                newEssentiaContainer =
+                    sceneModel.essentiaContainer
+                        |> EssentiaContainer.clearSlot idx
+                
+                newSceneModel =
+                    { sceneModel
+                        | essentia = newEssentia
+                        , essentiaContainer = newEssentiaContainer
+                    }
+                
                 newModel =
                     { model | phase = Phase.ScenePhase scene newSceneModel }
                 

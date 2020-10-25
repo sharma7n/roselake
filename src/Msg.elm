@@ -9,12 +9,15 @@ import Armor exposing (Armor)
 import Dungeon exposing (Dungeon)
 import DungeonPath
 import DungeonScene
+import Essentia exposing (Essentia)
 import Item exposing (Item)
 import Monster exposing (Monster)
 import Object exposing (Object)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
 import Weapon exposing (Weapon)
+
+import EssentiaContainer exposing (EssentiaContainer)
 
 import Scene exposing (Scene)
 
@@ -31,6 +34,8 @@ type Msg
     | UserSelectedUnEquipWeapon Weapon
     | UserSelectedEquipArmor Armor
     | UserSelectedUnEquipArmor Armor
+    | UserSelectedEquipEssentia EssentiaContainer.Index Int Essentia
+    | UserSelectedUnEquipEssentia EssentiaContainer.Index Essentia
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath DungeonPath.Path

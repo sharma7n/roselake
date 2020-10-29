@@ -494,6 +494,9 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
                 
                 CharacterCreationSettingSelection.BuildSelection build ->
                     { settings | build = FormResult.FROk build }
+                
+                CharacterCreationSettingSelection.StartingWeaponSelection startingWeapon ->
+                    { settings | startingWeapon = FormResult.FROk startingWeapon }
     
         newCharacterCreationModel =
             { settings = newSettings

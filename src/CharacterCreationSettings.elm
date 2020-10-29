@@ -11,6 +11,7 @@ import EyeColor exposing (EyeColor)
 import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
+import Weapon exposing (Weapon)
 
 type alias CharacterCreationSettings =
     { name : FormResult CharacterCreationError.Error String
@@ -20,6 +21,7 @@ type alias CharacterCreationSettings =
     , complexion : FormResult CharacterCreationError.Error Complexion
     , height : FormResult CharacterCreationError.Error Height
     , build : FormResult CharacterCreationError.Error Build
+    , startingWeapon : FormResult CharacterCreationError.Error Weapon
     }
 
 check : CharacterCreationSettings -> CharacterCreationSettings
@@ -43,4 +45,5 @@ check settings =
     , complexion = FormResult.check settings.complexion
     , height = FormResult.check settings.height
     , build = FormResult.check settings.build
+    , startingWeapon = FormResult.check settings.startingWeapon
     }

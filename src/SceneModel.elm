@@ -134,7 +134,8 @@ characterCreationSettingsToSceneModel settings =
         |> Result.andThen (\eyeColor -> FormResult.toValidation settings.complexion
         |> Result.andThen (\complexion -> FormResult.toValidation settings.height
         |> Result.andThen (\height -> FormResult.toValidation settings.build
-        |> Result.andThen (\build -> Ok <|
+        |> Result.andThen (\build -> FormResult.toValidation settings.startingWeapon
+        |> Result.andThen (\startingWeapon -> Ok <|
             let
                 avatar =
                     { hairStyle = hairStyle
@@ -168,13 +169,13 @@ characterCreationSettingsToSceneModel settings =
             , defense = 0
             , agility = 1
             , actions = initActions Set.empty
-            , equippedWeapon = Just <| Weapon.byId "sword"
+            , equippedWeapon = Just startingWeapon
             , equippedArmor = Just <| Armor.byId "shirt"
             , essentiaContainer = EssentiaContainer.new
             , statusSet = StatusSet.empty
             , block = 0
             }
-        )))))))
+        ))))))))
 
 dev : SceneModel
 dev =
@@ -215,7 +216,7 @@ dev =
     , defense = 0
     , agility = 1
     , actions = initActions Set.empty
-    , equippedWeapon = Just <| Weapon.byId "sword"
+    , equippedWeapon = Just <| Weapon.byId "training-axe"
     , equippedArmor = Just <| Armor.byId "shirt"
     , essentiaContainer = EssentiaContainer.new
     , statusSet = StatusSet.empty

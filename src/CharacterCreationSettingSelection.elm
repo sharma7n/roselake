@@ -8,6 +8,7 @@ import EyeColor exposing (EyeColor)
 import HairColor exposing (HairColor)
 import HairStyle exposing (HairStyle)
 import Height exposing (Height)
+import Weapon exposing (Weapon)
 
 type CharacterCreationSettingSelection
     = NameSelection String
@@ -17,3 +18,4 @@ type CharacterCreationSettingSelection
     | ComplexionSelection Complexion
     | HeightSelection Height
     | BuildSelection Build
+    | StartingWeaponSelection Weapon

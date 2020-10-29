@@ -2,13 +2,17 @@ module Weapon exposing
     ( Weapon
     , byId
     , generator
+    , listStarting
     )
 
 import Random
 
+import WeaponKind exposing (WeaponKind)
+
 type alias Weapon =
     { id : String
     , name : String
+    , kind : WeaponKind
     , cost : Int
     , attack : Int
     , magic : Int
@@ -17,41 +21,46 @@ type alias Weapon =
 byId : String -> Weapon
 byId id =
     case id of
-        "sword" ->
-            { id = "sword"
-            , name = "Sword"
+        "training-axe" ->
+            { id = "training-axe"
+            , name = "Training Axe"
+            , kind = WeaponKind.Axe
+            , cost = 1
+            , attack = 2
+            , magic = 0
+            }
+        
+        "training-bow" ->
+            { id = "training-bow"
+            , name = "Training Bow"
+            , kind = WeaponKind.Bow
             , cost = 1
             , attack = 1
             , magic = 0
             }
         
-        "staff" ->
-            { id = "staff"
-            , name = "Staff"
+        "training-claw" ->
+            { id = "training-claw"
+            , name = "Training Claw"
+            , kind = WeaponKind.Claw
+            , cost = 1
+            , attack = 1
+            , magic = 0
+            }
+        
+        "training-staff" ->
+            { id = "training-staff"
+            , name = "Training Staff"
+            , kind = WeaponKind.Staff
             , cost = 1
             , attack = 0
             , magic = 1
             }
         
-        "sword2" ->
-            { id = "sword2"
-            , name = "Sword 2"
-            , cost = 2
-            , attack = 2
-            , magic = 0
-            }
-        
-        "sword3" ->
-            { id = "sword3"
-            , name = "Sword 3"
-            , cost = 3
-            , attack = 3
-            , magic = 0
-            }
-        
         _ ->
             { id = "null"
             , name = "Null Weapon"
+            , kind = WeaponKind.Axe
             , cost = 0
             , attack = 0
             , magic = 0
@@ -65,3 +74,11 @@ generator =
         , ( 2, byId "sword2" )
         , ( 3, byId "sword3" )
         ]
+
+listStarting : List Weapon
+listStarting =
+    [ byId "training-axe"
+    , byId "training-bow"
+    , byId "training-claw"
+    , byId "training-staff"
+    ]

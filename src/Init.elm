@@ -23,6 +23,7 @@ init _ =
             , complexion = FormResult.FRBlank CharacterCreationError.MissingComplexion
             , height = FormResult.FRBlank CharacterCreationError.MissingHeight
             , build = FormResult.FRBlank CharacterCreationError.MissingBuild
+            , startingWeapon = FormResult.FRBlank CharacterCreationError.MissingStartingWeapon
             }
         
         initCharacterCreationModel =

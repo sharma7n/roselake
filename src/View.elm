@@ -113,6 +113,10 @@ viewCharacterCreationPhase model =
               , radioButtons Build.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.BuildSelection) Build.all model.settings.build
               , settingToInfo Build.toString model.settings.build
               )
+            , ( "Starting Weapon"
+              , radioButtons .name (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingWeaponSelection) Weapon.listStarting model.settings.startingWeapon
+              , settingToInfo .name model.settings.startingWeapon
+              )
             ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
         , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]

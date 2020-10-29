@@ -5,9 +5,7 @@ module Action exposing
     )
 
 import Context exposing (Context)
-import Effect exposing (Effect)
 import Formula exposing (Formula)
-import Target exposing (Target)
 
 type alias Action =
     { id : String
@@ -16,12 +14,20 @@ type alias Action =
     , learnCost : Int
     , actionPointCost : Int
     , magicPointCost : Int
-    , subs : List Sub
+    , cooldown : Int
+    , formulas : List Formula
     }
 
-type alias Sub =
-    { target : Target
-    , effects : List Effect
+base : Action
+base =
+    { id = "null"
+    , name = "Null Action"
+    , context = Context.None
+    , learnCost = 0
+    , actionPointCost = 0
+    , magicPointCost = 0
+    , cooldown = 0
+    , formulas = []
     }
 
 byId : String -> Action
@@ -34,6 +40,7 @@ byId id =
             , learnCost = 5 * (level + 1) * (level + 1)
             , actionPointCost = level
             , magicPointCost = (level + 1) * (level + 2)
+            , cooldown = 1
             , subs =
                 [ { target = Target.Enemy
                   , effects =
@@ -50,6 +57,7 @@ byId id =
             , learnCost = 5 * (level + 1) * (level + 1)
             , actionPointCost = level
             , magicPointCost = (level + 1) * (level + 2)
+            , cooldown = 1
             , subs =
                 [ { target = Target.Self
                   , effects =
@@ -67,7 +75,19 @@ byId id =
             , learnCost = 0
             , actionPointCost = 0
             , magicPointCost = 0
+            , cooldown = 0
             , subs = []
+            }
+        
+        "axe-attack" ->
+            { id = "axe-attack"
+            , name = "Axe Attack"
+            , context = Context.Battle
+            , learnCost = 0
+            , actionPointCost = 3
+            , magicPointCost = 0
+            , cooldown = 3
+            , subs = 
             }
         
         "attack" ->

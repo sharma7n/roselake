@@ -32,6 +32,7 @@ import Inventory exposing (Inventory)
 import Reward exposing (Reward)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
+import WeaponKind exposing (WeaponKind)
 
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
@@ -168,7 +169,7 @@ characterCreationSettingsToSceneModel settings =
             , magic = 1
             , defense = 0
             , agility = 1
-            , actions = initActions Set.empty
+            , actions = initActions (Just startingWeapon) Set.empty
             , equippedWeapon = Just startingWeapon
             , equippedArmor = Just <| Armor.byId "shirt"
             , essentiaContainer = EssentiaContainer.new
@@ -215,7 +216,7 @@ dev =
     , magic = 1
     , defense = 0
     , agility = 1
-    , actions = initActions Set.empty
+    , actions = initActions (Just <| Weapon.byId "training-axe") Set.empty
     , equippedWeapon = Just <| Weapon.byId "training-axe"
     , equippedArmor = Just <| Armor.byId "shirt"
     , essentiaContainer = EssentiaContainer.new
@@ -237,13 +238,18 @@ applyReward reward m =
                 |> (\i -> List.foldl (Util.uncurry Inventory.modifyArmorQuantity) i reward.armors)
     }
 
-initActions : Set String -> List Action
-initActions learned =
+initActions : Maybe Weapon -> Set String -> List Action
+initActions equippedWeapon learned =
     let
         baseActions =
-            [ Action.byId "attack"
-            , Action.byId "defend"
-            ]
+            case equippedWeapon of
+                Just weapon ->
+                    [ WeaponKind.attackAction weapon.kind
+                    ]
+                
+                Nothing ->
+                    [ Action.byId "attack"
+                    ]
         
         learnedActions =
             learned
@@ -259,5 +265,5 @@ completeBattle m =
         , statusSet =
             m.statusSet
                 |> StatusSet.completeBattle
-        , actions = initActions m.learned
+        , actions = initActions m.equippedWeapon m.learned
     }

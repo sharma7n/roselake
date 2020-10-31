@@ -68,8 +68,11 @@ update msg model =
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
+                
+                newSceneModel =
+                    SceneModel.completeBattle sceneModel
             in
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) sceneModel }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) newSceneModel }, cmd )
         
         ( Msg.UserSelectedLearnSkill action, Phase.ScenePhase scene sceneModel ) ->
             let
@@ -315,8 +318,11 @@ update msg model =
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
+                
+                newSceneModel =
+                    SceneModel.completeBattle sceneModel
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) newSceneModel }, cmd )
         
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneModel }, Cmd.none )

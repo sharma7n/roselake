@@ -2,25 +2,28 @@ module WeaponKind exposing
     ( WeaponKind(..)
     , all
     , toString
+    , attackAction
     )
+
+import Action exposing (Action)
 
 type WeaponKind
     = Axe
-    | Claw
     | Bow
+    | Claw
     | Staff
 
 fold : a -> a -> a -> a -> WeaponKind -> a
-fold axe claw bow staff w =
+fold axe bow claw staff w =
     case w of
         Axe ->
             axe
         
-        Claw ->
-            claw
-
         Bow ->
             bow
+        
+        Claw ->
+            claw
 
         Staff ->
             staff
@@ -28,11 +31,19 @@ fold axe claw bow staff w =
 all : List WeaponKind
 all =
     [ Axe
-    , Claw
     , Bow
+    , Claw
     , Staff
     ]
 
 toString : WeaponKind -> String
 toString =
-    fold "Axe" "Blow" "Claw" "Staff"
+    fold "Axe" "Bow" "Claw" "Staff"
+
+attackAction : WeaponKind -> Action
+attackAction =
+    fold 
+        (Action.byId "axe-attack")
+        (Action.byId "bow-attack")
+        (Action.byId "claw-attack")
+        (Action.byId "staff-attack")

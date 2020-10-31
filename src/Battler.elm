@@ -79,9 +79,8 @@ runAction : Action -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 runAction action ( attacker, defender ) =
     let
         effects =
-            action.subs
-                |> List.map .effects
-                |> List.concat
+            action.formulas
+                |> List.map Effect.BattleFormula
         
         newAttacker =
             { attacker
@@ -128,6 +127,30 @@ applyFormula formula ( a, b ) =
     case formula of
         Formula.Attack ->
             ( a 
+            , b
+                |> takeDamage (totalAttack a - b.block)
+            )
+        
+        Formula.AxeAttack ->
+            ( a
+            , b
+                |> takeDamage (3 * (totalAttack a) - b.block)
+            )
+        
+        Formula.BowAttack ->
+            ( a
+            , b
+                |> takeDamage (totalAttack a - b.block)
+            )
+        
+        Formula.ClawAttack ->
+            ( a
+            , b
+                |> takeDamage (totalAttack a - b.block)
+            )
+        
+        Formula.StaffAttack ->
+            ( a
             , b
                 |> takeDamage (totalAttack a - b.block)
             )

@@ -4,6 +4,10 @@ module Formula exposing
 
 type Formula
     = Attack
+    | AxeAttack
+    | BowAttack
+    | ClawAttack
+    | StaffAttack
     | Block
     | FireBreath
     | Fire Int

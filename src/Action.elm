@@ -33,6 +33,19 @@ base =
 byId : String -> Action
 byId id =
     let
+        attackSkill attackId name actionPointCost cooldown formula =
+            { id = attackId
+            , name = name
+            , context = Context.Battle
+            , learnCost = 0
+            , actionPointCost = actionPointCost
+            , magicPointCost = 0
+            , cooldown = cooldown
+            , formulas =
+                [ formula
+                ]
+            }
+        
         fireSkill level =
             { id = "fire" ++ String.fromInt level
             , name = "Fire " ++ String.fromInt level
@@ -41,12 +54,8 @@ byId id =
             , actionPointCost = level
             , magicPointCost = (level + 1) * (level + 2)
             , cooldown = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.Fire level
-                    ]
-                  }
+            , formulas =
+                [ Formula.Fire level
                 ]
             }
         
@@ -58,12 +67,8 @@ byId id =
             , actionPointCost = level
             , magicPointCost = (level + 1) * (level + 2)
             , cooldown = 1
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.Heal level
-                    ]
-                  }
+            , formulas =
+                [ Formula.Heal level
                 ]
             }
     in
@@ -76,35 +81,23 @@ byId id =
             , actionPointCost = 0
             , magicPointCost = 0
             , cooldown = 0
-            , subs = []
-            }
-        
-        "axe-attack" ->
-            { id = "axe-attack"
-            , name = "Axe Attack"
-            , context = Context.Battle
-            , learnCost = 0
-            , actionPointCost = 3
-            , magicPointCost = 0
-            , cooldown = 3
-            , subs = 
+            , formulas = []
             }
         
         "attack" ->
-            { id = "attack"
-            , name = "Attack"
-            , context = Context.Battle
-            , learnCost = 0
-            , actionPointCost = 1
-            , magicPointCost = 0
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula Formula.Attack
-                    ]
-                  }
-                ]
-            }
+            attackSkill "attack" "Attack" 1 1 Formula.Attack
+        
+        "axe-attack" ->
+            attackSkill "axe-attack" "Axe Attack" 3 3 Formula.AxeAttack
+        
+        "bow-attack" ->
+            attackSkill "bow-attack" "Bow Attack" 2 2 Formula.BowAttack
+        
+        "claw-attack" ->
+            attackSkill "claw-attack" "Claw Attack" 1 1 Formula.ClawAttack
+        
+        "staff-attack" ->
+            attackSkill "staff-attack" "Staff Attack" 2 2 Formula.StaffAttack
         
         "defend" ->
             { id = "defend"
@@ -113,12 +106,9 @@ byId id =
             , learnCost = 0
             , actionPointCost = 1
             , magicPointCost = 0
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula Formula.Block
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.Block
                 ]
             }
         
@@ -129,12 +119,9 @@ byId id =
             , learnCost = 1
             , actionPointCost = 1
             , magicPointCost = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula Formula.FireBreath
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.FireBreath
                 ]
             }
         
@@ -145,12 +132,9 @@ byId id =
             , learnCost = 1
             , actionPointCost = 1
             , magicPointCost = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula Formula.Explode
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.Explode
                 ]
             }
         
@@ -191,44 +175,9 @@ byId id =
             , learnCost = 20
             , actionPointCost = 1
             , magicPointCost = 0
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.ChargeUp 1
-                    ]
-                  }
-                ]
-            }
-        
-        "chargeup2" ->
-            { id = "chargeup2"
-            , name = "Charge Up 2"
-            , context = Context.Battle
-            , learnCost = 10
-            , actionPointCost = 1
-            , magicPointCost = 0
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.ChargeUp 2
-                    ]
-                  }
-                ]
-            }
-        
-        "chargeup4" ->
-            { id = "chargeup4"
-            , name = "Charge Up 4"
-            , context = Context.Battle
-            , learnCost = 20
-            , actionPointCost = 1
-            , magicPointCost = 0
-            , subs =
-                [ { target = Target.Self
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.ChargeUp 4
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.ChargeUp 1
                 ]
             }
         
@@ -239,12 +188,9 @@ byId id =
             , learnCost = 0
             , actionPointCost = 1
             , magicPointCost = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.Curse
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.Curse
                 ]
             }
         
@@ -255,12 +201,9 @@ byId id =
             , learnCost = 1
             , actionPointCost = 1
             , magicPointCost = 1
-            , subs =
-                [ { target = Target.Enemy
-                  , effects =
-                    [ Effect.BattleFormula <| Formula.Poison
-                    ]
-                  }
+            , cooldown = 1
+            , formulas =
+                [ Formula.Poison
                 ]
             }
         
@@ -271,7 +214,8 @@ byId id =
             , actionPointCost = 0
             , learnCost = 0
             , magicPointCost = 0
-            , subs = []
+            , cooldown = 0
+            , formulas = []
             }
 
 learnable : List Action

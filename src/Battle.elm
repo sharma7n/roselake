@@ -33,37 +33,12 @@ chooseMonsterAction battle =
 
 chooseMonsterActionInternal : Battle -> Int -> Random.Generator Action
 chooseMonsterActionInternal battle retries =
-    if retries > 2 then
-        Random.constant <| Action.byId "nothing"
-    else
-        let
-            selectedDistribution =
-                battle.monster.behaviors
-                    |> List.filter (\b ->
-                        case b.condition of
-                            Behavior.Always ->
-                                True
-                            
-                            Behavior.BelowHitPointThreshold threshold ->
-                                toFloat battle.monster.hitPoints <= threshold * toFloat battle.monster.maxHitPoints
-                            
-                            Behavior.RoundSchedule first length ->
-                                Debug.log "modulus" (modBy (Debug.log "length" length) ((Debug.log "battle.round" battle.round) - (Debug.log "first" first))) == 0
-                    )
-                    |> List.foldl (\b -> \m ->
-                        if b.priority >= Maybe.withDefault 0 (Maybe.map .priority m) then
-                            Just b
-                        else
-                            m
-                    ) Nothing
-                    |> Maybe.map .actionDistribution
-                    |> Maybe.withDefault (Distribution.new ( 100, Action.byId "nothing" ) [])
-
-        in
-        Distribution.random selectedDistribution
-            |> Random.andThen (\action ->
-                if action.magicPointCost <= battle.monster.magicPoints then
-                    Random.constant action
-                else
-                    chooseMonsterActionInternal battle (retries + 1)
-            )
+    case battle.monster.behavior of
+        Behavior.None ->
+            Random.constant <| Action.byId "nothing"
+        
+        Behavior.Slime ->
+            Random.weighted
+                ( 50, Action.byId "nothing" )
+                [ ( 50, Action.byId "attack" )
+                ]

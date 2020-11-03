@@ -4,6 +4,7 @@ module Util exposing
     , forEach
     , appendMaybe
     , removeListAt
+    , getById
     )
 
 boundedBy : Int -> Int -> Int -> Int
@@ -35,3 +36,10 @@ removeListAt idx l =
         |> List.indexedMap (\i -> \x -> (i, x))
         |> List.filter(\(i,_) -> i /= idx)
         |> List.map (\(_, x) -> x)
+
+getById : List { a | id : String } -> { a | id : String } -> String -> { a | id : String }
+getById all default id =
+    all
+        |> List.filter (\a -> a.id == id)
+        |> List.head
+        |> Maybe.withDefault default

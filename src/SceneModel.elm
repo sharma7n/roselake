@@ -25,14 +25,11 @@ import Build exposing (Build)
 import Action exposing (Action)
 import Armor exposing (Armor)
 import Avatar exposing (Avatar)
-import Context exposing (Context)
 import Effect exposing (Effect)
 import Essentia exposing (Essentia)
 import Inventory exposing (Inventory)
 import Reward exposing (Reward)
-import Status exposing (Status)
 import Weapon exposing (Weapon)
-import WeaponKind exposing (WeaponKind)
 
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
@@ -244,8 +241,7 @@ initActions equippedWeapon learned =
         baseActions =
             case equippedWeapon of
                 Just weapon ->
-                    [ WeaponKind.attackAction weapon.kind
-                    ]
+                    weapon.actions
                 
                 Nothing ->
                     [ Action.byId "attack"

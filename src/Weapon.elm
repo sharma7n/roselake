@@ -7,72 +7,89 @@ module Weapon exposing
 
 import Random
 
-import WeaponKind exposing (WeaponKind)
+import Action exposing (Action)
+import Util
 
 type alias Weapon =
     { id : String
     , name : String
-    , kind : WeaponKind
     , cost : Int
+    , actions : List Action
     , attack : Int
     , magic : Int
     }
 
+new : String -> (Weapon -> Weapon) -> Weapon
+new name f =
+    { id = Util.kebabify name
+    , name = name
+    , cost = 0
+    , actions = []
+    , attack = 0
+    , magic = 0
+    }
+        |> f
+
 byId : String -> Weapon
-byId id =
-    case id of
-        "training-axe" ->
-            { id = "training-axe"
-            , name = "Training Axe"
-            , kind = WeaponKind.Axe
-            , cost = 1
-            , attack = 2
-            , magic = 0
+byId =
+    let
+        default =
+            new "Null Weapon" (\w -> w)
+    in
+    Util.getById all default
+
+all : List Weapon
+all =
+    [ new "Training Axe"
+        (\w ->
+            { w
+                | cost = 1
+                , actions = 
+                    [ Action.byId "axe-attack"
+                    ]
+                , attack = 2
             }
-        
-        "training-bow" ->
-            { id = "training-bow"
-            , name = "Training Bow"
-            , kind = WeaponKind.Bow
-            , cost = 1
-            , attack = 1
-            , magic = 0
+        )
+    , new "Training Bow"
+        (\w ->
+            { w
+                | cost = 1
+                , actions = 
+                    [ Action.byId "bow-attack"
+                    ]
+                , attack = 1
             }
-        
-        "training-claw" ->
-            { id = "training-claw"
-            , name = "Training Claw"
-            , kind = WeaponKind.Claw
-            , cost = 1
-            , attack = 1
-            , magic = 0
+        )
+    , new "Training Claw"
+        (\w ->
+            { w
+                | cost = 1
+                , actions = 
+                    [ Action.byId "claw-attack"
+                    ]
+                , attack = 1
             }
-        
-        "training-staff" ->
-            { id = "training-staff"
-            , name = "Training Staff"
-            , kind = WeaponKind.Staff
-            , cost = 1
-            , attack = 0
-            , magic = 1
+        )
+    , new "Training Staff"
+        (\w ->
+            { w
+                | cost = 1
+                , actions = 
+                    [ Action.byId "staff-attack"
+                    ]
+                , magic = 1
             }
-        
-        _ ->
-            { id = "null"
-            , name = "Null Weapon"
-            , kind = WeaponKind.Axe
-            , cost = 0
-            , attack = 0
-            , magic = 0
-            }
+        )
+    ]
 
 generator : Random.Generator Weapon
 generator =
     Random.weighted
         ( 0, byId "" )
-        [ ( 1, byId "sword" )
-        , ( 2, byId "sword2" )
-        , ( 3, byId "sword3" )
+        [ ( 25, byId "training-axe" )
+        , ( 25, byId "training-bow" )
+        , ( 25, byId "training-claw" )
+        , ( 25, byId "training-staff" )
         ]
 
 listStarting : List Weapon

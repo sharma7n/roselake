@@ -403,8 +403,7 @@ viewSceneModel scene sceneModel =
         
         Scene.BattleScene ->
             monsterTable
-                [ MonsterTemplate.byId "dummy"
-                , MonsterTemplate.byId "gremlin"
+                [ MonsterTemplate.byId "gremlin"
                 , MonsterTemplate.byId "divine-dragon"
                 ]
         

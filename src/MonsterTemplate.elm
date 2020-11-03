@@ -54,6 +54,7 @@ all =
         gremlin =
             { base
                 | id = "gremlin"
+                , name = "Gremlin"
                 , experience = 1
                 , gold = 1
                 , abilityPoints = 1
@@ -65,6 +66,7 @@ all =
         divineDragon =
             { base
                 | id = "divine-dragon"
+                , name = "Divine Dragon"
                 , experience = 2
                 , gold = 2
                 , abilityPoints = 2

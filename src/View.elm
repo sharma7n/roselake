@@ -37,6 +37,7 @@ import Dungeon exposing (Dungeon)
 import Action exposing (Action)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
+import MonsterTemplate exposing (MonsterTemplate)
 import Reward exposing (Reward)
 import Inventory exposing (Inventory)
 import Object exposing (Object)
@@ -402,9 +403,9 @@ viewSceneModel scene sceneModel =
         
         Scene.BattleScene ->
             monsterTable
-                [ Monster.byId "dummy"
-                , Monster.byId "gremlin"
-                , Monster.byId "dragon"
+                [ MonsterTemplate.byId "dummy"
+                , MonsterTemplate.byId "gremlin"
+                , MonsterTemplate.byId "divine-dragon"
                 ]
         
         Scene.BattleMonsterLoadingIntentScene battle ->
@@ -721,17 +722,17 @@ dungeonTable dungeons =
         []
         ( List.map dungeonFn dungeons )
 
-monsterTable : List Monster -> Html Msg
+monsterTable : List MonsterTemplate -> Html Msg
 monsterTable monsters =
     let
-        monsterFn monster =
+        monsterFn monsterTemplate =
             Html.li
                 []
-                [ Html.text <| monster.name
-                , Html.text <| " | HP: " ++ String.fromInt monster.hitPoints
-                , Html.text <| " | EXP: " ++ String.fromInt monster.experience ++ " "
+                [ Html.text <| monsterTemplate.name
+                , Html.text <| " | HP: " ++ String.fromInt monsterTemplate.hitPoints
+                , Html.text <| " | EXP: " ++ String.fromInt monsterTemplate.experience ++ " "
                 , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedMonster monster ]
+                    [ Html.Events.onClick <| Msg.UserSelectedMonsterTemplate monsterTemplate ]
                     [ Html.text "Fight" ]
                 ]
     in

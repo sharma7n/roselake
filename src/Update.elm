@@ -59,11 +59,11 @@ update msg model =
         ( Msg.UserSelectedScene scene, Phase.ScenePhase _ sceneModel ) ->
             ( { model | phase = Phase.ScenePhase scene sceneModel }, Cmd.none )
         
-        ( Msg.UserSelectedMonster monster, Phase.ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedMonsterTemplate monsterTemplate, Phase.ScenePhase _ sceneModel ) ->
             let
                 battle =
                     { round = 1
-                    , monster = monster
+                    , monster = Monster.new monsterTemplate
                     }
                 
                 cmd =
@@ -292,7 +292,7 @@ update msg model =
                 cmd =
                     case scene of
                         DungeonScene.Battle ->
-                            Random.generate Msg.SystemGotMonster (Dungeon.generateMonster delve.dungeon)
+                            Random.generate Msg.SystemGotMonsterTemplate (Dungeon.generateMonsterTemplate delve.dungeon)
                         
                         DungeonScene.Shop ->
                             Random.generate Msg.SystemGotShop Shop.generator
@@ -309,11 +309,11 @@ update msg model =
         ( Msg.SystemGotShop shop, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Shopping shop)) delve) sceneModel }, Cmd.none )
         
-        ( Msg.SystemGotMonster monster, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
+        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
                 battle =
                     { round = 1
-                    , monster = monster
+                    , monster = Monster.new monsterTemplate
                     }
                 
                 cmd =

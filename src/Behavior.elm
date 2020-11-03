@@ -4,4 +4,5 @@ module Behavior exposing
 
 type Behavior
     = None
-    | Slime
+    | Gremlin
+    | DivineDragon

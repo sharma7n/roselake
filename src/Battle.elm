@@ -29,16 +29,15 @@ completeRound b =
 
 chooseMonsterAction : Battle -> Random.Generator Action
 chooseMonsterAction battle =
-    chooseMonsterActionInternal battle 0
-
-chooseMonsterActionInternal : Battle -> Int -> Random.Generator Action
-chooseMonsterActionInternal battle retries =
     case battle.monster.behavior of
         Behavior.None ->
             Random.constant <| Action.byId "nothing"
         
-        Behavior.Slime ->
+        Behavior.Gremlin ->
             Random.weighted
                 ( 50, Action.byId "nothing" )
                 [ ( 50, Action.byId "attack" )
                 ]
+        
+        Behavior.DivineDragon ->
+            Random.constant <| Action.byId "mega-flare"

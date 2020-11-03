@@ -1,14 +1,14 @@
 module Dungeon exposing
     ( Dungeon
     , byId
-    , generateMonster
+    , generateMonsterTemplate
     , generateReward
     )
 
 import Random
 
 import Item exposing (Item)
-import Monster exposing (Monster)
+import MonsterTemplate exposing (MonsterTemplate)
 import Reward exposing (Reward)
 
 type alias Dungeon =
@@ -29,15 +29,11 @@ byId id =
             , depth = 0
             }
 
-generateMonster : Dungeon -> Random.Generator Monster
-generateMonster _ =
+generateMonsterTemplate : Dungeon -> Random.Generator MonsterTemplate
+generateMonsterTemplate _ =
     Random.weighted
-        ( 0, Monster.byId "" )
-        [ ( 20, Monster.byId "slime" )
-        , ( 20, Monster.byId "wolf" )
-        , ( 20, Monster.byId "bomb" )
-        , ( 20, Monster.byId "ghost" )
-        , ( 2000, Monster.byId "spider" )
+        ( 0, MonsterTemplate.byId "" )
+        [ ( 100, MonsterTemplate.byId "gremlin" )
         ]
 
 generateReward : Dungeon -> Random.Generator Reward

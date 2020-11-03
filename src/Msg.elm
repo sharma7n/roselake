@@ -11,7 +11,7 @@ import DungeonPath
 import DungeonScene
 import Essentia exposing (Essentia)
 import Item exposing (Item)
-import Monster exposing (Monster)
+import MonsterTemplate exposing (MonsterTemplate)
 import Object exposing (Object)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
@@ -24,7 +24,7 @@ import Scene exposing (Scene)
 type Msg
     = NoOp
     | UserSelectedScene Scene
-    | UserSelectedMonster Monster
+    | UserSelectedMonsterTemplate MonsterTemplate
     | UserSelectedLearnSkill Action
     | UserSelectedHomeRest
     | UserSelectedShop Shop
@@ -43,7 +43,7 @@ type Msg
     | UserSelectedContinueDungeon
     | UserSelectedExitDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
-    | SystemGotMonster Monster
+    | SystemGotMonsterTemplate MonsterTemplate
     | SystemGotMonsterIntent Action
     | SystemGotObject Object
     | SystemGotReward Reward

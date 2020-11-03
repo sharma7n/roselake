@@ -32,6 +32,7 @@ import DungeonScene
 import Dungeon exposing (Dungeon)
 import Essentia exposing (Essentia)
 import Action exposing (Action)
+import ActionState exposing (ActionState)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
@@ -549,8 +550,15 @@ updateBattleAction model battle action monsterAction sceneModel =
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
                 ( Scene.BattleMonsterScene newBattle monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+        
+        newSceneModel3 =
+            { newSceneModel2
+                | actionStates =
+                    newSceneModel2.actionStates
+                        |> List.map ActionState.perform
+            }
     in
-    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
 
 updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model battle action monsterAction delve sceneModel =
@@ -568,8 +576,15 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+
+        newSceneModel3 =
+            { newSceneModel2
+                | actionStates =
+                    newSceneModel2.actionStates
+                        |> List.map ActionState.perform
+            }
     in
-    ( { model | phase = Phase.ScenePhase newScene newSceneModel2 }, newCmd )
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
 
 
 
@@ -592,7 +607,12 @@ updateEndBattleTurn model battle monsterAction sceneModel =
                 ( Scene.BattleMonsterLoadingIntentScene newBattle, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
-            { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}
+            { newSceneModel2 
+                | actionPoints = newSceneModel2.maxActionPoints
+                , actionStates =
+                    newSceneModel2.actionStates
+                        |> List.map ActionState.tick
+            }
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
 
@@ -615,6 +635,11 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
-            { newSceneModel2 | actionPoints = newSceneModel2.maxActionPoints}
+            { newSceneModel2 
+                | actionPoints = newSceneModel2.maxActionPoints
+                , actionStates =
+                    newSceneModel2.actionStates
+                        |> List.map ActionState.tick
+            }
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )

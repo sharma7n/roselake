@@ -35,6 +35,7 @@ import DungeonPath
 import DungeonScene
 import Dungeon exposing (Dungeon)
 import Action exposing (Action)
+import ActionState exposing (ActionState)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
 import MonsterTemplate exposing (MonsterTemplate)
@@ -403,7 +404,8 @@ viewSceneModel scene sceneModel =
         
         Scene.BattleScene ->
             monsterTable
-                [ MonsterTemplate.byId "gremlin"
+                [ MonsterTemplate.byId "dummy"
+                , MonsterTemplate.byId "gremlin"
                 , MonsterTemplate.byId "wyvern"
                 ]
         
@@ -652,26 +654,31 @@ viewBattleMonsterScene sceneModel battle intent =
             , textListItem <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
             , textListItem <| "Block: " ++ String.fromInt sceneModel.block
             ]
-        , actionTable sceneModel.actionPoints sceneModel.actions
+        , actionTable sceneModel.actionPoints sceneModel.actionStates
         , Html.button
             [ Html.Events.onClick Msg.UserSelectedEndBattleTurn ]
             [ Html.text "End Turn" ]
         ]
 
-actionTable : Int -> List Action -> Html Msg
+actionTable : Int -> List ActionState -> Html Msg
 actionTable actionPoints actions =
     let
         availableActions =
             actions
-                |> List.filter (\a -> a.actionPointCost <= actionPoints)
+                |> List.filter (\a -> a.action.actionPointCost <= actionPoints)
         
-        actionFn action =
+        actionFn actionState =
             Html.li
                 []
-                [ Html.text <| action.name ++ " "
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedBattleAction action ]
-                    [ Html.text "Go" ]
+                [ Html.text <| actionState.action.name ++ " "
+                , case actionState.state of
+                    ActionState.Available ->
+                        Html.button
+                            [ Html.Events.onClick <| Msg.UserSelectedBattleAction actionState.action ]
+                            [ Html.text "Go" ]
+                    
+                    ActionState.Cooldown i ->
+                        Html.text <| "On Cooldown: " ++ String.fromInt i
                 ]
     in
     Html.ul

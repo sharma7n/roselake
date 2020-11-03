@@ -23,6 +23,7 @@ import Build exposing (Build)
 
 
 import Action exposing (Action)
+import ActionState exposing (ActionState)
 import Armor exposing (Armor)
 import Avatar exposing (Avatar)
 import Effect exposing (Effect)
@@ -62,6 +63,7 @@ type alias SceneModel =
     , equippedArmor : Maybe Armor
     , essentiaContainer : EssentiaContainer
     , statusSet : StatusSet
+    , actionStates : List ActionState
     , block : Int
     }
 
@@ -171,6 +173,7 @@ characterCreationSettingsToSceneModel settings =
             , equippedArmor = Just <| Armor.byId "shirt"
             , essentiaContainer = EssentiaContainer.new
             , statusSet = StatusSet.empty
+            , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
             }
         ))))))))
@@ -218,6 +221,7 @@ dev =
     , equippedArmor = Just <| Armor.byId "shirt"
     , essentiaContainer = EssentiaContainer.new
     , statusSet = StatusSet.empty
+    , actionStates = initActionStates <| initActions (Just <| Weapon.byId "training-axe") Set.empty
     , block = 0
     }
 
@@ -254,6 +258,11 @@ initActions equippedWeapon learned =
     in
     baseActions ++ learnedActions
 
+initActionStates : List Action -> List ActionState
+initActionStates actions =
+    actions
+        |> List.map ActionState.initFromAction
+
 completeBattle : SceneModel -> SceneModel
 completeBattle m =
     { m
@@ -262,4 +271,5 @@ completeBattle m =
             m.statusSet
                 |> StatusSet.completeBattle
         , actions = initActions m.equippedWeapon m.learned
+        , actionStates = initActionStates <| initActions m.equippedWeapon m.learned
     }

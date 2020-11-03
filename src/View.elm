@@ -404,7 +404,7 @@ viewSceneModel scene sceneModel =
         Scene.BattleScene ->
             monsterTable
                 [ MonsterTemplate.byId "gremlin"
-                , MonsterTemplate.byId "divine-dragon"
+                , MonsterTemplate.byId "wyvern"
                 ]
         
         Scene.BattleMonsterLoadingIntentScene battle ->

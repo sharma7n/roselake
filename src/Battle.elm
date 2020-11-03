@@ -33,11 +33,17 @@ chooseMonsterAction battle =
         Behavior.None ->
             Random.constant <| Action.byId "nothing"
         
+        Behavior.Dummy ->
+            Random.constant <| Action.byId "nothing"
+        
         Behavior.Gremlin ->
             Random.weighted
                 ( 50, Action.byId "nothing" )
                 [ ( 50, Action.byId "attack" )
                 ]
         
-        Behavior.DivineDragon ->
-            Random.constant <| Action.byId "mega-flare"
+        Behavior.Wyvern ->
+            if battle.round == 1 then
+                Random.constant <| Action.byId "mega-flare"
+            else
+                Random.constant <| Action.byId "nothing"

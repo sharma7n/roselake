@@ -112,16 +112,16 @@ byId id =
                 ]
             }
         
-        "firebreath" ->
-            { id = "firebreath"
-            , name = "Fire Breath"
+        "mega-flare" ->
+            { id = "mega-flare"
+            , name = "Mega Flare"
             , context = Context.Battle
             , learnCost = 1
             , actionPointCost = 1
             , magicPointCost = 1
             , cooldown = 1
             , formulas =
-                [ Formula.FireBreath
+                [ Formula.MegaFlare
                 ]
             }
         

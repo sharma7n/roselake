@@ -5,6 +5,7 @@ module Util exposing
     , appendMaybe
     , removeListAt
     , getById
+    , kebabify
     )
 
 boundedBy : Int -> Int -> Int -> Int
@@ -43,3 +44,10 @@ getById all default id =
         |> List.filter (\a -> a.id == id)
         |> List.head
         |> Maybe.withDefault default
+
+kebabify : String -> String
+kebabify str =
+    str
+        |> String.split " "
+        |> List.map String.toLower
+        |> String.join "-"

@@ -4,5 +4,6 @@ module Behavior exposing
 
 type Behavior
     = None
+    | Dummy
     | Gremlin
-    | DivineDragon
+    | Wyvern

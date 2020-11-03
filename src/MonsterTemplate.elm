@@ -26,10 +26,24 @@ type alias MonsterTemplate =
     , equippedArmor : Maybe Armor
     }
 
-base : MonsterTemplate
-base =
-    { id = "null"
-    , name = "Null MonsterTemplate"
+type alias Extra =
+    { experience : Int
+    , gold : Int
+    , abilityPoints : Int
+    , hitPoints : Int
+    , magicPoints : Int
+    , attack : Int
+    , magic : Int
+    , defense : Int
+    , agility : Int
+    , equippedWeapon : Maybe Weapon
+    , equippedArmor : Maybe Armor
+    }
+
+new : String -> Behavior -> (MonsterTemplate -> MonsterTemplate) -> MonsterTemplate
+new name behavior f =
+    { id = Util.kebabify name
+    , name = name
     , experience = 0
     , gold = 0
     , abilityPoints = 0
@@ -39,43 +53,45 @@ base =
     , magic = 0
     , defense = 0
     , agility = 0
-    , behavior = Behavior.None
+    , behavior = behavior
     , equippedWeapon = Nothing
     , equippedArmor = Nothing
     }
+        |> f
 
 byId : String -> MonsterTemplate
 byId =
-    Util.getById all base
+    let
+        default =
+            new "Null" Behavior.None (\x -> x)
+    in
+    Util.getById all  default
 
 all : List MonsterTemplate
 all =
-    let
-        gremlin =
-            { base
-                | id = "gremlin"
-                , name = "Gremlin"
-                , experience = 1
+    [ new "Dummy" Behavior.Dummy 
+        (\m ->
+            { m
+                | hitPoints = 100
+            })
+    , new "Gremlin" Behavior.Gremlin
+        (\m ->
+            { m
+                | experience = 1
                 , gold = 1
                 , abilityPoints = 1
                 , hitPoints = 15
                 , attack = 4
-                , behavior = Behavior.Gremlin
-            }
-
-        divineDragon =
-            { base
-                | id = "divine-dragon"
-                , name = "Divine Dragon"
-                , experience = 2
+                , magic = 4
+            })
+    , new "Wyvern" Behavior.Wyvern
+        (\m ->
+            { m
+                | experience = 2
                 , gold = 2
                 , abilityPoints = 2
                 , hitPoints = 30
                 , attack = 8
                 , magic = 8
-                , behavior = Behavior.DivineDragon
-            }   
-    in
-    [ gremlin
-    , divineDragon
+            })
     ]

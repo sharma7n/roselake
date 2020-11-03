@@ -9,7 +9,7 @@ type Formula
     | ClawAttack
     | StaffAttack
     | Block
-    | FireBreath
+    | MegaFlare
     | Fire Int
     | Heal Int
     | ChargeUp Int

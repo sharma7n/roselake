@@ -161,10 +161,10 @@ applyFormula formula ( a, b ) =
             , b
             )
 
-        Formula.FireBreath ->
+        Formula.MegaFlare ->
             ( a 
             , b
-                |> takeDamage (3 * totalMagic a)
+                |> takeDamage (2 * totalMagic a)
             )
         
         Formula.Fire level ->

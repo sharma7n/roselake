@@ -182,7 +182,7 @@ dev : SceneModel
 dev =
     let
         avatar =
-            { hairStyle = HairStyle.Plain
+            { hairStyle = HairStyle.Short
             , hairColor = HairColor.Brown
             , complexion = Complexion.Medium
             , eyeColor = EyeColor.Brown

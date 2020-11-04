@@ -11,9 +11,15 @@ import Util
 
 type HairColor
     = Black
-    | Brown
-    | Blonde
+    | Gray
+    | White
     | Red
+    | Orange
+    | Yellow
+    | Green
+    | Blue
+    | Purple
+    | Brown
 
 generator : Random.Generator HairColor
 generator =
@@ -22,9 +28,15 @@ generator =
 all : List HairColor
 all =
     [ Black
-    , Brown
-    , Blonde
+    , Gray
+    , White
     , Red
+    , Orange
+    , Yellow
+    , Green
+    , Blue
+    , Purple
+    , Brown
     ]
 
 toString : HairColor -> String
@@ -33,11 +45,29 @@ toString x =
         Black ->
             "Black"
         
-        Brown ->
-            "Brown"
+        Gray ->
+            "Gray"
         
-        Blonde ->
-            "Blonde"
+        White ->
+            "White"
         
         Red ->
             "Red"
+        
+        Orange ->
+            "Orange"
+        
+        Yellow ->
+            "Yellow"
+        
+        Green ->
+            "Green"
+        
+        Blue ->
+            "Blue"
+        
+        Purple ->
+            "Purple"
+        
+        Brown ->
+            "Brown"

@@ -10,29 +10,54 @@ import Random
 import Util
 
 type EyeColor
-    = Black
-    | Brown
+    = Brown
+    | Gray
+    | Red
+    | Orange
+    | Yellow
+    | Green
     | Blue
+    | Purple
 
 generator : Random.Generator EyeColor
 generator =
-    Util.uniformGenerator Black all
+    Util.uniformGenerator Brown all
 
 all : List EyeColor
 all =
-    [ Black
-    , Brown
+    [ Brown
+    , Gray
+    , Red
+    , Orange
+    , Yellow
+    , Green
     , Blue
+    , Purple
     ]
 
 toString : EyeColor -> String
 toString x =
     case x of
-        Black ->
-            "Black"
-        
         Brown ->
             "Brown"
         
+        Gray ->
+            "Gray"
+        
+        Red ->
+            "Red"
+        
+        Orange ->
+            "Orange"
+        
+        Yellow ->
+            "Yellow"
+        
+        Green ->
+            "Green"
+        
         Blue ->
             "Blue"
+        
+        Purple ->
+            "Purple"

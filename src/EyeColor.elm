@@ -2,12 +2,21 @@ module EyeColor exposing
     ( EyeColor(..)
     , all
     , toString
+    , generator
     )
+
+import Random
+
+import Util
 
 type EyeColor
     = Black
     | Brown
     | Blue
+
+generator : Random.Generator EyeColor
+generator =
+    Util.uniformGenerator Black all
 
 all : List EyeColor
 all =

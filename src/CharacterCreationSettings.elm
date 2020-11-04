@@ -1,7 +1,10 @@
 module CharacterCreationSettings exposing
     ( CharacterCreationSettings
     , check
+    , generator
     )
+
+import Random
 
 import CharacterCreationError
 import FormResult exposing (FormResult)
@@ -12,6 +15,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 import Weapon exposing (Weapon)
+import Name
 
 type alias CharacterCreationSettings =
     { name : FormResult CharacterCreationError.Error String
@@ -47,3 +51,25 @@ check settings =
     , build = FormResult.check settings.build
     , startingWeapon = FormResult.check settings.startingWeapon
     }
+
+generator : Random.Generator CharacterCreationSettings
+generator =
+    Name.generator
+        |> Random.andThen (\name -> HairStyle.generator
+        |> Random.andThen (\hairStyle -> HairColor.generator
+        |> Random.andThen (\hairColor -> EyeColor.generator
+        |> Random.andThen (\eyeColor -> Complexion.generator
+        |> Random.andThen (\complexion -> Height.generator
+        |> Random.andThen (\height -> Build.generator
+        |> Random.andThen (\build -> Weapon.generator
+        |> Random.andThen (\startingWeapon -> Random.constant <|
+            { name = FormResult.FROk name
+            , hairStyle = FormResult.FROk hairStyle
+            , hairColor = FormResult.FROk hairColor
+            , eyeColor = FormResult.FROk eyeColor
+            , complexion = FormResult.FROk complexion
+            , height = FormResult.FROk height
+            , build = FormResult.FROk build
+            , startingWeapon = FormResult.FROk startingWeapon
+            }
+        ))))))))

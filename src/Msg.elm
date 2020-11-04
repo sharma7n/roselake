@@ -2,6 +2,7 @@ module Msg exposing
     ( Msg(..)
     )
 
+import CharacterCreationModel exposing (CharacterCreationModel)
 import CharacterCreationSettingSelection exposing (CharacterCreationSettingSelection)
 
 import Action exposing (Action)
@@ -48,10 +49,12 @@ type Msg
     | SystemGotObject Object
     | SystemGotReward Reward
     | SystemGotShop Shop
+    | SystemGotCharacterCreationModel CharacterCreationModel
     | UserSelectedBattleAction Action
     | UserSelectedEndBattleTurn
     | UserSelectedRest
     | UserSelectedOpenChest
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedCharacterCreationConfirmation
+    | UserSelectedRandomCharacterCreation
     | DevSelectedCharacterCreationConfirmation

@@ -467,6 +467,12 @@ update msg model =
         ( Msg.UserSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationConfirmation model characterCreationModel
         
+        ( Msg.UserSelectedRandomCharacterCreation, Phase.CharacterCreationPhase _ ) ->
+            ( model, Random.generate Msg.SystemGotCharacterCreationModel CharacterCreationModel.generator )
+        
+        ( Msg.SystemGotCharacterCreationModel characterCreationModel, Phase.CharacterCreationPhase _ ) ->
+            updateCharacterCreationConfirmation model characterCreationModel
+        
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase _ ) ->
             ( { model | phase = Phase.ScenePhase Scene.PlayerScene SceneModel.dev } , Cmd.none )
         

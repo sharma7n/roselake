@@ -6,7 +6,10 @@ module Util exposing
     , removeListAt
     , getById
     , kebabify
+    , uniformGenerator
     )
+
+import Random
 
 boundedBy : Int -> Int -> Int -> Int
 boundedBy lower upper x =
@@ -51,3 +54,9 @@ kebabify str =
         |> String.split " "
         |> List.map String.toLower
         |> String.join "-"
+
+uniformGenerator : a -> List a -> Random.Generator a
+uniformGenerator ignored all =
+    Random.weighted
+        ( 0, ignored )
+        ( List.map (\a -> ( 1, a )) all)

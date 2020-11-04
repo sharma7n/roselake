@@ -4,6 +4,8 @@ module ActionState exposing
     , perform
     , tick
     , initFromAction
+    , stateToString
+    , canUse
     )
 
 import Action exposing (Action)
@@ -47,3 +49,21 @@ initFromAction a =
     { action = a
     , state = Available
     }
+
+stateToString : State -> String
+stateToString s =
+    case s of
+        Available ->
+            "Available"
+        
+        Cooldown i ->
+            "Cooldown: " ++ String.fromInt i
+
+canUse : State -> Bool
+canUse s =
+    case s of
+        Available ->
+            True
+        
+        _ ->
+            False

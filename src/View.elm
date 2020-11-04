@@ -121,6 +121,7 @@ viewCharacterCreationPhase model =
               )
             ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
+        , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]
         , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
         ]
 
@@ -663,27 +664,30 @@ viewBattleMonsterScene sceneModel battle intent =
 actionTable : Int -> List ActionState -> Html Msg
 actionTable actionPoints actions =
     let
-        availableActions =
-            actions
-                |> List.filter (\a -> a.action.actionPointCost <= actionPoints)
-        
         actionFn actionState =
-            Html.li
-                []
-                [ Html.text <| actionState.action.name ++ " "
-                , case actionState.state of
-                    ActionState.Available ->
+            let
+                buttonElement =
+                    if ActionState.canUse actionState.state then
                         Html.button
                             [ Html.Events.onClick <| Msg.UserSelectedBattleAction actionState.action ]
                             [ Html.text "Go" ]
-                    
-                    ActionState.Cooldown i ->
-                        Html.text <| "On Cooldown: " ++ String.fromInt i
+                    else
+                        Html.text ""
+            in
+            Html.li
+                []
+                [ Html.text <| actionState.action.name
+                , Html.text " | "
+                , Html.text <| "AP: " ++ String.fromInt actionState.action.actionPointCost
+                , Html.text " | "
+                , Html.text <| ActionState.stateToString actionState.state
+                , Html.text " | "
+                , buttonElement
                 ]
     in
     Html.ul
         []
-        ( List.map actionFn availableActions )
+        ( List.map actionFn actions )
 
 viewShopScene : SceneModel -> Shop -> Html Msg
 viewShopScene sceneModel shop =

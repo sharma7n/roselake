@@ -7,6 +7,8 @@ module Action exposing
 import Context exposing (Context)
 import Formula exposing (Formula)
 
+import Util
+
 type alias Action =
     { id : String
     , name : String
@@ -33,8 +35,8 @@ base =
 byId : String -> Action
 byId id =
     let
-        attackSkill attackId name actionPointCost cooldown formula =
-            { id = attackId
+        attackSkill name actionPointCost cooldown formula =
+            { id = Util.kebabify name
             , name = name
             , context = Context.Battle
             , learnCost = 0
@@ -85,19 +87,22 @@ byId id =
             }
         
         "attack" ->
-            attackSkill "attack" "Attack" 1 1 Formula.Attack
+            attackSkill "Attack" 1 1 Formula.Attack
+        
+        "tackle" ->
+            attackSkill "Tackle" 2 2 Formula.Attack
         
         "axe-attack" ->
-            attackSkill "axe-attack" "Axe Attack" 3 3 Formula.AxeAttack
+            attackSkill "Axe Attack" 3 3 Formula.AxeAttack
         
         "bow-attack" ->
-            attackSkill "bow-attack" "Bow Attack" 2 2 Formula.BowAttack
+            attackSkill "Bow Attack" 2 2 Formula.BowAttack
         
         "claw-attack" ->
-            attackSkill "claw-attack" "Claw Attack" 1 1 Formula.ClawAttack
+            attackSkill "Claw Attack" 1 1 Formula.ClawAttack
         
         "staff-attack" ->
-            attackSkill "staff-attack" "Staff Attack" 2 2 Formula.StaffAttack
+            attackSkill "Staff Attack" 2 2 Formula.StaffAttack
         
         "defend" ->
             { id = "defend"
@@ -168,9 +173,9 @@ byId id =
         "heal4" ->
             healSkill 4
         
-        "chargeup" ->
-            { id = "chargeup"
-            , name = "Charge Up"
+        "buff-attack" ->
+            { id = "buff-attack"
+            , name = "Buff Attack"
             , context = Context.Battle
             , learnCost = 20
             , actionPointCost = 1

@@ -23,8 +23,8 @@ type alias Essentia =
     , agility : Int
     }
 
-base : Essentia
-base =
+default : Essentia
+default =
     { id = "null"
     , name = "Null Essentia"
     , actions = []
@@ -35,41 +35,72 @@ base =
     , agility = 0
     }
 
+new : String -> List Action -> List Passive -> (Essentia -> Essentia) -> Essentia
+new name actions passives f =
+    { default
+        | id = Util.kebabify name
+        , name = name
+        , actions = actions
+        , passives = passives
+    }
+        |> f
+
 generator : Random.Generator Essentia
 generator =
     Random.weighted
         ( 0, byId "" )
-        [ ( 33, byId "green" )
-        , ( 33, byId "blue" )
-        , ( 33, byId "red" )
+        [ ( 1, byId "body" )
+        , ( 1, byId "mind" )
+        , ( 1, byId "nature" )
+        , ( 1, byId "technology" )
+        , ( 1, byId "spirit" )
         ]
 
 listStarting : List Essentia
 listStarting =
-    [ byId "green"
-    , byId "blue"
-    , byId "red"
+    [ byId "body"
+    , byId "mind"
+    , byId "nature"
+    , byId "technology"
+    , byId "spirit"
     ]
+
 byId : String -> Essentia
-byId id =
-    case id of
-        "green" ->
-            { base
-                | id = "green"
-                , name = "Green"
-            }
-        
-        "red" ->
-            { base
-                | id = "red"
-                , name = "Red"
-            }
-        
-        "blue" ->
-            { base
-                | id = "blue"
-                , name = "Blue"
-            }
-        
-        _ ->
-            base
+byId =
+    Util.getById all default
+
+all : List Essentia
+all =
+    [ new "Body"
+        [ Action.byId "tackle"
+        , Action.byId "buff-attack"
+        ]
+        []
+        (\e ->
+            e
+        )
+    , new "Mind"
+        []
+        []
+        (\e ->
+            e
+        )
+    , new "Nature"
+        []
+        []
+        (\e ->
+            e
+        )
+    , new "Technology"
+        []
+        []
+        (\e ->
+            e
+        )
+    , new "Spirit"
+        []
+        []
+        (\e ->
+            e
+        )
+    ]

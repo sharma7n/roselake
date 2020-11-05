@@ -9,6 +9,7 @@ import HairColor exposing (HairColor)
 import HairStyle exposing (HairStyle)
 import Height exposing (Height)
 import Weapon exposing (Weapon)
+import Essentia exposing (Essentia)
 
 type CharacterCreationSettingSelection
     = NameSelection String
@@ -19,3 +20,4 @@ type CharacterCreationSettingSelection
     | HeightSelection Height
     | BuildSelection Build
     | StartingWeaponSelection Weapon
+    | StartingEssentiaSelection Essentia

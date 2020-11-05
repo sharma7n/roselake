@@ -24,6 +24,7 @@ init _ =
             , height = FormResult.FRBlank CharacterCreationError.MissingHeight
             , build = FormResult.FRBlank CharacterCreationError.MissingBuild
             , startingWeapon = FormResult.FRBlank CharacterCreationError.MissingStartingWeapon
+            , startingEssentia = FormResult.FRBlank CharacterCreationError.MissingStartingEssentia
             }
         
         initCharacterCreationModel =

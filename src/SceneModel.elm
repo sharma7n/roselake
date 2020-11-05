@@ -136,7 +136,8 @@ characterCreationSettingsToSceneModel settings =
         |> Result.andThen (\complexion -> FormResult.toValidation settings.height
         |> Result.andThen (\height -> FormResult.toValidation settings.build
         |> Result.andThen (\build -> FormResult.toValidation settings.startingWeapon
-        |> Result.andThen (\startingWeapon -> Ok <|
+        |> Result.andThen (\startingWeapon -> FormResult.toValidation settings.startingEssentia
+        |> Result.andThen (\startingEssentia -> Ok <|
             let
                 avatar =
                     { hairStyle = hairStyle
@@ -151,7 +152,7 @@ characterCreationSettingsToSceneModel settings =
             , avatar = avatar
             , gold = 0
             , inventory = Inventory.new
-            , essentia = []
+            , essentia = [ startingEssentia ]
             , level = 1
             , experience = 0
             , freeAbilityPoints = 0
@@ -178,7 +179,7 @@ characterCreationSettingsToSceneModel settings =
             , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
             }
-        ))))))))
+        )))))))))
 
 dev : SceneModel
 dev =

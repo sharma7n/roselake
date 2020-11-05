@@ -12,6 +12,7 @@ type Error
     | MissingHeight
     | MissingBuild
     | MissingStartingWeapon
+    | MissingStartingEssentia
 
 toString : Error -> String
 toString e =
@@ -39,3 +40,6 @@ toString e =
         
         MissingStartingWeapon ->
             "Missing starting weapon"
+        
+        MissingStartingEssentia ->
+            "Missing starting essentia"

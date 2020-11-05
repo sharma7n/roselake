@@ -119,6 +119,10 @@ viewCharacterCreationPhase model =
               , radioButtons .name (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingWeaponSelection) Weapon.listStarting model.settings.startingWeapon
               , settingToInfo .name model.settings.startingWeapon
               )
+            , ( "Starting Essentia"
+              , radioButtons .name (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingEssentiaSelection) Essentia.listStarting model.settings.startingEssentia
+              , settingToInfo .name model.settings.startingEssentia
+              )
             ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]

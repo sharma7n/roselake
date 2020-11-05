@@ -298,6 +298,7 @@ viewSceneModel scene sceneModel =
                     , "MAG: " ++ String.fromInt sceneModel.magic
                     , "DEF: " ++ String.fromInt sceneModel.defense
                     , "AGI: " ++ String.fromInt sceneModel.agility
+                    , "VIT: " ++ String.fromInt sceneModel.vitality
                     ]
                 ]
         
@@ -667,7 +668,7 @@ actionTable actionPoints actions =
         actionFn actionState =
             let
                 buttonElement =
-                    if ActionState.canUse actionState.state then
+                    if ActionState.canUse actionPoints actionState then
                         Html.button
                             [ Html.Events.onClick <| Msg.UserSelectedBattleAction actionState.action ]
                             [ Html.text "Go" ]

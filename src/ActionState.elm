@@ -6,9 +6,12 @@ module ActionState exposing
     , initFromAction
     , stateToString
     , canUse
+    , performOneAction
     )
 
 import Action exposing (Action)
+
+import Util
 
 type alias ActionState =
     { action : Action
@@ -59,11 +62,20 @@ stateToString s =
         Cooldown i ->
             "Cooldown: " ++ String.fromInt i
 
-canUse : State -> Bool
-canUse s =
-    case s of
+canUse : Int -> ActionState -> Bool
+canUse remainingActionPoints s =
+    case s.state of
         Available ->
-            True
+            s.action.actionPointCost <= remainingActionPoints
         
         _ ->
             False
+
+performOneAction : Action -> List ActionState -> List ActionState
+performOneAction action actionStates =
+    Util.forEach actionStates (\head -> \tail ->
+        if action.id == head.action.id then
+            perform head :: tail
+        else
+            head :: tail
+    ) []

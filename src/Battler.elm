@@ -26,6 +26,7 @@ type alias Battler a =
         , maxMagicPoints : Int
         , actionPoints : Int
         , maxActionPoints : Int
+        , vitality : Int
         , attack : Int
         , magic : Int
         , defense : Int
@@ -47,6 +48,10 @@ totalDefense b =
     b.defense 
         + Maybe.withDefault 0 (Maybe.map .defense b.equippedArmor)
         + StatusSet.defense b.statusSet
+
+totalVitality : Battler a -> Int
+totalVitality b =
+    b.vitality
 
 totalMagic : Battler a -> Int
 totalMagic b =
@@ -157,7 +162,7 @@ applyFormula formula ( a, b ) =
         
         Formula.Block ->
             ( a
-                |> gainBlock (totalDefense a)
+                |> gainBlock (totalVitality a)
             , b
             )
 

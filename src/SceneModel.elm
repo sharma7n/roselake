@@ -54,6 +54,7 @@ type alias SceneModel =
     , maxMagicPoints : Int
     , actionPoints : Int
     , maxActionPoints : Int
+    , vitality : Int
     , attack : Int
     , magic : Int
     , defense : Int
@@ -164,6 +165,7 @@ characterCreationSettingsToSceneModel settings =
             , maxMagicPoints = 5
             , actionPoints = 3
             , maxActionPoints = 3
+            , vitality = 1
             , attack = 1
             , magic = 1
             , defense = 0
@@ -212,6 +214,7 @@ dev =
     , maxMagicPoints = 5
     , actionPoints = 3
     , maxActionPoints = 3
+    , vitality = 1
     , attack = 1
     , magic = 1
     , defense = 0
@@ -242,7 +245,7 @@ applyReward reward m =
 initActions : Maybe Weapon -> Set String -> List Action
 initActions equippedWeapon learned =
     let
-        baseActions =
+        weaponActions =
             case equippedWeapon of
                 Just weapon ->
                     weapon.actions
@@ -250,6 +253,9 @@ initActions equippedWeapon learned =
                 Nothing ->
                     [ Action.byId "attack"
                     ]
+        
+        baseActions =
+            weaponActions ++ [ Action.byId "defend" ]
         
         learnedActions =
             learned

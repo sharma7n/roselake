@@ -17,25 +17,12 @@ type alias MonsterTemplate =
     , abilityPoints : Int
     , hitPoints : Int
     , magicPoints : Int
+    , vitality : Int
     , attack : Int
     , magic : Int
     , defense : Int
     , agility : Int
     , behavior : Behavior
-    , equippedWeapon : Maybe Weapon
-    , equippedArmor : Maybe Armor
-    }
-
-type alias Extra =
-    { experience : Int
-    , gold : Int
-    , abilityPoints : Int
-    , hitPoints : Int
-    , magicPoints : Int
-    , attack : Int
-    , magic : Int
-    , defense : Int
-    , agility : Int
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     }
@@ -49,6 +36,7 @@ new name behavior f =
     , abilityPoints = 0
     , hitPoints = 1
     , magicPoints = 0
+    , vitality = 0
     , attack = 0
     , magic = 0
     , defense = 0
@@ -81,26 +69,18 @@ all =
                 , gold = 1
                 , abilityPoints = 1
                 , hitPoints = 15
+                , vitality = 1
                 , attack = 4
                 , magic = 4
-            })
-    , new "Bun Bun" Behavior.BunBun
-        (\m ->
-            { m
-                | experience = 2
-                , gold = 2
-                , abilityPoints = 1
-                , hitPoints = 20
-                , attack = 6
-                , magic = 0
             })
     , new "Wyvern" Behavior.Wyvern
         (\m ->
             { m
-                | experience = 3
-                , gold = 3
-                , abilityPoints = 3
+                | experience = 1
+                , gold = 1
+                , abilityPoints = 1
                 , hitPoints = 30
+                , vitality = 2
                 , attack = 8
                 , magic = 8
             })

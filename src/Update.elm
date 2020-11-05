@@ -561,7 +561,7 @@ updateBattleAction model battle action monsterAction sceneModel =
             { newSceneModel2
                 | actionStates =
                     newSceneModel2.actionStates
-                        |> List.map ActionState.perform
+                        |> ActionState.performOneAction action
             }
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
@@ -587,7 +587,7 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
             { newSceneModel2
                 | actionStates =
                     newSceneModel2.actionStates
-                        |> List.map ActionState.perform
+                        |> ActionState.performOneAction action
             }
     in
     ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )

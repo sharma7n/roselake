@@ -25,6 +25,7 @@ type alias Monster =
     , maxMagicPoints : Int
     , actionPoints : Int
     , maxActionPoints : Int
+    , vitality : Int
     , attack : Int
     , magic : Int
     , defense : Int
@@ -49,6 +50,7 @@ new t =
     , maxMagicPoints = t.magicPoints
     , actionPoints = 0
     , maxActionPoints = 0
+    , vitality = t.vitality
     , attack = t.attack
     , defense = t.defense
     , magic = t.magic

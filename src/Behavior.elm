@@ -6,4 +6,5 @@ type Behavior
     = None
     | Dummy
     | Gremlin
+    | BunBun
     | Wyvern

@@ -84,12 +84,22 @@ all =
                 , attack = 4
                 , magic = 4
             })
-    , new "Wyvern" Behavior.Wyvern
+    , new "Bun Bun" Behavior.BunBun
         (\m ->
             { m
                 | experience = 2
                 , gold = 2
-                , abilityPoints = 2
+                , abilityPoints = 1
+                , hitPoints = 20
+                , attack = 6
+                , magic = 0
+            })
+    , new "Wyvern" Behavior.Wyvern
+        (\m ->
+            { m
+                | experience = 3
+                , gold = 3
+                , abilityPoints = 3
                 , hitPoints = 30
                 , attack = 8
                 , magic = 8

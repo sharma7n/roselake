@@ -42,6 +42,11 @@ chooseMonsterAction battle =
                 [ ( 50, Action.byId "attack" )
                 ]
         
+        Behavior.BunBun ->
+            Random.weighted
+                ( 100, Action.byId "attack" )
+                []
+        
         Behavior.Wyvern ->
             if battle.round == 1 then
                 Random.constant <| Action.byId "mega-flare"

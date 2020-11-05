@@ -6,6 +6,8 @@ module Armor exposing
 
 import Random
 
+import Util
+
 type alias Armor =
     { id : String
     , name : String
@@ -13,42 +15,40 @@ type alias Armor =
     , defense : Int
     }
 
+default : Armor
+default =
+    { id = "null"
+    , name = "Null Armor"
+    , cost = 0
+    , defense = 0
+    }
+
+new : String -> (Armor -> Armor) -> Armor
+new name f =
+    { id = Util.kebabify name
+    , name = name
+    , cost = 0
+    , defense = 0
+    }
+        |> f
+
 byId : String -> Armor
-byId id =
-    case id of
-        "shirt" ->
-            { id = "shirt"
-            , name = "Shirt"
-            , cost = 10
-            , defense = 1
-            }
-        
-        "mail" ->
-            { id = "mail"
-            , name = "Mail"
-            , cost = 20
-            , defense = 2
-            }
-        
-        "plate" ->
-            { id = "plate"
-            , name = "Plate"
-            , cost = 60
-            , defense = 3
-            }
-        
-        _ ->
-            { id = "null"
-            , name = "Null Armor"
-            , cost = 0
-            , defense = 0
-            }
+byId =
+    Util.getById all default
 
 generator : Random.Generator Armor
 generator =
     Random.weighted
         ( 0, byId "null" )
-        [ ( 3, byId "shirt" )
-        , ( 2, byId "mail" )
-        , ( 1, byId "plate" )
+        [ ( 100, byId "cotton-shirt" )
         ]
+
+all : List Armor
+all =
+    [ new "Cotton Shirt"
+        (\a ->
+            { a
+                | cost = 1
+            }
+        )
+    ]

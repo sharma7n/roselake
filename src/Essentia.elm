@@ -49,14 +49,14 @@ generator : Random.Generator Essentia
 generator =
     Random.weighted
         ( 0, byId "" )
-        [ ( 1, byId "tough" )
+        [ ( 1, byId "squire" )
         , ( 1, byId "pupil" )
         , ( 1, byId "wanderer" )
         ]
 
 listStarting : List Essentia
 listStarting =
-    [ byId "tough"
+    [ byId "squire"
     , byId "pupil"
     , byId "wanderer"
     ]
@@ -67,7 +67,7 @@ byId =
 
 all : List Essentia
 all =
-    [ new "Tough"
+    [ new "Squire"
         [ Action.byId "tackle"
         , Action.byId "defend"
         , Action.byId "focus-attack"

@@ -72,7 +72,8 @@ all =
         , Action.byId "defend"
         , Action.byId "focus-attack"
         ]
-        []
+        [ Passive.byId "p-counter:-defend"
+        ]
         (\e ->
             e
         )

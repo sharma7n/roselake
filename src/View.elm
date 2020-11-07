@@ -36,6 +36,7 @@ import DungeonPath
 import DungeonScene
 import Dungeon exposing (Dungeon)
 import Action exposing (Action)
+import Passive exposing (Passive)
 import ActionState exposing (ActionState)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
@@ -298,12 +299,35 @@ viewSceneModel scene sceneModel =
         Scene.PlayerScene ->
             Html.ul
                 []
-                [ textList
-                    [ "ATK: " ++ String.fromInt sceneModel.attack
-                    , "MAG: " ++ String.fromInt sceneModel.magic
-                    , "DEF: " ++ String.fromInt sceneModel.defense
-                    , "AGI: " ++ String.fromInt sceneModel.agility
-                    , "VIT: " ++ String.fromInt sceneModel.vitality
+                [ Html.ol
+                    []
+                    [ Html.text "Attributes"
+                    , textList
+                        [ "ATK: " ++ String.fromInt sceneModel.attack
+                        , "VIT: " ++ String.fromInt sceneModel.vitality
+                        , "AGI: " ++ String.fromInt sceneModel.agility
+                        , "MAG: " ++ String.fromInt sceneModel.magic
+                        , "DEF: " ++ String.fromInt sceneModel.defense
+                        ]
+                    , Html.text "Equipment"
+                    , textList
+                        [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name sceneModel.equippedWeapon)
+                        , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name sceneModel.equippedArmor)
+                        ]
+                    , Html.text "Passives"
+                    , textList
+                        ( sceneModel.learnedPassives
+                            |> Set.toList
+                            |> List.map Passive.byId
+                            |> List.map .name
+                        )
+                    , Html.text "Actions"
+                    , textList
+                        ( sceneModel.learned
+                            |> Set.toList
+                            |> List.map Action.byId
+                            |> List.map .name
+                        )
                     ]
                 ]
         
@@ -813,7 +837,7 @@ viewLearnScene m =
                     if Set.member a.id m.learned then
                         Html.text "Learned"
                     else
-                        if a.actionPointCost <= m.freeAbilityPoints then
+                        if a.learnCost <= m.freeAbilityPoints then
                             Html.button
                                 [ Html.Events.onClick <| Msg.UserSelectedLearnSkill a
                                 ]
@@ -832,6 +856,31 @@ viewLearnScene m =
                 , learnElement
                 ]
         
+        viewLearnOnePassive p =
+            let
+                learnElement =
+                    if Set.member p.id m.learnedPassives then
+                        Html.text "Learned"
+                    else
+                        if p.learnCost <= m.freeAbilityPoints then
+                            Html.button
+                                [ Html.Events.onClick <| Msg.UserSelectedLearnPassive p
+                                ]
+                                [ Html.text <| "Learn (" ++ String.fromInt p.learnCost ++ " AP)"
+                                ]
+                        else
+                            Html.button
+                                [ Html.Attributes.disabled True
+                                ]
+                                [ Html.text <| "Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)"
+                                ]
+            in
+            Html.div
+                []
+                [ Html.text p.name
+                , learnElement
+                ]
+        
         viewLearnOneEssentia e =
             Html.div
                 []
@@ -839,6 +888,9 @@ viewLearnScene m =
                 , Html.li
                     []
                     ( List.map viewLearnOneAction e.actions )
+                , Html.li
+                    []
+                    ( List.map viewLearnOnePassive e.passives )
                 ]
     in
     Html.span

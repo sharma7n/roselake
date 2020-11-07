@@ -6,6 +6,7 @@ import CharacterCreationModel exposing (CharacterCreationModel)
 import CharacterCreationSettingSelection exposing (CharacterCreationSettingSelection)
 
 import Action exposing (Action)
+import Passive exposing (Passive)
 import Armor exposing (Armor)
 import Dungeon exposing (Dungeon)
 import DungeonPath
@@ -27,6 +28,7 @@ type Msg
     | UserSelectedScene Scene
     | UserSelectedMonsterTemplate MonsterTemplate
     | UserSelectedLearnSkill Action
+    | UserSelectedLearnPassive Passive
     | UserSelectedHomeRest
     | UserSelectedShop Shop
     | UserSelectedBuy Item

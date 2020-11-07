@@ -3,4 +3,4 @@ module PassiveFormula exposing
     )
 
 type PassiveFormula
-    = Counter
+    = PCounterDefend

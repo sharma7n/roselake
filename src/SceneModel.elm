@@ -23,6 +23,7 @@ import Build exposing (Build)
 
 
 import Action exposing (Action)
+import Passive exposing (Passive)
 import ActionState exposing (ActionState)
 import Armor exposing (Armor)
 import Avatar exposing (Avatar)
@@ -46,6 +47,7 @@ type alias SceneModel =
     , freeAbilityPoints : Int
     , totalAbilityPoints : Int
     , learned : Set String
+    , learnedPassives : Set String
     , satiety : Int
     , maxSatiety : Int
     , hitPoints : Int
@@ -60,6 +62,7 @@ type alias SceneModel =
     , defense : Int
     , agility : Int
     , actions : List Action
+    , passives : List Passive
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     , essentiaContainer : EssentiaContainer
@@ -158,6 +161,7 @@ characterCreationSettingsToSceneModel settings =
             , freeAbilityPoints = 0
             , totalAbilityPoints = 0
             , learned = Set.empty
+            , learnedPassives = Set.empty
             , satiety = 10
             , maxSatiety = 10
             , hitPoints = 10
@@ -172,6 +176,7 @@ characterCreationSettingsToSceneModel settings =
             , defense = 0
             , agility = 1
             , actions = initActions (Just startingWeapon) Set.empty
+            , passives = initPassives Set.empty
             , equippedWeapon = Just startingWeapon
             , equippedArmor = Just <| Armor.byId "cotton-shirt"
             , essentiaContainer = 
@@ -205,6 +210,7 @@ dev =
     , freeAbilityPoints = 100
     , totalAbilityPoints = 100
     , learned = Set.empty
+    , learnedPassives = Set.empty
     , satiety = 10
     , maxSatiety = 10
     , hitPoints = 10
@@ -219,6 +225,7 @@ dev =
     , defense = 0
     , agility = 1
     , actions = initActions (Just <| Weapon.byId "training-axe") Set.empty
+    , passives = initPassives Set.empty
     , equippedWeapon = Just <| Weapon.byId "training-axe"
     , equippedArmor = Just <| Armor.byId "cotton-shirt"
     , essentiaContainer = 
@@ -276,4 +283,11 @@ completeBattle m =
                 |> StatusSet.completeBattle
         , actions = initActions m.equippedWeapon m.learned
         , actionStates = initActionStates <| initActions m.equippedWeapon m.learned
+        , passives = initPassives m.learnedPassives
     }
+
+initPassives : Set String -> List Passive
+initPassives learnedPassives =
+    learnedPassives
+        |> Set.toList
+        |> List.map Passive.byId

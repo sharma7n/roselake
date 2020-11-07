@@ -33,6 +33,7 @@ import DungeonScene
 import Dungeon exposing (Dungeon)
 import Essentia exposing (Essentia)
 import Action exposing (Action)
+import Passive exposing (Passive)
 import ActionState exposing (ActionState)
 import Effect exposing (Effect)
 import Monster exposing (Monster)
@@ -88,6 +89,24 @@ update msg model =
                             , learned =
                                 sceneModel.learned
                                     |> Set.insert action.id
+                        }
+                    else
+                        sceneModel
+            in
+            ( { model | phase = Phase.ScenePhase scene newSceneModel }, Cmd.none )
+        
+        ( Msg.UserSelectedLearnPassive passive, Phase.ScenePhase scene sceneModel ) ->
+            let
+                newSceneModel =
+                    if passive.learnCost <= sceneModel.freeAbilityPoints then
+                        { sceneModel
+                            | freeAbilityPoints =
+                                sceneModel.freeAbilityPoints - passive.learnCost
+                            , passives =
+                                passive :: sceneModel.passives
+                            , learnedPassives =
+                                sceneModel.learnedPassives
+                                    |> Set.insert passive.id
                         }
                     else
                         sceneModel

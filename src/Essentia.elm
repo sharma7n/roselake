@@ -69,6 +69,8 @@ all : List Essentia
 all =
     [ new "Tough"
         [ Action.byId "tackle"
+        , Action.byId "defend"
+        , Action.byId "focus-attack"
         ]
         []
         (\e ->

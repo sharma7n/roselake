@@ -3,6 +3,7 @@ module Update exposing
     )
 
 import Random
+import Set exposing (Set)
 
 import Distribution exposing (Distribution)
 import Util
@@ -84,6 +85,9 @@ update msg model =
                                 sceneModel.freeAbilityPoints - action.learnCost
                             , actions =
                                 action :: sceneModel.actions
+                            , learned =
+                                sceneModel.learned
+                                    |> Set.insert action.id
                         }
                     else
                         sceneModel

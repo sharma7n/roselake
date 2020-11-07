@@ -90,7 +90,17 @@ byId id =
             attackSkill "Attack" 1 1 Formula.Attack
         
         "tackle" ->
-            attackSkill "Tackle" 2 2 Formula.Attack
+            { id = "tackle"
+            , name = "Tackle"
+            , context = Context.Battle
+            , learnCost = 10
+            , actionPointCost = 2
+            , magicPointCost = 0
+            , cooldown = 2
+            , formulas =
+                [ Formula.Attack
+                ]
+            }
         
         "axe-attack" ->
             attackSkill "Axe Attack" 3 3 Formula.AxeAttack
@@ -108,10 +118,10 @@ byId id =
             { id = "defend"
             , name = "Defend"
             , context = Context.Battle
-            , learnCost = 0
-            , actionPointCost = 1
+            , learnCost = 10
+            , actionPointCost = 2
             , magicPointCost = 0
-            , cooldown = 1
+            , cooldown = 2
             , formulas =
                 [ Formula.Block
                 ]
@@ -173,11 +183,11 @@ byId id =
         "heal4" ->
             healSkill 4
         
-        "buff-attack" ->
-            { id = "buff-attack"
-            , name = "Buff Attack"
+        "focus-attack" ->
+            { id = "focus-attack"
+            , name = "Focus Attack"
             , context = Context.Battle
-            , learnCost = 20
+            , learnCost = 30
             , actionPointCost = 1
             , magicPointCost = 0
             , cooldown = 1

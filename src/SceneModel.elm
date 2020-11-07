@@ -202,8 +202,8 @@ dev =
     , essentia = []
     , level = 1
     , experience = 0
-    , freeAbilityPoints = 0
-    , totalAbilityPoints = 0
+    , freeAbilityPoints = 100
+    , totalAbilityPoints = 100
     , learned = Set.empty
     , satiety = 10
     , maxSatiety = 10
@@ -246,7 +246,7 @@ applyReward reward m =
 initActions : Maybe Weapon -> Set String -> List Action
 initActions equippedWeapon learned =
     let
-        weaponActions =
+        baseActions =
             case equippedWeapon of
                 Just weapon ->
                     weapon.actions
@@ -254,9 +254,6 @@ initActions equippedWeapon learned =
                 Nothing ->
                     [ Action.byId "attack"
                     ]
-        
-        baseActions =
-            weaponActions ++ [ Action.byId "defend" ]
         
         learnedActions =
             learned

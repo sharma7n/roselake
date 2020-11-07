@@ -49,20 +49,16 @@ generator : Random.Generator Essentia
 generator =
     Random.weighted
         ( 0, byId "" )
-        [ ( 1, byId "body" )
-        , ( 1, byId "mind" )
-        , ( 1, byId "nature" )
-        , ( 1, byId "technology" )
-        , ( 1, byId "spirit" )
+        [ ( 1, byId "tough" )
+        , ( 1, byId "pupil" )
+        , ( 1, byId "wanderer" )
         ]
 
 listStarting : List Essentia
 listStarting =
-    [ byId "body"
-    , byId "mind"
-    , byId "nature"
-    , byId "technology"
-    , byId "spirit"
+    [ byId "tough"
+    , byId "pupil"
+    , byId "wanderer"
     ]
 
 byId : String -> Essentia
@@ -71,33 +67,20 @@ byId =
 
 all : List Essentia
 all =
-    [ new "Body"
+    [ new "Tough"
         [ Action.byId "tackle"
-        , Action.byId "buff-attack"
         ]
         []
         (\e ->
             e
         )
-    , new "Mind"
+    , new "Pupil"
         []
         []
         (\e ->
             e
         )
-    , new "Nature"
-        []
-        []
-        (\e ->
-            e
-        )
-    , new "Technology"
-        []
-        []
-        (\e ->
-            e
-        )
-    , new "Spirit"
+    , new "Wanderer"
         []
         []
         (\e ->

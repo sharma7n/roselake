@@ -152,7 +152,7 @@ characterCreationSettingsToSceneModel settings =
             , avatar = avatar
             , gold = 0
             , inventory = Inventory.new
-            , essentia = [ startingEssentia ]
+            , essentia = []
             , level = 1
             , experience = 0
             , freeAbilityPoints = 0
@@ -174,7 +174,9 @@ characterCreationSettingsToSceneModel settings =
             , actions = initActions (Just startingWeapon) Set.empty
             , equippedWeapon = Just startingWeapon
             , equippedArmor = Just <| Armor.byId "cotton-shirt"
-            , essentiaContainer = EssentiaContainer.new
+            , essentiaContainer = 
+                EssentiaContainer.new
+                    |> EssentiaContainer.setSlot EssentiaContainer.Index1 startingEssentia
             , statusSet = StatusSet.empty
             , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
@@ -197,11 +199,7 @@ dev =
     , avatar = avatar
     , gold = 10
     , inventory = Inventory.new
-    , essentia = 
-        [ Essentia.byId "green"
-        , Essentia.byId "red"
-        , Essentia.byId "blue"
-        ]
+    , essentia = []
     , level = 1
     , experience = 0
     , freeAbilityPoints = 0
@@ -223,7 +221,9 @@ dev =
     , actions = initActions (Just <| Weapon.byId "training-axe") Set.empty
     , equippedWeapon = Just <| Weapon.byId "training-axe"
     , equippedArmor = Just <| Armor.byId "cotton-shirt"
-    , essentiaContainer = EssentiaContainer.new
+    , essentiaContainer = 
+        EssentiaContainer.new
+            |> EssentiaContainer.setSlot EssentiaContainer.Index1 (Essentia.byId "tough")
     , statusSet = StatusSet.empty
     , actionStates = initActionStates <| initActions (Just <| Weapon.byId "training-axe") Set.empty
     , block = 0

@@ -8,6 +8,7 @@ import Html.Attributes
 import Html.Events
 import Json.Decode
 import Random
+import Set exposing (Set)
 
 import Distribution exposing (Distribution)
 import Util
@@ -310,7 +311,7 @@ viewSceneModel scene sceneModel =
             viewEssentiaScene sceneModel.essentia sceneModel.essentiaContainer
         
         Scene.LearnSelectScene ->
-            learnTable Action.learnable sceneModel.actions
+            viewLearnScene sceneModel
         
         Scene.EquipScene ->
             let
@@ -435,27 +436,6 @@ viewSceneModel scene sceneModel =
             textList
                 [ "Defeated..."
                 ]
-
-learnTable : List Action -> List Action -> Html Msg
-learnTable learnable learned =
-    let
-        toLearn =
-            learnable
-                |> List.filter (\l -> not (List.member l learned))
-        
-        learnFn learn =
-            Html.li
-                []
-                [ Html.text <| learn.name ++ " | "
-                , Html.text <| String.fromInt learn.learnCost ++ " "
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedLearnSkill learn ]
-                    [ Html.text "Learn" ]
-                ]
-    in
-    Html.ul
-        []
-        ( List.map learnFn toLearn )
 
 viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeonScene sceneModel delvePhase delve =
@@ -818,3 +798,49 @@ viewEssentiaScene e c =
             []
             ( List.indexedMap essentiaFn e )
         ]
+
+viewLearnScene : SceneModel -> Html Msg
+viewLearnScene m =
+    let
+        learnableEssentia =
+            EssentiaContainer.listIndices
+                |> List.map (\idx -> EssentiaContainer.getSlot idx m.essentiaContainer)
+                |> List.filterMap (\a -> a)
+        
+        viewLearnOneAction a =
+            let
+                learnElement =
+                    if Set.member a.id m.learned then
+                        Html.text "Learned"
+                    else
+                        if a.actionPointCost <= m.freeAbilityPoints then
+                            Html.button
+                                [ Html.Events.onClick <| Msg.UserSelectedLearnSkill a
+                                ]
+                                [ Html.text <| "Learn (" ++ String.fromInt a.learnCost ++ " AP)"
+                                ]
+                        else
+                            Html.button
+                                [ Html.Attributes.disabled True
+                                ]
+                                [ Html.text <| "Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)"
+                                ]
+            in
+            Html.div
+                []
+                [ Html.text a.name
+                , learnElement
+                ]
+        
+        viewLearnOneEssentia e =
+            Html.div
+                []
+                [ Html.text e.name
+                , Html.li
+                    []
+                    ( List.map viewLearnOneAction e.actions )
+                ]
+    in
+    Html.span
+        []
+        ( List.map viewLearnOneEssentia learnableEssentia )

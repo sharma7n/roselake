@@ -4,3 +4,4 @@ module PassiveFormula exposing
 
 type PassiveFormula
     = PCounterDefend
+    | PCounterTackle

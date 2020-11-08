@@ -51,4 +51,14 @@ all =
                     ]
             }
         )
+    , new "P-Counter: Tackle"
+        (\p ->
+            { p
+                | context = Context.Battle
+                , learnCost = 80
+                , effects =
+                    [ PassiveFormula.PCounterTackle
+                    ]
+            }
+        )
     ]

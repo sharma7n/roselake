@@ -96,16 +96,23 @@ takeDamage t dmg ( a, b ) =
             ( takeOneDamage a, b )
         
         Target.Enemy ->
-            let
-                next =
-                    if List.member (Passive.byId "p-counter:-defend") b.passives then
-                        applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
-                    else
-                        \x -> x
-
-            in
             ( a, takeOneDamage b )
-                |> next
+                |> Util.forEach b.passives (\passive -> \(x, y) ->
+                    Util.forEach passive.effects (\passiveFormula -> \(xx, yy) ->
+                        applyCounterFormula passiveFormula ( xx, yy )
+                    ) ( x, y )
+                )
+
+applyCounterFormula : PassiveFormula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
+applyCounterFormula passiveFormula ( a, b ) =
+    case passiveFormula of
+        PassiveFormula.PCounterDefend ->
+            ( a, b )
+                |> applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
+        
+        PassiveFormula.PCounterTackle ->
+            ( a, b )
+                |> takeDamage Target.Self (totalAttack b - a.block)
 
 gainBlock : Target -> Int -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 gainBlock t d ( a, b ) =

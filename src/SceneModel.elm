@@ -230,7 +230,7 @@ dev =
     , equippedArmor = Just <| Armor.byId "cotton-shirt"
     , essentiaContainer = 
         EssentiaContainer.new
-            |> EssentiaContainer.setSlot EssentiaContainer.Index1 (Essentia.byId "squire")
+            |> EssentiaContainer.setSlot EssentiaContainer.Index1 (Essentia.byId "tough")
     , statusSet = StatusSet.empty
     , actionStates = initActionStates <| initActions (Just <| Weapon.byId "training-axe") Set.empty
     , block = 0

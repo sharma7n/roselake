@@ -4,16 +4,12 @@ module Target exposing
     )
 
 type Target
-    = None
-    | Self
+    = Self
     | Enemy
 
 toString : Target -> String
 toString t =
     case t of
-        None ->
-            "None"
-        
         Self ->
             "Self"
         

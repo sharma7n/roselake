@@ -10,6 +10,7 @@ module StatusSet exposing
     , toList
     , maxHitPoints
     , hpLoss
+    , block
     )
 
 import Dict exposing (Dict)
@@ -91,6 +92,14 @@ attack (StatusSet dict) =
     dict
         |> Dict.filter (\_ -> \data ->
             data.status == Status.ModifyAttack
+        )
+        |> sumStacks
+
+block : StatusSet -> Int
+block ( StatusSet dict ) =
+    dict
+        |> Dict.filter (\_ -> \data ->
+            data.status == Status.ModifyBlock
         )
         |> sumStacks
 

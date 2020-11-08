@@ -12,6 +12,7 @@ import MonsterTemplate exposing (MonsterTemplate)
 import Reward exposing (Reward)
 import Weapon exposing (Weapon)
 import StatusSet exposing (StatusSet)
+import Passive exposing (Passive)
 
 type alias Monster =
     { id : String
@@ -35,6 +36,7 @@ type alias Monster =
     , equippedArmor : Maybe Armor
     , statusSet : StatusSet
     , block : Int
+    , passives : List Passive
     }
 
 new : MonsterTemplate -> Monster
@@ -60,6 +62,7 @@ new t =
     , equippedArmor = t.equippedArmor
     , statusSet = StatusSet.empty
     , block = 0
+    , passives = []
     }
 
 generateReward : Monster -> Random.Generator Reward

@@ -34,12 +34,15 @@ chooseMonsterAction battle =
             Random.constant <| Action.byId "nothing"
         
         Behavior.Dummy ->
-            Random.constant <| Action.byId "nothing"
+            if battle.round == 1 then
+                Random.constant <| Action.byId "nothing"
+            else
+                Random.constant <| Action.byId "nothing"
         
         Behavior.Gremlin ->
             Random.weighted
-                ( 50, Action.byId "nothing" )
-                [ ( 50, Action.byId "attack" )
+                ( 0, Action.byId "nothing" )
+                [ ( 100, Action.byId "attack" )
                 ]
         
         Behavior.BunBun ->

@@ -4,7 +4,6 @@ module SceneModel exposing
     , applyEffectsToSceneModel
     , applyReward
     , completeBattle
-    , dev
     )
 
 import Set exposing (Set)
@@ -187,54 +186,6 @@ characterCreationSettingsToSceneModel settings =
             , block = 0
             }
         )))))))))
-
-dev : SceneModel
-dev =
-    let
-        avatar =
-            { hairStyle = HairStyle.Short
-            , hairColor = HairColor.Brown
-            , complexion = Complexion.Medium
-            , eyeColor = EyeColor.Brown
-            , height = Height.Average
-            , build = Build.Sturdy
-            }  
-    in
-    { name = "Dev"
-    , avatar = avatar
-    , gold = 10
-    , inventory = Inventory.new
-    , essentia = []
-    , level = 1
-    , experience = 0
-    , freeAbilityPoints = 100
-    , totalAbilityPoints = 100
-    , learned = Set.empty
-    , learnedPassives = Set.empty
-    , satiety = 10
-    , maxSatiety = 10
-    , hitPoints = 10
-    , maxHitPoints = 10
-    , magicPoints = 5
-    , maxMagicPoints = 5
-    , actionPoints = 3
-    , maxActionPoints = 3
-    , vitality = 1
-    , attack = 1
-    , magic = 1
-    , defense = 0
-    , agility = 1
-    , actions = initActions (Just <| Weapon.byId "training-axe") Set.empty
-    , passives = initPassives Set.empty
-    , equippedWeapon = Just <| Weapon.byId "training-axe"
-    , equippedArmor = Just <| Armor.byId "cotton-shirt"
-    , essentiaContainer = 
-        EssentiaContainer.new
-            |> EssentiaContainer.setSlot EssentiaContainer.Index1 (Essentia.byId "tough")
-    , statusSet = StatusSet.empty
-    , actionStates = initActionStates <| initActions (Just <| Weapon.byId "training-axe") Set.empty
-    , block = 0
-    }
 
 applyReward : Reward -> SceneModel -> SceneModel
 applyReward reward m =

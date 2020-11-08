@@ -500,8 +500,8 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase _ ) ->
-            ( { model | phase = Phase.ScenePhase Scene.PlayerScene SceneModel.dev } , Cmd.none )
+        ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
+            updateDevCharacterCreationConfirmation model characterCreationModel
         
         _ ->
             ( model, Cmd.none )
@@ -563,6 +563,33 @@ updateCharacterCreationConfirmation model characterCreationModel =
             case sceneModelResult of
                 Ok sceneModel ->
                     { model | phase = Phase.ScenePhase Scene.PlayerScene sceneModel }
+                
+                Err _ ->
+                    { model | phase = Phase.CharacterCreationPhase { settings = newSettings }}
+
+    in
+    ( newModel, Cmd.none )
+
+updateDevCharacterCreationConfirmation : Model -> CharacterCreationModel -> ( Model, Cmd Msg )
+updateDevCharacterCreationConfirmation model characterCreationModel =
+    let
+        newSettings =
+            CharacterCreationSettings.check characterCreationModel.settings
+        
+        sceneModelResult =
+            SceneModel.characterCreationSettingsToSceneModel newSettings
+        
+        newModel =
+            case sceneModelResult of
+                Ok sceneModel ->
+                    let
+                        devSceneModel =
+                            { sceneModel
+                                | freeAbilityPoints = 100
+                                , totalAbilityPoints = 100
+                            }
+                    in
+                    { model | phase = Phase.ScenePhase Scene.PlayerScene devSceneModel }
                 
                 Err _ ->
                     { model | phase = Phase.CharacterCreationPhase { settings = newSettings }}

@@ -494,7 +494,11 @@ update msg model =
             ( model, Random.generate Msg.SystemGotCharacterCreationModel CharacterCreationModel.generator )
         
         ( Msg.SystemGotCharacterCreationModel characterCreationModel, Phase.CharacterCreationPhase _ ) ->
-            updateCharacterCreationConfirmation model characterCreationModel
+            let
+                newModel =
+                    { model | phase = Phase.CharacterCreationPhase characterCreationModel }
+            in
+            ( newModel, Cmd.none )
         
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase _ ) ->
             ( { model | phase = Phase.ScenePhase Scene.PlayerScene SceneModel.dev } , Cmd.none )

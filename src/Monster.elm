@@ -30,6 +30,7 @@ type alias Monster =
     , attack : Int
     , magic : Int
     , defense : Int
+    , magicDefense : Int
     , agility : Int
     , behavior : Behavior
     , equippedWeapon : Maybe Weapon
@@ -55,6 +56,7 @@ new t =
     , vitality = t.vitality
     , attack = t.attack
     , defense = t.defense
+    , magicDefense = t.magicDefense
     , magic = t.magic
     , agility = t.agility
     , behavior = t.behavior

@@ -59,6 +59,7 @@ type alias SceneModel =
     , attack : Int
     , magic : Int
     , defense : Int
+    , magicDefense : Int
     , agility : Int
     , charisma : Int
     , actions : List Action
@@ -174,6 +175,7 @@ characterCreationSettingsToSceneModel settings =
             , attack = 1
             , magic = 1
             , defense = 0
+            , magicDefense = 0
             , agility = 1
             , charisma = 1
             , actions = initActions (Just startingWeapon) Set.empty

@@ -1,7 +1,6 @@
 module Action exposing
     ( Action
     , byId
-    , learnable
     )
 
 import Context exposing (Context)
@@ -45,32 +44,6 @@ byId id =
             , cooldown = cooldown
             , formulas =
                 [ formula
-                ]
-            }
-        
-        fireSkill level =
-            { id = "fire" ++ String.fromInt level
-            , name = "Fire " ++ String.fromInt level
-            , context = Context.Battle
-            , learnCost = 5 * (level + 1) * (level + 1)
-            , actionPointCost = level
-            , magicPointCost = (level + 1) * (level + 2)
-            , cooldown = 1
-            , formulas =
-                [ Formula.Fire level
-                ]
-            }
-        
-        healSkill level =
-            { id = "heal" ++ String.fromInt level
-            , name = "Heal " ++ String.fromInt level
-            , context = Context.Any
-            , learnCost = 5 * (level + 1) * (level + 1)
-            , actionPointCost = level
-            , magicPointCost = (level + 1) * (level + 2)
-            , cooldown = 1
-            , formulas =
-                [ Formula.Heal level
                 ]
             }
     in
@@ -153,36 +126,6 @@ byId id =
                 ]
             }
         
-        "fire0" ->
-            fireSkill 0
-        
-        "fire1" ->
-            fireSkill 1
-        
-        "fire2" ->
-            fireSkill 2
-        
-        "fire3" ->
-            fireSkill 3
-        
-        "fire4" ->
-            fireSkill 4
-        
-        "heal0" ->
-            healSkill 0
-        
-        "heal1"->
-            healSkill 1
-        
-        "heal2"->
-            healSkill 2
-        
-        "heal3"->
-            healSkill 3
-        
-        "heal4" ->
-            healSkill 4
-        
         "focus-attack" ->
             { id = "focus-attack"
             , name = "Focus Attack"
@@ -222,6 +165,32 @@ byId id =
                 ]
             }
         
+        "half-fire" ->
+            { id = "half-fire"
+            , name = "Half Fire"
+            , context = Context.Battle
+            , learnCost = 5
+            , actionPointCost = 2
+            , magicPointCost = 1
+            , cooldown = 2
+            , formulas =
+                [ Formula.HalfFire
+                ]
+            }
+        
+        "flee" ->
+            { id = "flee"
+            , name = "Flee"
+            , context = Context.Battle
+            , learnCost = 1
+            , actionPointCost = 3
+            , magicPointCost = 0
+            , cooldown = 1
+            , formulas =
+                [ Formula.Flee
+                ]
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Action"
@@ -232,17 +201,3 @@ byId id =
             , cooldown = 0
             , formulas = []
             }
-
-learnable : List Action
-learnable =
-    [ byId "heal0"
-    , byId "heal1"
-    , byId "heal2"
-    , byId "heal3"
-    , byId "heal4"
-    , byId "fire0"
-    , byId "fire1"
-    , byId "fire2"
-    , byId "fire3"
-    , byId "fire4"
-    ]

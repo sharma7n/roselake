@@ -22,6 +22,8 @@ import Weapon exposing (Weapon)
 
 import StatusSet exposing (StatusSet)
 
+import BattleEffect exposing (BattleEffect)
+
 type alias Battler a =
     { a
         | hitPoints : Int
@@ -33,8 +35,9 @@ type alias Battler a =
         , vitality : Int
         , attack : Int
         , magic : Int
-        , defense : Int
         , agility : Int
+        , defense : Int
+        , magicDefense : Int
         , equippedWeapon : Maybe Weapon
         , equippedArmor : Maybe Armor
         , statusSet : StatusSet
@@ -53,6 +56,10 @@ totalDefense b =
     b.defense 
         + Maybe.withDefault 0 (Maybe.map .defense b.equippedArmor)
         + StatusSet.defense b.statusSet
+
+totalMagicDefense : Battler a -> Int
+totalMagicDefense b =
+    b.magicDefense
 
 totalVitality : Battler a -> Int
 totalVitality b =
@@ -138,7 +145,10 @@ runAction action ( attacker, defender ) =
     in
     ( newAttacker, defender )
         |> Util.forEach action.formulas (\formula -> \(a, b) ->
-            applyFormula formula ( a, b )
+            let
+                ( p, _ ) = applyFormula formula ( a, b )
+            in
+            p
         )
 
 completeRound : Battler a -> Battler a
@@ -174,66 +184,74 @@ applyStatus t status duration stacks ( a, b ) =
         Target.Enemy ->
             ( a, applyOneStatus b )
 
-applyFormula : Formula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
+embedBattleEffect : BattleEffect -> ( Battler a, Battler b ) -> ( ( Battler a, Battler b ), BattleEffect )
+embedBattleEffect e p =
+    ( p, e )
+
+applyFormula : Formula -> ( Battler a, Battler b ) -> ( ( Battler a, Battler b ), BattleEffect )
 applyFormula formula ( a, b ) =
     case formula of
         Formula.Attack ->
             ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block)
+                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.AxeAttack ->
             ( a, b )
-                |> takeDamage Target.Enemy (3 * (totalAttack a) - b.block)
+                |> takeDamage Target.Enemy (3 * (totalAttack a) - b.block - totalDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.BowAttack ->
             ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block)
+                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.ClawAttack ->
             ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block)
+                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.StaffAttack ->
             ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block)
+                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.Block ->
             ( a, b )
                 |> gainBlock Target.Self (totalVitality a)
+                |> embedBattleEffect BattleEffect.NoOp
 
         Formula.MegaFlare ->
             ( a, b )
                 |> takeDamage Target.Enemy (2 * totalMagic a)
-        
-        Formula.Fire level ->
-            let
-                multiplier =
-                    1 + (2 * level)  
-            in
-            ( a, b )
-                |> takeDamage Target.Enemy (multiplier * totalMagic a)
-        
-        Formula.Heal level ->
-            let
-                multiplier =
-                    1 + (2 * level)
-            in
-            ( a, b )
-                |> recoverhitPoints Target.Self (multiplier * totalMagic a)
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.ChargeUp i ->
             ( a, b )
                 |> applyStatus Target.Self Status.ModifyAttack Duration.Battle i
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.Explode ->
             ( a, b )
                 |> takeDamage Target.Self a.hitPoints
                 |> takeDamage Target.Enemy a.hitPoints
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.Curse ->
             ( a, b )
                 |> applyStatus Target.Enemy Status.Curse Duration.Persistent 1
+                |> embedBattleEffect BattleEffect.NoOp
         
         Formula.Poison ->
             ( a, b )
                 |> applyStatus Target.Enemy Status.Poison Duration.Persistent 1
+                |> embedBattleEffect BattleEffect.NoOp
+        
+        Formula.HalfFire ->
+            ( a, b )
+                |> takeDamage Target.Enemy (2 * totalMagic a - totalMagicDefense b)
+                |> embedBattleEffect BattleEffect.NoOp
+        
+        Formula.Flee ->
+            ( a, b )
+                |> embedBattleEffect BattleEffect.Flee

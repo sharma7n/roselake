@@ -79,13 +79,15 @@ all =
             e
         )
     , new "Pupil"
-        []
+        [ Action.byId "half-fire"
+        ]
         []
         (\e ->
             e
         )
     , new "Wanderer"
-        []
+        [ Action.byId "flee"
+        ]
         []
         (\e ->
             e

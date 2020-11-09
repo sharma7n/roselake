@@ -21,6 +21,7 @@ type alias MonsterTemplate =
     , attack : Int
     , magic : Int
     , defense : Int
+    , magicDefense : Int
     , agility : Int
     , behavior : Behavior
     , equippedWeapon : Maybe Weapon
@@ -40,6 +41,7 @@ new name behavior f =
     , attack = 0
     , magic = 0
     , defense = 0
+    , magicDefense = 0
     , agility = 0
     , behavior = behavior
     , equippedWeapon = Nothing

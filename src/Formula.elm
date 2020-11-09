@@ -10,9 +10,9 @@ type Formula
     | StaffAttack
     | Block
     | MegaFlare
-    | Fire Int
-    | Heal Int
     | ChargeUp Int
     | Explode
     | Curse
     | Poison
+    | HalfFire
+    | Flee

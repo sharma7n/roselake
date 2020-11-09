@@ -65,9 +65,7 @@ update msg model =
         ( Msg.UserSelectedMonsterTemplate monsterTemplate, Phase.ScenePhase _ sceneModel ) ->
             let
                 battle =
-                    { round = 1
-                    , monster = Monster.new monsterTemplate
-                    }
+                    Battle.new sceneModel (Monster.new monsterTemplate)
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
@@ -335,10 +333,7 @@ update msg model =
         
         ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
-                battle =
-                    { round = 1
-                    , monster = Monster.new monsterTemplate
-                    }
+                battle = Battle.new sceneModel (Monster.new monsterTemplate)
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
@@ -599,18 +594,20 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
     ( newModel, Cmd.none )
 
 updateBattleAction : Model -> Battle -> Action -> Action -> SceneModel -> ( Model, Cmd Msg )
-updateBattleAction model battle action monsterAction sceneModel =
+updateBattleAction model battle action monsterAction _ =
     let
-        ( newSceneModel, newMonster ) =
-            Battler.runAction action ( sceneModel, battle.monster )
-        
         newBattle =
-            { battle | monster = newMonster }
+            battle
+                |> Battle.runAction Battle.Player action
         
         ( newScene, newSceneModel2, newCmd ) =
-            if newSceneModel.hitPoints <= 0 then
+            let
+                newSceneModel =
+                    newBattle.player
+            in
+            if newBattle.player.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
-            else if newMonster.hitPoints <= 0 then
+            else if newBattle.monster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
                 ( Scene.BattleMonsterScene newBattle monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
@@ -628,7 +625,7 @@ updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> Scen
 updateDungeonBattleAction model battle action monsterAction delve sceneModel =
     let
         ( newSceneModel, newMonster ) =
-            Battler.runAction action ( sceneModel, battle.monster )
+            Battle.runAction action ( sceneModel, battle.monster )
         
         newBattle =
             { battle | monster = newMonster }
@@ -656,7 +653,7 @@ updateEndBattleTurn : Model -> Battle -> Action -> SceneModel -> ( Model, Cmd Ms
 updateEndBattleTurn model battle monsterAction sceneModel =
     let
         ( newMonster, newSceneModel ) =
-            Battler.runAction monsterAction ( battle.monster, sceneModel )
+            Battle.runAction monsterAction ( battle.monster, sceneModel )
         
         newBattle =
             { battle | monster = newMonster }
@@ -684,7 +681,7 @@ updateDungeonEndBattleTurn : Model -> Battle -> Action -> Delve -> SceneModel ->
 updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
     let
         ( newMonster, newSceneModel ) =
-            Battler.runAction monsterAction ( battle.monster, sceneModel )
+            Battle.runAction monsterAction ( battle.monster, sceneModel )
         
         newBattle =
             { battle | monster = newMonster }

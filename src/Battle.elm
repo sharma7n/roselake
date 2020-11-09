@@ -1,7 +1,11 @@
 module Battle exposing
     ( Battle
+    , State(..)
+    , Actor(..)
+    , new
     , completeRound
     , chooseMonsterAction
+    , runAction
     )
 
 import Random
@@ -14,17 +18,52 @@ import Action exposing (Action)
 import Battler exposing (Battler)
 import Behavior exposing (Behavior)
 import Monster exposing (Monster)
+import Formula exposing (Formula)
+import Target exposing (Target)
+import Status exposing (Status)
+import Duration exposing (Duration)
+import SceneModel exposing (SceneModel)
 
 type alias Battle =
     { round : Int
+    , player : SceneModel
     , monster : Monster
+    , state : State
+    }
+
+type State
+    = Ongoing
+    | Done
+
+type Actor
+    = Player
+    | Monster
+
+foldActor : a -> a -> Actor -> a
+foldActor player monster actor =
+    case actor of
+        Player ->
+            player
+        
+        Monster ->
+            monster
+
+new : SceneModel -> Monster -> Battle
+new player monster =
+    { round = 1
+    , player = player
+    , monster = monster
+    , state = Ongoing
     }
 
 completeRound : Battle -> Battle
 completeRound b =
     { round = b.round + 1
+    , player =
+        Battler.completeRound b.player
     , monster =
         Battler.completeRound b.monster
+    , state = Done
     }
 
 chooseMonsterAction : Battle -> Random.Generator Action
@@ -52,3 +91,83 @@ chooseMonsterAction battle =
                 Random.constant <| Action.byId "mega-flare"
             else
                 Random.constant <| Action.byId "nothing"
+
+runAction : Actor -> Action -> Battle -> Battle
+runAction actor action battle =
+    let
+        attacker : Battler a
+        attacker =
+            foldActor battle.player battle.monster actor
+        
+        defender : Battler b
+        defender =
+            foldActor battle.monster battle.player actor
+
+        newAttacker =
+            { attacker
+                | actionPoints = attacker.actionPoints - action.actionPointCost
+                , magicPoints = attacker.magicPoints - action.magicPointCost
+            }
+        
+        ( newAttacker2, newDefender, newState ) =
+            ( newAttacker, defender, battle.state )
+                |> Util.forEach action.formulas applyFormula
+    in
+    { battle
+        | player = foldActor 
+    }
+
+applyFormula : Formula -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
+applyFormula formula ( a, b, _ ) =
+    case formula of
+        Formula.Attack ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+        
+        Formula.AxeAttack ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (3 * (Battler.totalAttack a) - b.block - Battler.totalDefense b)
+        
+        Formula.BowAttack ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+        
+        Formula.ClawAttack ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+        
+        Formula.StaffAttack ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+        
+        Formula.Block ->
+            ( a, b )
+                |> Battler.gainBlock Target.Self (Battler.totalVitality a)
+
+        Formula.MegaFlare ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a)
+        
+        Formula.ChargeUp i ->
+            ( a, b )
+                |> Battler.applyStatus Target.Self Status.ModifyAttack Duration.Battle i
+        
+        Formula.Explode ->
+            ( a, b )
+                |> Battler.takeDamage Target.Self a.hitPoints
+                |> Battler.takeDamage Target.Enemy a.hitPoints
+        
+        Formula.Curse ->
+            ( a, b )
+                |> Battler.applyStatus Target.Enemy Status.Curse Duration.Persistent 1
+        
+        Formula.Poison ->
+            ( a, b )
+                |> Battler.applyStatus Target.Enemy Status.Poison Duration.Persistent 1
+        
+        Formula.HalfFire ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
+        
+        Formula.Flee ->
+            ( a, b )

@@ -1,8 +1,15 @@
 module Battler exposing
     ( Battler
-    , runAction
     , completeRound
     , totalMaxHitPoints
+    , takeDamage
+    , gainBlock
+    , applyStatus
+    , totalAttack
+    , totalDefense
+    , totalMagic
+    , totalMagicDefense
+    , totalVitality
     )
 
 import Util
@@ -21,8 +28,6 @@ import Status exposing (Status)
 import Weapon exposing (Weapon)
 
 import StatusSet exposing (StatusSet)
-
-import BattleEffect exposing (BattleEffect)
 
 type alias Battler a =
     { a
@@ -134,23 +139,6 @@ gainBlock t d ( a, b ) =
         Target.Enemy ->
             ( a, gainOneBlock b )
 
-runAction : Action -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
-runAction action ( attacker, defender ) =
-    let
-        newAttacker =
-            { attacker
-                | actionPoints = attacker.actionPoints - action.actionPointCost
-                , magicPoints = attacker.magicPoints - action.magicPointCost
-            }
-    in
-    ( newAttacker, defender )
-        |> Util.forEach action.formulas (\formula -> \(a, b) ->
-            let
-                ( p, _ ) = applyFormula formula ( a, b )
-            in
-            p
-        )
-
 completeRound : Battler a -> Battler a
 completeRound b =
     { b
@@ -183,75 +171,3 @@ applyStatus t status duration stacks ( a, b ) =
         
         Target.Enemy ->
             ( a, applyOneStatus b )
-
-embedBattleEffect : BattleEffect -> ( Battler a, Battler b ) -> ( ( Battler a, Battler b ), BattleEffect )
-embedBattleEffect e p =
-    ( p, e )
-
-applyFormula : Formula -> ( Battler a, Battler b ) -> ( ( Battler a, Battler b ), BattleEffect )
-applyFormula formula ( a, b ) =
-    case formula of
-        Formula.Attack ->
-            ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.AxeAttack ->
-            ( a, b )
-                |> takeDamage Target.Enemy (3 * (totalAttack a) - b.block - totalDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.BowAttack ->
-            ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.ClawAttack ->
-            ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.StaffAttack ->
-            ( a, b )
-                |> takeDamage Target.Enemy (totalAttack a - b.block - totalDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.Block ->
-            ( a, b )
-                |> gainBlock Target.Self (totalVitality a)
-                |> embedBattleEffect BattleEffect.NoOp
-
-        Formula.MegaFlare ->
-            ( a, b )
-                |> takeDamage Target.Enemy (2 * totalMagic a)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.ChargeUp i ->
-            ( a, b )
-                |> applyStatus Target.Self Status.ModifyAttack Duration.Battle i
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.Explode ->
-            ( a, b )
-                |> takeDamage Target.Self a.hitPoints
-                |> takeDamage Target.Enemy a.hitPoints
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.Curse ->
-            ( a, b )
-                |> applyStatus Target.Enemy Status.Curse Duration.Persistent 1
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.Poison ->
-            ( a, b )
-                |> applyStatus Target.Enemy Status.Poison Duration.Persistent 1
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.HalfFire ->
-            ( a, b )
-                |> takeDamage Target.Enemy (2 * totalMagic a - totalMagicDefense b)
-                |> embedBattleEffect BattleEffect.NoOp
-        
-        Formula.Flee ->
-            ( a, b )
-                |> embedBattleEffect BattleEffect.Flee

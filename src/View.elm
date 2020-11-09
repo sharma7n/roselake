@@ -126,6 +126,7 @@ viewCharacterCreationPhase model =
               , settingToInfo .name model.settings.startingEssentia
               )
             ]
+        , Html.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
         , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
         , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
@@ -303,11 +304,11 @@ viewSceneModel scene sceneModel =
                     []
                     [ Html.text "Attributes"
                     , textList
-                        [ "ATK: " ++ String.fromInt sceneModel.attack
+                        [ "STR: " ++ String.fromInt sceneModel.attack
                         , "VIT: " ++ String.fromInt sceneModel.vitality
                         , "AGI: " ++ String.fromInt sceneModel.agility
-                        , "MAG: " ++ String.fromInt sceneModel.magic
-                        , "DEF: " ++ String.fromInt sceneModel.defense
+                        , "INT: " ++ String.fromInt sceneModel.magic
+                        , "CHA: " ++ String.fromInt sceneModel.charisma
                         ]
                     , Html.text "Equipment"
                     , textList

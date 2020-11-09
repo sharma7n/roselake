@@ -543,6 +543,7 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
     
         newCharacterCreationModel =
             { settings = newSettings
+            , attributePoints = characterCreationModel.attributePoints
             }
         
         newModel =
@@ -565,7 +566,7 @@ updateCharacterCreationConfirmation model characterCreationModel =
                     { model | phase = Phase.ScenePhase Scene.PlayerScene sceneModel }
                 
                 Err _ ->
-                    { model | phase = Phase.CharacterCreationPhase { settings = newSettings }}
+                    { model | phase = Phase.CharacterCreationPhase { characterCreationModel | settings = newSettings }}
 
     in
     ( newModel, Cmd.none )
@@ -592,7 +593,7 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
                     { model | phase = Phase.ScenePhase Scene.PlayerScene devSceneModel }
                 
                 Err _ ->
-                    { model | phase = Phase.CharacterCreationPhase { settings = newSettings }}
+                    { model | phase = Phase.CharacterCreationPhase { characterCreationModel | settings = newSettings }}
 
     in
     ( newModel, Cmd.none )

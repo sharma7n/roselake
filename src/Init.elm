@@ -29,6 +29,7 @@ init _ =
         
         initCharacterCreationModel =
             { settings = initCharacterCreationSettings
+            , attributePoints = 25
             }
         
         initModel =

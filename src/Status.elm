@@ -9,6 +9,7 @@ type Status
     | ModifyBlock
     | Curse
     | Poison
+    | Burn
 
 toString : Status -> String
 toString s =
@@ -27,3 +28,6 @@ toString s =
         
         Poison ->
             "Poison"
+        
+        Burn ->
+            "Burn"

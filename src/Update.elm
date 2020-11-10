@@ -656,10 +656,19 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
 updateEndBattleTurn : Model -> Battle -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateEndBattleTurn model battle monsterAction sceneModel =
     let
+        _ =
+            Debug.log "before battle actionstates" battle.player.actionStates
+        
+        _ =
+            Debug.log "before sceneModel actionstates" sceneModel.actionStates
+        
         newBattle =
             battle
                 |> Battle.runAction Battle.Monster monsterAction
                 |> Battle.completeRound
+        
+        _ =
+            Debug.log "after sceneModel actionstates" newBattle.player.actionStates
         
         ( newMonster, newSceneModel ) =
             ( newBattle.monster, newBattle.player )

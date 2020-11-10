@@ -133,6 +133,9 @@ hpLoss : StatusSet -> Int
 hpLoss (StatusSet dict) =
     dict
         |> Dict.filter (\_ -> \data ->
-            data.status == Status.Poison
+            [ Status.Burn
+            , Status.Poison
+            ]
+                |> List.member data.status
         )
         |> sumStacks

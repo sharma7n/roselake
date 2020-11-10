@@ -58,12 +58,12 @@ new player monster =
 
 completeRound : Battle -> Battle
 completeRound b =
-    { round = b.round + 1
-    , player =
-        Battler.completeRound b.player
-    , monster =
-        Battler.completeRound b.monster
-    , state = Done
+    { b
+        | round = b.round + 1
+        , player =
+            Battler.completeRound b.player
+        , monster =
+            Battler.completeRound b.monster
     }
 
 chooseMonsterAction : Battle -> Random.Generator Action
@@ -203,6 +203,7 @@ applyFormula formula ( a, b, state ) =
         Formula.HalfFire ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
+                |> Battler.applyStatus Target.Enemy Status.Burn (Duration.Rounds <| Battler.totalMagic a) 1
                 |> embedState state
         
         Formula.Flee ->

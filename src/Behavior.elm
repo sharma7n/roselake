@@ -8,3 +8,4 @@ type Behavior
     | Gremlin
     | BunBun
     | Wyvern
+    | MagicEatingTortoise

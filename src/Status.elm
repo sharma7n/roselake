@@ -6,6 +6,7 @@ module Status exposing
 type Status
     = ModifyAttack
     | ModifyDefense
+    | ModifyMagic
     | ModifyBlock
     | Curse
     | Poison
@@ -19,6 +20,9 @@ toString s =
         
         ModifyDefense ->
             "Defense"
+        
+        ModifyMagic ->
+            "Magic"
         
         ModifyBlock ->
             "Block"

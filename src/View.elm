@@ -438,6 +438,7 @@ viewSceneModel scene sceneModel =
             monsterTable
                 [ MonsterTemplate.byId "dummy"
                 , MonsterTemplate.byId "gremlin"
+                , MonsterTemplate.byId "magic-eating-tortoise"
                 , MonsterTemplate.byId "wyvern"
                 ]
         

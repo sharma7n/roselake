@@ -64,7 +64,7 @@ new t =
     , equippedArmor = t.equippedArmor
     , statusSet = StatusSet.empty
     , block = 0
-    , passives = []
+    , passives = t.passives
     }
 
 generateReward : Monster -> Random.Generator Reward

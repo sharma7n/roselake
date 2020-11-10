@@ -97,6 +97,9 @@ chooseMonsterAction battle =
                 Random.constant <| Action.byId "mega-flare"
             else
                 Random.constant <| Action.byId "nothing"
+        
+        Behavior.MagicEatingTortoise ->
+            Random.constant <| Action.byId "magic-eating-bite"
 
 runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
 runPlayerAction action ( battle, player ) =
@@ -214,3 +217,9 @@ applyFormula formula ( a, b, state ) =
         
         Formula.Flee ->
             ( a, b, Done )
+        
+        Formula.MagicEatingBite ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.applyStatus Target.Self Status.ModifyMagic Duration.Battle 1
+                |> embedState state

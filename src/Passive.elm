@@ -61,4 +61,14 @@ all =
                     ]
             }
         )
+    , new "P-Counter: Focus Defense"
+        (\p ->
+            { p
+                | context = Context.Battle
+                , learnCost = 80
+                , effects =
+                    [ PassiveFormula.PCounterFocusDefense
+                    ]
+            }
+        )
     ]

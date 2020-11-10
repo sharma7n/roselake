@@ -56,6 +56,12 @@ totalAttack b =
         + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
         + StatusSet.attack b.statusSet
 
+totalMagic : Battler a -> Int
+totalMagic b =
+    b.magic 
+        + Maybe.withDefault 0 (Maybe.map .magic b.equippedWeapon)
+        + StatusSet.magic b.statusSet
+
 totalDefense : Battler a -> Int
 totalDefense b =
     b.defense 
@@ -69,10 +75,6 @@ totalMagicDefense b =
 totalVitality : Battler a -> Int
 totalVitality b =
     b.vitality
-
-totalMagic : Battler a -> Int
-totalMagic b =
-    b.magic + Maybe.withDefault 0 (Maybe.map .magic b.equippedWeapon)
 
 totalMaxHitPoints : Battler a -> Int
 totalMaxHitPoints b =
@@ -125,6 +127,10 @@ applyCounterFormula passiveFormula ( a, b ) =
         PassiveFormula.PCounterTackle ->
             ( a, b )
                 |> takeDamage Target.Self (totalAttack b - a.block)
+        
+        PassiveFormula.PCounterFocusDefense ->
+            ( a, b )
+                |> applyStatus Target.Enemy Status.ModifyDefense Duration.Battle 1
 
 gainBlock : Target -> Int -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 gainBlock t d ( a, b ) =

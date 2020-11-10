@@ -8,6 +8,7 @@ import Util
 import Armor exposing (Armor)
 import Behavior exposing (Behavior)
 import Weapon exposing (Weapon)
+import Passive exposing (Passive)
 
 type alias MonsterTemplate =
     { id : String
@@ -24,6 +25,7 @@ type alias MonsterTemplate =
     , magicDefense : Int
     , agility : Int
     , behavior : Behavior
+    , passives : List Passive
     , equippedWeapon : Maybe Weapon
     , equippedArmor : Maybe Armor
     }
@@ -44,6 +46,7 @@ new name behavior f =
     , magicDefense = 0
     , agility = 0
     , behavior = behavior
+    , passives = []
     , equippedWeapon = Nothing
     , equippedArmor = Nothing
     }
@@ -75,6 +78,18 @@ all =
                 , attack = 4
                 , magic = 4
             })
+    , new "Magic-Eating Tortoise" Behavior.MagicEatingTortoise
+        (\m ->
+            { m
+                | hitPoints = 30
+                , vitality = 3
+                , attack = 2
+                , magic = 8
+                , passives =
+                    [ Passive.byId "p-counter:-focus-defense"
+                    ]
+            }
+        )
     , new "Wyvern" Behavior.Wyvern
         (\m ->
             { m

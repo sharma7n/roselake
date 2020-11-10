@@ -191,6 +191,19 @@ byId id =
                 ]
             }
         
+        "magic-eating-bite" ->
+            { id = "magic-eating-bite"
+            , name = "Magic-Eating Bite"
+            , context = Context.Battle
+            , learnCost = 1
+            , actionPointCost = 3
+            , magicPointCost = 0
+            , cooldown = 1
+            , formulas =
+                [ Formula.MagicEatingBite
+                ]
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Action"

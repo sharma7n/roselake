@@ -7,6 +7,7 @@ module StatusSet exposing
     , completeBattle
     , attack
     , defense
+    , magic
     , toList
     , maxHitPoints
     , hpLoss
@@ -108,6 +109,14 @@ defense (StatusSet dict) =
     dict
         |> Dict.filter (\_ -> \data ->
             data.status == Status.ModifyDefense
+        )
+        |> sumStacks
+
+magic : StatusSet -> Int
+magic (StatusSet dict) =
+    dict
+        |> Dict.filter (\_ -> \data ->
+            data.status == Status.ModifyMagic
         )
         |> sumStacks
 

@@ -16,3 +16,4 @@ type Formula
     | Poison
     | HalfFire
     | Flee
+    | MagicEatingBite

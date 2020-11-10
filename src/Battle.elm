@@ -5,7 +5,8 @@ module Battle exposing
     , new
     , completeRound
     , chooseMonsterAction
-    , runAction
+    , runPlayerAction
+    , runMonsterAction
     )
 
 import Random
@@ -26,7 +27,6 @@ import SceneModel exposing (SceneModel)
 
 type alias Battle =
     { round : Int
-    , player : SceneModel
     , monster : Monster
     , state : State
     }
@@ -48,23 +48,29 @@ foldActor player monster actor =
         Monster ->
             monster
 
-new : SceneModel -> Monster -> Battle
-new player monster =
+new : Monster -> Battle
+new monster =
     { round = 1
-    , player = player
     , monster = monster
     , state = Ongoing
     }
 
-completeRound : Battle -> Battle
-completeRound b =
-    { b
-        | round = b.round + 1
-        , player =
-            Battler.completeRound b.player
-        , monster =
-            Battler.completeRound b.monster
-    }
+completeRound : ( Battle, SceneModel ) -> ( Battle, SceneModel )
+completeRound ( b, s ) =
+    let
+        newBattle =
+            { b
+                | round = b.round + 1
+                , monster =
+                    Battler.completeRound b.monster
+            }
+        
+        newSceneModel =
+            Battler.completeRound s
+    in
+    ( newBattle, newSceneModel )
+    
+
 
 chooseMonsterAction : Battle -> Random.Generator Action
 chooseMonsterAction battle =
@@ -92,50 +98,50 @@ chooseMonsterAction battle =
             else
                 Random.constant <| Action.byId "nothing"
 
-runAction : Actor -> Action -> Battle -> Battle
-runAction actor action battle =
-    case actor of
-        Player ->
-            let
-                player =
-                    battle.player
-                
-                newPlayer =
-                    { player
-                        | actionPoints = player.actionPoints - action.actionPointCost
-                        , magicPoints = player.magicPoints - action.magicPointCost
-                    }
-                
-                ( newPlayer2, newMonster, newState ) =
-                    ( newPlayer, battle.monster, battle.state )
-                        |> Util.forEach action.formulas applyFormula
-            in
+runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
+runPlayerAction action ( battle, player ) =
+    let
+        newPlayer =
+            { player
+                | actionPoints = player.actionPoints - action.actionPointCost
+                , magicPoints = player.magicPoints - action.magicPointCost
+            }
+        
+        ( newPlayer2, newMonster, newState ) =
+            ( newPlayer, battle.monster, battle.state )
+                |> Util.forEach action.formulas applyFormula
+        
+        newBattle =
             { battle
-                | player = newPlayer2
-                , monster = newMonster
+                | monster = newMonster
                 , state = newState
             }
+    in
+    ( newBattle, newPlayer2 )
 
-        Monster ->
-            let
-                monster =
-                    battle.monster
-                
-                newMonster =
-                    { monster
-                        | actionPoints = monster.actionPoints - action.actionPointCost
-                        , magicPoints = monster.magicPoints - action.magicPointCost
-                    }
-                
-                ( newMonster2, newPlayer, newState ) =
-                    ( newMonster, battle.player, battle.state )
-                        |> Util.forEach action.formulas applyFormula
-            in
+runMonsterAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
+runMonsterAction action ( battle, player ) =
+    let
+        monster =
+            battle.monster
+        
+        newMonster =
+            { monster
+                | actionPoints = monster.actionPoints - action.actionPointCost
+                , magicPoints = monster.magicPoints - action.magicPointCost
+            }
+        
+        ( newMonster2, newPlayer, newState ) =
+            ( newMonster, player, battle.state )
+                |> Util.forEach action.formulas applyFormula
+        
+        newBattle =
             { battle
-                | player = newPlayer
-                , monster = newMonster2
+                | monster = newMonster2
                 , state = newState
             }
+    in
+    ( newBattle, newPlayer )
 
 embedState : State -> ( Battler a, Battler b ) -> ( Battler a, Battler b, State )
 embedState state ( a, b ) =

@@ -65,7 +65,7 @@ update msg model =
         ( Msg.UserSelectedMonsterTemplate monsterTemplate, Phase.ScenePhase _ sceneModel ) ->
             let
                 battle =
-                    Battle.new sceneModel (Monster.new monsterTemplate)
+                    Battle.new (Monster.new monsterTemplate)
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
@@ -333,7 +333,7 @@ update msg model =
         
         ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
-                battle = Battle.new sceneModel (Monster.new monsterTemplate)
+                battle = Battle.new (Monster.new monsterTemplate)
                 
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
@@ -594,14 +594,14 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
     ( newModel, Cmd.none )
 
 updateBattleAction : Model -> Battle -> Action -> Action -> SceneModel -> ( Model, Cmd Msg )
-updateBattleAction model battle action monsterAction _ =
+updateBattleAction model battle action monsterAction sceneModel =
     let
-        newBattle =
-            battle
-                |> Battle.runAction Battle.Player action
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runPlayerAction action
         
-        ( newSceneModel, newMonster ) =
-            ( newBattle.player, newBattle.monster )
+        newMonster =
+            newBattle.monster
         
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then
@@ -625,12 +625,12 @@ updateBattleAction model battle action monsterAction _ =
 updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model battle action monsterAction delve sceneModel =
     let
-        newBattle =
-            battle
-                |> Battle.runAction Battle.Player action
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runPlayerAction action
         
-        ( newSceneModel, newMonster ) =
-            ( newBattle.player, newBattle.monster )
+        newMonster =
+            newBattle.monster
         
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then
@@ -656,22 +656,13 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
 updateEndBattleTurn : Model -> Battle -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateEndBattleTurn model battle monsterAction sceneModel =
     let
-        _ =
-            Debug.log "before battle actionstates" battle.player.actionStates
-        
-        _ =
-            Debug.log "before sceneModel actionstates" sceneModel.actionStates
-        
-        newBattle =
-            battle
-                |> Battle.runAction Battle.Monster monsterAction
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runMonsterAction monsterAction
                 |> Battle.completeRound
         
-        _ =
-            Debug.log "after sceneModel actionstates" newBattle.player.actionStates
-        
-        ( newMonster, newSceneModel ) =
-            ( newBattle.monster, newBattle.player )
+        newMonster =
+            newBattle.monster
         
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then
@@ -696,13 +687,13 @@ updateEndBattleTurn model battle monsterAction sceneModel =
 updateDungeonEndBattleTurn : Model -> Battle -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
     let
-        newBattle =
-            battle
-                |> Battle.runAction Battle.Monster monsterAction
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runMonsterAction monsterAction
                 |> Battle.completeRound
         
-        ( newMonster, newSceneModel ) =
-            ( newBattle.monster, newBattle.player )
+        newMonster =
+            newBattle.monster
         
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then

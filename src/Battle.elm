@@ -127,8 +127,8 @@ runAction actor action battle =
                         , magicPoints = monster.magicPoints - action.magicPointCost
                     }
                 
-                ( newPlayer, newMonster2, newState ) =
-                    ( battle.player, newMonster, battle.state )
+                ( newMonster2, newPlayer, newState ) =
+                    ( newMonster, battle.player, battle.state )
                         |> Util.forEach action.formulas applyFormula
             in
             { battle

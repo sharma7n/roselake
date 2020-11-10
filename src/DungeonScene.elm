@@ -31,6 +31,7 @@ type Scene
     | TrapDoor
     | LoadingGoal
     | Goal Reward
+    | Escaped
 
 generator : Random.Generator Scene
 generator =
@@ -98,3 +99,6 @@ toString s =
         
         Goal _ ->
             "Goal"
+        
+        Escaped ->
+            "Escaped"

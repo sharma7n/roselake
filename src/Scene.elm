@@ -26,3 +26,4 @@ type Scene
     | VictoryLoadingScene Battle
     | VictoryScene Battle Reward
     | GameOverScene
+    | EscapedScene

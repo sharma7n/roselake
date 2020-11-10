@@ -461,6 +461,11 @@ viewSceneModel scene sceneModel =
             textList
                 [ "Defeated..."
                 ]
+        
+        Scene.EscapedScene ->
+            textList
+                [ "Escaped..."
+                ]
 
 viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeonScene sceneModel delvePhase delve =

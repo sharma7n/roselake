@@ -206,5 +206,4 @@ applyFormula formula ( a, b, state ) =
                 |> embedState state
         
         Formula.Flee ->
-            ( a, b )
-                |> embedState state
+            ( a, b, Done )

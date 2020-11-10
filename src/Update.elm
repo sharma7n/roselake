@@ -604,7 +604,9 @@ updateBattleAction model battle action monsterAction _ =
             ( newBattle.player, newBattle.monster )
         
         ( newScene, newSceneModel2, newCmd ) =
-            if newSceneModel.hitPoints <= 0 then
+            if newBattle.state == Battle.Done then
+                ( Scene.EscapedScene, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
@@ -631,7 +633,9 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
             ( newBattle.player, newBattle.monster )
         
         ( newScene, newSceneModel2, newCmd ) =
-            if newSceneModel.hitPoints <= 0 then
+            if newBattle.state == Battle.Done then
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
@@ -661,7 +665,9 @@ updateEndBattleTurn model battle monsterAction sceneModel =
             ( newBattle.monster, newBattle.player )
         
         ( newScene, newSceneModel2, newCmd ) =
-            if newSceneModel.hitPoints <= 0 then
+            if newBattle.state == Battle.Done then
+                ( Scene.EscapedScene, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
@@ -690,7 +696,9 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
             ( newBattle.monster, newBattle.player )
         
         ( newScene, newSceneModel2, newCmd ) =
-            if newSceneModel.hitPoints <= 0 then
+            if newBattle.state == Battle.Done then
+                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )

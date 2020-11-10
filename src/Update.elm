@@ -600,14 +600,13 @@ updateBattleAction model battle action monsterAction _ =
             battle
                 |> Battle.runAction Battle.Player action
         
+        ( newSceneModel, newMonster ) =
+            ( newBattle.player, newBattle.monster )
+        
         ( newScene, newSceneModel2, newCmd ) =
-            let
-                newSceneModel =
-                    newBattle.player
-            in
-            if newBattle.player.hitPoints <= 0 then
+            if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
-            else if newBattle.monster.hitPoints <= 0 then
+            else if newMonster.hitPoints <= 0 then
                 ( Scene.VictoryLoadingScene newBattle, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
                 ( Scene.BattleMonsterScene newBattle monsterAction, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
@@ -624,11 +623,12 @@ updateBattleAction model battle action monsterAction _ =
 updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonBattleAction model battle action monsterAction delve sceneModel =
     let
-        ( newSceneModel, newMonster ) =
-            Battle.runAction action ( sceneModel, battle.monster )
-        
         newBattle =
-            { battle | monster = newMonster }
+            battle
+                |> Battle.runAction Battle.Player action
+        
+        ( newSceneModel, newMonster ) =
+            ( newBattle.player, newBattle.monster )
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
@@ -652,12 +652,13 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
 updateEndBattleTurn : Model -> Battle -> Action -> SceneModel -> ( Model, Cmd Msg )
 updateEndBattleTurn model battle monsterAction sceneModel =
     let
-        ( newMonster, newSceneModel ) =
-            Battle.runAction monsterAction ( battle.monster, sceneModel )
-        
         newBattle =
-            { battle | monster = newMonster }
+            battle
+                |> Battle.runAction Battle.Monster monsterAction
                 |> Battle.completeRound
+        
+        ( newMonster, newSceneModel ) =
+            ( newBattle.monster, newBattle.player )
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then
@@ -680,12 +681,13 @@ updateEndBattleTurn model battle monsterAction sceneModel =
 updateDungeonEndBattleTurn : Model -> Battle -> Action -> Delve -> SceneModel -> ( Model, Cmd Msg )
 updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
     let
-        ( newMonster, newSceneModel ) =
-            Battle.runAction monsterAction ( battle.monster, sceneModel )
-        
         newBattle =
-            { battle | monster = newMonster }
+            battle
+                |> Battle.runAction Battle.Monster monsterAction
                 |> Battle.completeRound
+        
+        ( newMonster, newSceneModel ) =
+            ( newBattle.monster, newBattle.player )
         
         ( newScene, newSceneModel2, newCmd ) =
             if newSceneModel.hitPoints <= 0 then

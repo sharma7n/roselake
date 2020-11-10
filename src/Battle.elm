@@ -94,80 +94,117 @@ chooseMonsterAction battle =
 
 runAction : Actor -> Action -> Battle -> Battle
 runAction actor action battle =
-    let
-        attacker : Battler a
-        attacker =
-            foldActor battle.player battle.monster actor
-        
-        defender : Battler b
-        defender =
-            foldActor battle.monster battle.player actor
-
-        newAttacker =
-            { attacker
-                | actionPoints = attacker.actionPoints - action.actionPointCost
-                , magicPoints = attacker.magicPoints - action.magicPointCost
+    case actor of
+        Player ->
+            let
+                player =
+                    battle.player
+                
+                newPlayer =
+                    { player
+                        | actionPoints = player.actionPoints - action.actionPointCost
+                        , magicPoints = player.magicPoints - action.magicPointCost
+                    }
+                
+                ( newPlayer2, newMonster, newState ) =
+                    ( newPlayer, battle.monster, battle.state )
+                        |> Util.forEach action.formulas applyFormula
+            in
+            { battle
+                | player = newPlayer2
+                , monster = newMonster
+                , state = newState
             }
-        
-        ( newAttacker2, newDefender, newState ) =
-            ( newAttacker, defender, battle.state )
-                |> Util.forEach action.formulas applyFormula
-    in
-    { battle
-        | player = foldActor 
-    }
+
+        Monster ->
+            let
+                monster =
+                    battle.monster
+                
+                newMonster =
+                    { monster
+                        | actionPoints = monster.actionPoints - action.actionPointCost
+                        , magicPoints = monster.magicPoints - action.magicPointCost
+                    }
+                
+                ( newPlayer, newMonster2, newState ) =
+                    ( battle.player, newMonster, battle.state )
+                        |> Util.forEach action.formulas applyFormula
+            in
+            { battle
+                | player = newPlayer
+                , monster = newMonster2
+                , state = newState
+            }
+
+embedState : State -> ( Battler a, Battler b ) -> ( Battler a, Battler b, State )
+embedState state ( a, b ) =
+    ( a, b, state )
 
 applyFormula : Formula -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
-applyFormula formula ( a, b, _ ) =
+applyFormula formula ( a, b, state ) =
     case formula of
         Formula.Attack ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> embedState state
         
         Formula.AxeAttack ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (3 * (Battler.totalAttack a) - b.block - Battler.totalDefense b)
+                |> embedState state
         
         Formula.BowAttack ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> embedState state
         
         Formula.ClawAttack ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> embedState state
         
         Formula.StaffAttack ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> embedState state
         
         Formula.Block ->
             ( a, b )
                 |> Battler.gainBlock Target.Self (Battler.totalVitality a)
+                |> embedState state
 
         Formula.MegaFlare ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a)
+                |> embedState state
         
         Formula.ChargeUp i ->
             ( a, b )
                 |> Battler.applyStatus Target.Self Status.ModifyAttack Duration.Battle i
+                |> embedState state
         
         Formula.Explode ->
             ( a, b )
                 |> Battler.takeDamage Target.Self a.hitPoints
                 |> Battler.takeDamage Target.Enemy a.hitPoints
+                |> embedState state
         
         Formula.Curse ->
             ( a, b )
                 |> Battler.applyStatus Target.Enemy Status.Curse Duration.Persistent 1
+                |> embedState state
         
         Formula.Poison ->
             ( a, b )
                 |> Battler.applyStatus Target.Enemy Status.Poison Duration.Persistent 1
+                |> embedState state
         
         Formula.HalfFire ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
+                |> embedState state
         
         Formula.Flee ->
             ( a, b )
+                |> embedState state

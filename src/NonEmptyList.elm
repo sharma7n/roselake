@@ -2,6 +2,7 @@ module NonEmptyList exposing
     ( NonEmptyList
     , new
     , toList
+    , fromList
     , map
     , head
     , tail
@@ -17,6 +18,15 @@ new x xs =
 toList : NonEmptyList a -> List a
 toList (NonEmptyList x xs) =
     x :: xs
+
+fromList : List a -> Maybe (NonEmptyList a)
+fromList l =
+    case l of
+        x :: xs ->
+            Just <| NonEmptyList x xs
+
+        [] ->
+            Nothing
 
 map : (a -> b) -> NonEmptyList a -> NonEmptyList b
 map f (NonEmptyList x xs) =

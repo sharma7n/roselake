@@ -9,6 +9,8 @@ module Battle exposing
     , runMonsterAction
     )
 
+import Set exposing (Set)
+
 import Random
 
 import Distribution exposing (Distribution)
@@ -16,10 +18,12 @@ import NonEmptyList exposing (NonEmptyList)
 import Util
 
 import Action exposing (Action)
+import ActionTag exposing (ActionTag)
 import Battler exposing (Battler)
 import Behavior exposing (Behavior)
 import Monster exposing (Monster)
 import Formula exposing (Formula)
+import PassiveFormula exposing (PassiveFormula)
 import Target exposing (Target)
 import Status exposing (Status)
 import Duration exposing (Duration)
@@ -99,7 +103,19 @@ chooseMonsterAction battle =
                 Random.constant <| Action.byId "nothing"
         
         Behavior.MagicEatingTortoise ->
-            Random.constant <| Action.byId "magic-eating-bite"
+            let
+                learnedActions =
+                    battle.monster.learned
+                        |> Set.toList
+                        |> List.map Action.byId
+            in
+            case NonEmptyList.fromList learnedActions of
+                Just someActions ->
+                    Distribution.uniform (NonEmptyList.head someActions) (NonEmptyList.tail someActions)
+                        |> Distribution.random
+                
+                Nothing ->
+                    Random.constant <| Action.byId "magic-eating-bite"
 
 runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
 runPlayerAction action ( battle, player ) =
@@ -227,19 +243,55 @@ applyFormula formula ( a, b, state ) =
                 |> embedState state
 
 applyReaction : Action -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
-applyReaction action ( a, b ) =
+applyReaction action ( a, b, s ) =
+    ( a, b, s )
+        |> Util.forEach action.tags (applyOneReaction action)
+
+applyOneReaction : Action -> ActionTag -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
+applyOneReaction action tag ( a, b, s ) =
+    case tag of
+        ActionTag.Attack ->
+            ( a, b, s )
+                |> Util.forEach (List.concatMap .effects b.passives) (applyOnePCounter action)
+        
+        ActionTag.Magic ->
+            ( a, b, s )
+                |> Util.forEach (List.concatMap .effects b.passives) (applyOneMCounter action)
+
+applyOnePCounter : Action -> PassiveFormula -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
+applyOnePCounter action passiveFormula ( a, b, s ) =
     case passiveFormula of
         PassiveFormula.PCounterDefend ->
             ( a, b )
-                |> applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
+                |> Battler.applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
+                |> embedState s
         
         PassiveFormula.PCounterTackle ->
             ( a, b )
-                |> takeDamage Target.Self (totalAttack b - a.block)
+                |> Battler.takeDamage Target.Self ( Battler.totalAttack b - a.block)
+                |> embedState s
         
         PassiveFormula.PCounterFocusDefense ->
             ( a, b )
-                |> applyStatus Target.Enemy Status.ModifyDefense Duration.Battle 1
+                |> Battler.applyStatus Target.Enemy Status.ModifyDefense Duration.Battle 1
+                |> embedState s
         
         _ ->
-            ( a, b )
+            ( a, b, s )
+
+applyOneMCounter : Action -> PassiveFormula -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
+applyOneMCounter action passiveFormula ( a, b, s ) =
+    case passiveFormula of
+        PassiveFormula.MCounterLearnSpell ->
+            let
+                newB =
+                    { b
+                        | learned =
+                            b.learned
+                                |> Set.insert action.id
+                    }
+            in
+            ( a, newB, s )
+        
+        _ ->
+            ( a, b, s )

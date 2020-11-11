@@ -5,6 +5,7 @@ module Msg exposing
 import CharacterCreationModel exposing (CharacterCreationModel)
 import CharacterCreationSettingSelection exposing (CharacterCreationSettingSelection)
 
+import Attribute exposing (Attribute)
 import Action exposing (Action)
 import Passive exposing (Passive)
 import Armor exposing (Armor)
@@ -57,6 +58,7 @@ type Msg
     | UserSelectedRest
     | UserSelectedOpenChest
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
+    | UserSelectedModifyCharacterCreationAttribute Attribute Int
     | UserSelectedCharacterCreationConfirmation
     | UserSelectedRandomCharacterCreation
     | DevSelectedCharacterCreationConfirmation

@@ -26,6 +26,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Attribute exposing (Attribute)
 import Battle exposing (Battle)
 import Battler exposing (Battler)
 import Target exposing (Target)
@@ -126,10 +127,38 @@ viewCharacterCreationPhase model =
               , settingToInfo .name model.settings.startingEssentia
               )
             ]
-        , Html.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
+        , Html.ul
+            []
+            [ Html.li
+                []
+                [ Html.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
+                ]
+            , attributeElement Attribute.Strength model.strength
+            , attributeElement Attribute.Vitality model.vitality
+            , attributeElement Attribute.Agility model.agility
+            , attributeElement Attribute.Intellect model.intellect
+            , attributeElement Attribute.Charisma model.charisma
+            ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
         , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
+        ]
+
+attributeElement : Attribute -> Int -> Html Msg
+attributeElement attr value =
+    Html.li
+        []
+        [ Html.text <| Attribute.toShortString attr ++ ": " ++ String.fromInt value
+        , Html.button
+            [ Html.Events.onClick <| Msg.UserSelectedModifyCharacterCreationAttribute attr (-1)
+            ]
+            [ Html.text "-"
+            ]
+        , Html.button
+            [ Html.Events.onClick <| Msg.UserSelectedModifyCharacterCreationAttribute attr 1
+            ]
+            [ Html.text "+"
+            ]
         ]
 
 textListItem : String -> Html Msg

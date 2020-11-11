@@ -21,6 +21,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Attribute exposing (Attribute)
 import Armor exposing (Armor)
 import Battle exposing (Battle)
 import Battler exposing (Battler)
@@ -482,6 +483,47 @@ update msg model =
         ( Msg.UserSelectedCharacterCreationSettingSelection selection, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
         
+        ( Msg.UserSelectedModifyCharacterCreationAttribute attr d, Phase.CharacterCreationPhase characterCreationModel ) ->
+            let
+                newCharacterCreationModel =
+                    case attr of
+                       Attribute.Strength ->
+                        { characterCreationModel
+                            | strength = characterCreationModel.strength + d
+                                |> Util.boundedBy 1 9
+                        }
+                    
+                       Attribute.Vitality ->
+                        { characterCreationModel
+                            | vitality = characterCreationModel.vitality + d
+                                |> Util.boundedBy 1 9
+                        }
+                    
+                       Attribute.Agility ->
+                        { characterCreationModel
+                            | agility = characterCreationModel.agility + d
+                                |> Util.boundedBy 1 9
+                        }
+                    
+                       Attribute.Intellect ->
+                        { characterCreationModel
+                            | intellect = characterCreationModel.intellect + d
+                                |> Util.boundedBy 1 9
+                        }
+
+                       Attribute.Charisma ->
+                        { characterCreationModel
+                            | charisma = characterCreationModel.charisma + d
+                                |> Util.boundedBy 1 9
+                        }
+                
+                newModel =
+                    { model
+                        | phase = Phase.CharacterCreationPhase newCharacterCreationModel
+                    }
+            in
+            ( newModel, Cmd.none )
+        
         ( Msg.UserSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationConfirmation model characterCreationModel
         
@@ -537,9 +579,7 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
                     { settings | startingEssentia = FormResult.FROk startingEssentia }
     
         newCharacterCreationModel =
-            { settings = newSettings
-            , attributePoints = characterCreationModel.attributePoints
-            }
+            { characterCreationModel | settings = newSettings }
         
         newModel =
             { model | phase = Phase.CharacterCreationPhase newCharacterCreationModel }
@@ -558,7 +598,18 @@ updateCharacterCreationConfirmation model characterCreationModel =
         newModel =
             case sceneModelResult of
                 Ok sceneModel ->
-                    { model | phase = Phase.ScenePhase Scene.PlayerScene sceneModel }
+                    let
+                        newSceneModel =
+                            { sceneModel
+                                | attack = characterCreationModel.strength
+                                , vitality = characterCreationModel.vitality
+                                , agility = characterCreationModel.agility
+                            }
+
+                    in
+                    { model 
+                        | phase = Phase.ScenePhase Scene.PlayerScene newSceneModel 
+                    }
                 
                 Err _ ->
                     { model | phase = Phase.CharacterCreationPhase { characterCreationModel | settings = newSettings }}

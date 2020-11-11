@@ -28,6 +28,7 @@ import Target exposing (Target)
 import Status exposing (Status)
 import Duration exposing (Duration)
 import SceneModel exposing (SceneModel)
+import Element exposing (Element)
 
 type alias Battle =
     { round : Int
@@ -173,27 +174,27 @@ applyFormula formula ( a, b, state ) =
     case formula of
         Formula.Attack ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> embedState state
         
         Formula.AxeAttack ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (3 * (Battler.totalAttack a) - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (3 * (Battler.totalAttack a) - b.block - Battler.totalDefense b) []
                 |> embedState state
         
         Formula.BowAttack ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> embedState state
         
         Formula.ClawAttack ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> embedState state
         
         Formula.StaffAttack ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> embedState state
         
         Formula.Block ->
@@ -203,7 +204,7 @@ applyFormula formula ( a, b, state ) =
 
         Formula.MegaFlare ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a)
+                |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a) []
                 |> embedState state
         
         Formula.ChargeUp i ->
@@ -213,8 +214,8 @@ applyFormula formula ( a, b, state ) =
         
         Formula.Explode ->
             ( a, b )
-                |> Battler.takeDamage Target.Self a.hitPoints
-                |> Battler.takeDamage Target.Enemy a.hitPoints
+                |> Battler.takeDamage Target.Self a.hitPoints []
+                |> Battler.takeDamage Target.Enemy a.hitPoints []
                 |> embedState state
         
         Formula.Curse ->
@@ -230,6 +231,16 @@ applyFormula formula ( a, b, state ) =
         Formula.HalfFire ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
+                    [ Element.Fire
+                    ]
+                |> Battler.applyStatus Target.Enemy Status.Burn (Duration.Rounds <| Battler.totalMagic a) 1
+                |> embedState state
+        
+        Formula.HalfIce ->
+            ( a, b )
+                |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
+                    [ Element.Ice
+                    ]
                 |> Battler.applyStatus Target.Enemy Status.Burn (Duration.Rounds <| Battler.totalMagic a) 1
                 |> embedState state
         
@@ -238,7 +249,7 @@ applyFormula formula ( a, b, state ) =
         
         Formula.MagicEatingBite ->
             ( a, b )
-                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
+                |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> Battler.applyStatus Target.Self Status.ModifyMagic Duration.Battle 1
                 |> embedState state
 
@@ -268,7 +279,7 @@ applyOnePCounter action passiveFormula ( a, b, s ) =
         
         PassiveFormula.PCounterTackle ->
             ( a, b )
-                |> Battler.takeDamage Target.Self ( Battler.totalAttack b - a.block)
+                |> Battler.takeDamage Target.Self ( Battler.totalAttack b - a.block) []
                 |> embedState s
         
         PassiveFormula.PCounterFocusDefense ->

@@ -80,6 +80,7 @@ all =
         )
     , new "Pupil"
         [ Action.byId "half-fire"
+        , Action.byId "half-ice"
         ]
         []
         (\e ->

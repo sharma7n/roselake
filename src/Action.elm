@@ -201,6 +201,22 @@ byId id =
                 ]
             }
         
+        "half-ice" ->
+            { id = "half-ice"
+            , name = "Half Ice"
+            , context = Context.Battle
+            , learnCost = 5
+            , actionPointCost = 2
+            , magicPointCost = 1
+            , cooldown = 2
+            , formulas =
+                [ Formula.HalfIce
+                ]
+            , tags =
+                [ ActionTag.Magic
+                ]
+            }
+        
         "flee" ->
             { id = "flee"
             , name = "Flee"

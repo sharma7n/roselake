@@ -15,5 +15,6 @@ type Formula
     | Curse
     | Poison
     | HalfFire
+    | HalfIce
     | Flee
     | MagicEatingBite

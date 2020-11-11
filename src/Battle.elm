@@ -113,6 +113,7 @@ runPlayerAction action ( battle, player ) =
         ( newPlayer2, newMonster, newState ) =
             ( newPlayer, battle.monster, battle.state )
                 |> Util.forEach action.formulas applyFormula
+                |> applyReaction action
         
         newBattle =
             { battle
@@ -137,6 +138,7 @@ runMonsterAction action ( battle, player ) =
         ( newMonster2, newPlayer, newState ) =
             ( newMonster, player, battle.state )
                 |> Util.forEach action.formulas applyFormula
+                |> applyReaction action
         
         newBattle =
             { battle
@@ -223,3 +225,21 @@ applyFormula formula ( a, b, state ) =
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b)
                 |> Battler.applyStatus Target.Self Status.ModifyMagic Duration.Battle 1
                 |> embedState state
+
+applyReaction : Action -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
+applyReaction action ( a, b ) =
+    case passiveFormula of
+        PassiveFormula.PCounterDefend ->
+            ( a, b )
+                |> applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
+        
+        PassiveFormula.PCounterTackle ->
+            ( a, b )
+                |> takeDamage Target.Self (totalAttack b - a.block)
+        
+        PassiveFormula.PCounterFocusDefense ->
+            ( a, b )
+                |> applyStatus Target.Enemy Status.ModifyDefense Duration.Battle 1
+        
+        _ ->
+            ( a, b )

@@ -3,6 +3,7 @@ module Action exposing
     , byId
     )
 
+import ActionTag exposing (ActionTag)
 import Context exposing (Context)
 import Formula exposing (Formula)
 
@@ -17,6 +18,7 @@ type alias Action =
     , magicPointCost : Int
     , cooldown : Int
     , formulas : List Formula
+    , tags : List ActionTag
     }
 
 base : Action
@@ -29,6 +31,7 @@ base =
     , magicPointCost = 0
     , cooldown = 0
     , formulas = []
+    , tags = []
     }
 
 byId : String -> Action
@@ -45,6 +48,9 @@ byId id =
             , formulas =
                 [ formula
                 ]
+            , tags =
+                [ ActionTag.Attack
+                ]
             }
     in
     case id of
@@ -57,6 +63,7 @@ byId id =
             , magicPointCost = 0
             , cooldown = 0
             , formulas = []
+            , tags = []
             }
         
         "attack" ->
@@ -72,6 +79,9 @@ byId id =
             , cooldown = 2
             , formulas =
                 [ Formula.Attack
+                ]
+            , tags =
+                [ ActionTag.Attack
                 ]
             }
         
@@ -98,6 +108,7 @@ byId id =
             , formulas =
                 [ Formula.Block
                 ]
+            , tags = []
             }
         
         "mega-flare" ->
@@ -110,6 +121,9 @@ byId id =
             , cooldown = 1
             , formulas =
                 [ Formula.MegaFlare
+                ]
+            , tags =
+                [ ActionTag.Magic
                 ]
             }
         
@@ -124,6 +138,9 @@ byId id =
             , formulas =
                 [ Formula.Explode
                 ]
+            , tags =
+                [ ActionTag.Magic
+                ]
             }
         
         "focus-attack" ->
@@ -137,6 +154,7 @@ byId id =
             , formulas =
                 [ Formula.ChargeUp 1
                 ]
+            , tags = []
             }
         
         "curse" ->
@@ -150,6 +168,7 @@ byId id =
             , formulas =
                 [ Formula.Curse
                 ]
+            , tags = []
             }
         
         "poison" ->
@@ -163,6 +182,7 @@ byId id =
             , formulas =
                 [ Formula.Poison
                 ]
+            , tags = []
             }
         
         "half-fire" ->
@@ -175,6 +195,9 @@ byId id =
             , cooldown = 2
             , formulas =
                 [ Formula.HalfFire
+                ]
+            , tags =
+                [ ActionTag.Magic
                 ]
             }
         
@@ -189,6 +212,7 @@ byId id =
             , formulas =
                 [ Formula.Flee
                 ]
+            , tags = []
             }
         
         "magic-eating-bite" ->
@@ -202,6 +226,9 @@ byId id =
             , formulas =
                 [ Formula.MagicEatingBite
                 ]
+            , tags =
+                [ ActionTag.Attack
+                ]
             }
         
         _ ->
@@ -213,4 +240,5 @@ byId id =
             , magicPointCost = 0
             , cooldown = 0
             , formulas = []
+            , tags = []
             }

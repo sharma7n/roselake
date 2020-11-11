@@ -87,6 +87,7 @@ all =
                 , magic = 8
                 , passives =
                     [ Passive.byId "p-counter:-focus-defense"
+                    , Passive.byId "m-counter:-learn-spell"
                     ]
             }
         )

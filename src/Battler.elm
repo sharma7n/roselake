@@ -12,6 +12,8 @@ module Battler exposing
     , totalVitality
     )
 
+import Set exposing (Set)
+
 import Util
 
 import Action exposing (Action)
@@ -48,6 +50,7 @@ type alias Battler a =
         , statusSet : StatusSet
         , block : Int
         , passives : List Passive
+        , learned : Set String
     }
 
 totalAttack : Battler a -> Int
@@ -111,26 +114,6 @@ takeDamage t dmg ( a, b ) =
         
         Target.Enemy ->
             ( a, takeOneDamage b )
-                |> Util.forEach b.passives (\passive -> \(x, y) ->
-                    Util.forEach passive.effects (\passiveFormula -> \(xx, yy) ->
-                        applyCounterFormula passiveFormula ( xx, yy )
-                    ) ( x, y )
-                )
-
-applyCounterFormula : PassiveFormula -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
-applyCounterFormula passiveFormula ( a, b ) =
-    case passiveFormula of
-        PassiveFormula.PCounterDefend ->
-            ( a, b )
-                |> applyStatus Target.Enemy Status.ModifyBlock (Duration.Rounds 1) b.vitality
-        
-        PassiveFormula.PCounterTackle ->
-            ( a, b )
-                |> takeDamage Target.Self (totalAttack b - a.block)
-        
-        PassiveFormula.PCounterFocusDefense ->
-            ( a, b )
-                |> applyStatus Target.Enemy Status.ModifyDefense Duration.Battle 1
 
 gainBlock : Target -> Int -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 gainBlock t d ( a, b ) =

@@ -4,6 +4,7 @@ module Monster exposing
     , generateReward
     )
 
+import Set exposing (Set)
 import Random
 
 import Armor exposing (Armor)
@@ -38,6 +39,7 @@ type alias Monster =
     , statusSet : StatusSet
     , block : Int
     , passives : List Passive
+    , learned : Set String
     }
 
 new : MonsterTemplate -> Monster
@@ -65,6 +67,7 @@ new t =
     , statusSet = StatusSet.empty
     , block = 0
     , passives = t.passives
+    , learned = Set.empty
     }
 
 generateReward : Monster -> Random.Generator Reward

@@ -6,3 +6,4 @@ type PassiveFormula
     = PCounterDefend
     | PCounterTackle
     | PCounterFocusDefense
+    | MCounterLearnSpell

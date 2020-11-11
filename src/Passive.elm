@@ -71,4 +71,14 @@ all =
                     ]
             }
         )
+    , new "M-Counter: Learn Spell"
+        (\p ->
+            { p
+                | context = Context.Battle
+                , learnCost = 80
+                , effects =
+                    [ PassiveFormula.MCounterLearnSpell
+                    ]
+            }
+        )
     ]

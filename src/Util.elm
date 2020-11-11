@@ -2,6 +2,7 @@ module Util exposing
     ( boundedBy
     , uncurry
     , forEach
+    , forCount
     , appendMaybe
     , removeListAt
     , getById
@@ -24,6 +25,11 @@ uncurry f (a, b)=
 forEach : List a -> (a -> b -> b) -> b -> b
 forEach l f x =
     List.foldl f x l
+
+forCount : Int -> (a -> a) -> a -> a
+forCount n f x =
+    List.foldl (\_ -> f) x (List.repeat n ())
+
 
 appendMaybe : Maybe a -> List a -> List a
 appendMaybe m l =

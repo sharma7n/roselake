@@ -333,10 +333,10 @@ viewSceneModel scene sceneModel =
                     []
                     [ Html.text "Attributes"
                     , textList
-                        [ "STR: " ++ String.fromInt sceneModel.attack
+                        [ "STR: " ++ String.fromInt sceneModel.strength
                         , "VIT: " ++ String.fromInt sceneModel.vitality
                         , "AGI: " ++ String.fromInt sceneModel.agility
-                        , "INT: " ++ String.fromInt sceneModel.magic
+                        , "INT: " ++ String.fromInt sceneModel.intellect
                         , "CHA: " ++ String.fromInt sceneModel.charisma
                         ]
                     , Html.text "Equipment"

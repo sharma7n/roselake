@@ -1,6 +1,6 @@
 module SceneModel exposing
     ( SceneModel
-    , characterCreationSettingsToSceneModel
+    , characterCreationModelToSceneModel
     , applyEffectsToSceneModel
     , applyReward
     , completeBattle
@@ -12,6 +12,7 @@ import FormResult
 import Util
 
 import CharacterCreationError
+import CharacterCreationModel exposing (CharacterCreationModel)
 import CharacterCreationSettings exposing (CharacterCreationSettings)
 import HairStyle exposing (HairStyle)
 import HairColor exposing (HairColor)
@@ -56,11 +57,11 @@ type alias SceneModel =
     , actionPoints : Int
     , maxActionPoints : Int
     , vitality : Int
-    , attack : Int
-    , magic : Int
+    , strength : Int
     , defense : Int
     , magicDefense : Int
     , agility : Int
+    , intellect : Int
     , charisma : Int
     , actions : List Action
     , passives : List Passive
@@ -121,7 +122,7 @@ applyEffectToSceneModel effect m =
             }
         
         Effect.ChangeAttack d ->
-            { m | attack = max 0 (m.attack + d) }
+            { m | strength = max 0 (m.strength + d) }
         
         _ ->
             m
@@ -130,17 +131,17 @@ applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
 applyEffectsToSceneModel effects m =
     List.foldl applyEffectToSceneModel m effects
 
-characterCreationSettingsToSceneModel : CharacterCreationSettings -> Result (List CharacterCreationError.Error) SceneModel
-characterCreationSettingsToSceneModel settings =
-    FormResult.toValidation settings.name
-        |> Result.andThen (\name -> FormResult.toValidation settings.hairStyle
-        |> Result.andThen (\hairStyle -> FormResult.toValidation settings.hairColor
-        |> Result.andThen (\hairColor -> FormResult.toValidation settings.eyeColor
-        |> Result.andThen (\eyeColor -> FormResult.toValidation settings.complexion
-        |> Result.andThen (\complexion -> FormResult.toValidation settings.height
-        |> Result.andThen (\height -> FormResult.toValidation settings.build
-        |> Result.andThen (\build -> FormResult.toValidation settings.startingWeapon
-        |> Result.andThen (\startingWeapon -> FormResult.toValidation settings.startingEssentia
+characterCreationModelToSceneModel : CharacterCreationModel -> Result (List CharacterCreationError.Error) SceneModel
+characterCreationModelToSceneModel model =
+    FormResult.toValidation model.settings.name
+        |> Result.andThen (\name -> FormResult.toValidation model.settings.hairStyle
+        |> Result.andThen (\hairStyle -> FormResult.toValidation model.settings.hairColor
+        |> Result.andThen (\hairColor -> FormResult.toValidation model.settings.eyeColor
+        |> Result.andThen (\eyeColor -> FormResult.toValidation model.settings.complexion
+        |> Result.andThen (\complexion -> FormResult.toValidation model.settings.height
+        |> Result.andThen (\height -> FormResult.toValidation model.settings.build
+        |> Result.andThen (\build -> FormResult.toValidation model.settings.startingWeapon
+        |> Result.andThen (\startingWeapon -> FormResult.toValidation model.settings.startingEssentia
         |> Result.andThen (\startingEssentia -> Ok <|
             let
                 avatar =
@@ -171,13 +172,13 @@ characterCreationSettingsToSceneModel settings =
             , maxMagicPoints = 5
             , actionPoints = 3
             , maxActionPoints = 3
-            , vitality = 1
-            , attack = 1
-            , magic = 1
+            , vitality = model.vitality
+            , strength = model.strength
             , defense = 0
             , magicDefense = 0
-            , agility = 1
-            , charisma = 1
+            , agility = model.agility
+            , intellect = model.intellect
+            , charisma = model.charisma
             , actions = initActions (Just startingWeapon) Set.empty
             , passives = initPassives Set.empty
             , equippedWeapon = Just startingWeapon

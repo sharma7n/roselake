@@ -19,11 +19,12 @@ type alias MonsterTemplate =
     , hitPoints : Int
     , magicPoints : Int
     , vitality : Int
-    , attack : Int
-    , magic : Int
+    , strength : Int
+    , intellect : Int
     , defense : Int
     , magicDefense : Int
     , agility : Int
+    , charisma : Int
     , behavior : Behavior
     , passives : List Passive
     , equippedWeapon : Maybe Weapon
@@ -40,11 +41,12 @@ new name behavior f =
     , hitPoints = 1
     , magicPoints = 0
     , vitality = 0
-    , attack = 0
-    , magic = 0
+    , strength = 0
+    , intellect = 0
     , defense = 0
     , magicDefense = 0
     , agility = 0
+    , charisma = 0
     , behavior = behavior
     , passives = []
     , equippedWeapon = Nothing
@@ -75,16 +77,16 @@ all =
                 , abilityPoints = 1
                 , hitPoints = 15
                 , vitality = 1
-                , attack = 4
-                , magic = 4
+                , strength = 4
+                , intellect = 4
             })
     , new "Magic-Eating Tortoise" Behavior.MagicEatingTortoise
         (\m ->
             { m
                 | hitPoints = 30
                 , vitality = 3
-                , attack = 2
-                , magic = 8
+                , strength = 2
+                , intellect = 8
                 , passives =
                     [ Passive.byId "p-counter:-focus-defense"
                     , Passive.byId "m-counter:-learn-spell"
@@ -99,7 +101,7 @@ all =
                 , abilityPoints = 1
                 , hitPoints = 30
                 , vitality = 2
-                , attack = 8
-                , magic = 8
+                , strength = 8
+                , intellect = 8
             })
     ]

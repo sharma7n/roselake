@@ -5,6 +5,7 @@ module CharacterCreationModel exposing
 
 import Random
 
+import Attribute exposing (Attribute)
 import CharacterCreationSettings exposing (CharacterCreationSettings)
 
 type alias CharacterCreationModel =
@@ -20,14 +21,15 @@ type alias CharacterCreationModel =
 generator : Random.Generator CharacterCreationModel
 generator =
     CharacterCreationSettings.generator
-        |> Random.andThen (\settings ->
+        |> Random.andThen (\settings -> Attribute.collectionGenerator
+        |> Random.andThen (\collection ->
             Random.constant <|
                 { settings = settings
-                , attributePoints = 25
-                , strength = 1
-                , vitality = 1
-                , agility = 1
-                , intellect = 1
-                , charisma = 1
+                , attributePoints = 0
+                , strength = collection.strength
+                , vitality = collection.vitality
+                , agility = collection.agility
+                , intellect = collection.intellect
+                , charisma = collection.charisma
                 }
-        )
+        ))

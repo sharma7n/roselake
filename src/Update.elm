@@ -593,22 +593,13 @@ updateCharacterCreationConfirmation model characterCreationModel =
             CharacterCreationSettings.check characterCreationModel.settings
         
         sceneModelResult =
-            SceneModel.characterCreationSettingsToSceneModel newSettings
+            SceneModel.characterCreationModelToSceneModel { characterCreationModel | settings = newSettings }
         
         newModel =
             case sceneModelResult of
                 Ok sceneModel ->
-                    let
-                        newSceneModel =
-                            { sceneModel
-                                | attack = characterCreationModel.strength
-                                , vitality = characterCreationModel.vitality
-                                , agility = characterCreationModel.agility
-                            }
-
-                    in
                     { model 
-                        | phase = Phase.ScenePhase Scene.PlayerScene newSceneModel 
+                        | phase = Phase.ScenePhase Scene.PlayerScene sceneModel 
                     }
                 
                 Err _ ->
@@ -624,7 +615,7 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
             CharacterCreationSettings.check characterCreationModel.settings
         
         sceneModelResult =
-            SceneModel.characterCreationSettingsToSceneModel newSettings
+            SceneModel.characterCreationModelToSceneModel { characterCreationModel | settings = newSettings }
         
         newModel =
             case sceneModelResult of

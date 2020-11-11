@@ -41,10 +41,11 @@ type alias Battler a =
         , actionPoints : Int
         , maxActionPoints : Int
         , vitality : Int
-        , attack : Int
-        , magic : Int
+        , strength : Int
+        , intellect : Int
         , agility : Int
         , defense : Int
+        , charisma : Int
         , magicDefense : Int
         , equippedWeapon : Maybe Weapon
         , equippedArmor : Maybe Armor
@@ -56,13 +57,13 @@ type alias Battler a =
 
 totalAttack : Battler a -> Int
 totalAttack b =
-    b.attack 
+    b.strength 
         + Maybe.withDefault 0 (Maybe.map .attack b.equippedWeapon)
         + StatusSet.attack b.statusSet
 
 totalMagic : Battler a -> Int
 totalMagic b =
-    b.magic 
+    b.intellect 
         + Maybe.withDefault 0 (Maybe.map .magic b.equippedWeapon)
         + StatusSet.magic b.statusSet
 

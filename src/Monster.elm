@@ -28,8 +28,9 @@ type alias Monster =
     , actionPoints : Int
     , maxActionPoints : Int
     , vitality : Int
-    , attack : Int
-    , magic : Int
+    , strength : Int
+    , intellect : Int
+    , charisma : Int
     , defense : Int
     , magicDefense : Int
     , agility : Int
@@ -56,10 +57,11 @@ new t =
     , actionPoints = 0
     , maxActionPoints = 0
     , vitality = t.vitality
-    , attack = t.attack
+    , strength = t.strength
     , defense = t.defense
     , magicDefense = t.magicDefense
-    , magic = t.magic
+    , intellect = t.intellect
+    , charisma = t.charisma
     , agility = t.agility
     , behavior = t.behavior
     , equippedWeapon = t.equippedWeapon

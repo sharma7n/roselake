@@ -28,3 +28,4 @@ type Scene
     | GameOverScene
     | EscapedScene
     | TownScene
+    | OnyxTowerScene

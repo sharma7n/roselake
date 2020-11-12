@@ -57,6 +57,7 @@ type Msg
     | UserSelectedEndBattleTurn
     | UserSelectedRest
     | UserSelectedOpenChest
+    | UserSelectedOnyxTower
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedModifyCharacterCreationAttribute Attribute Int
     | UserSelectedCharacterCreationConfirmation

@@ -458,6 +458,9 @@ viewSceneModel scene sceneModel =
         Scene.TownScene ->
             viewTownScene sceneModel
         
+        Scene.OnyxTowerScene ->
+            viewOnyxTowerScene sceneModel
+        
         Scene.ExploreScene ->
             dungeonTable
                 [ Dungeon.byId "beginnerscave"
@@ -941,12 +944,23 @@ viewTownScene m =
     Html.ul
         []
         [ Html.li
-            []
+            [ Html.Events.onClick <| Msg.UserSelectedOnyxTower
+            ]
             [ Html.text "Onyx Tower"
             ]
         , Html.li
-            []
+            [ Html.Events.onClick <| Msg.UserSelectedShop (Shop.byId "potionshop")
+            ]
             [ Html.text "Potion Shop"
             ]
         ]
 
+viewOnyxTowerScene : SceneModel -> Html Msg
+viewOnyxTowerScene m =
+    Html.ul
+        []
+        [ Html.li
+            []
+            [ Html.text "It's the Onyx Tower"
+            ]
+        ]

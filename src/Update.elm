@@ -540,6 +540,9 @@ update msg model =
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateDevCharacterCreationConfirmation model characterCreationModel
         
+        ( Msg.UserSelectedOnyxTower, Phase.ScenePhase _ sceneModel ) ->
+            ( { model | phase = Phase.ScenePhase Scene.OnyxTowerScene sceneModel }, Cmd.none )
+        
         _ ->
             ( model, Cmd.none )
 

@@ -213,7 +213,7 @@ viewScenePhase scene sceneModel =
                     , ( "Equip", Msg.UserSelectedScene Scene.EquipScene )
                     , ( "Home", Msg.UserSelectedScene Scene.HomeScene )
                     , ( "Shop", Msg.UserSelectedScene Scene.ShopSelectScene )
-                    , ( "Town", Msg.NoOp )
+                    , ( "Town", Msg.UserSelectedScene Scene.TownScene )
                     , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
                     , ( "Battle", Msg.UserSelectedScene Scene.BattleScene )
                     ]
@@ -454,6 +454,9 @@ viewSceneModel scene sceneModel =
         
         Scene.ShopScene shop ->
             viewShopScene sceneModel shop
+        
+        Scene.TownScene ->
+            viewTownScene sceneModel
         
         Scene.ExploreScene ->
             dungeonTable
@@ -932,3 +935,18 @@ viewLearnScene m =
     Html.span
         []
         ( List.map viewLearnOneEssentia learnableEssentia )
+
+viewTownScene : SceneModel -> Html Msg
+viewTownScene m =
+    Html.ul
+        []
+        [ Html.li
+            []
+            [ Html.text "Onyx Tower"
+            ]
+        , Html.li
+            []
+            [ Html.text "Potion Shop"
+            ]
+        ]
+

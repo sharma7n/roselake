@@ -27,3 +27,4 @@ type Scene
     | VictoryScene Battle Reward
     | GameOverScene
     | EscapedScene
+    | TownScene

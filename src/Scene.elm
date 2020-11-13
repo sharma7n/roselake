@@ -29,3 +29,4 @@ type Scene
     | EscapedScene
     | TownScene
     | OnyxTowerScene
+    | BossSelectScene

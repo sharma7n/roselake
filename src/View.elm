@@ -32,6 +32,7 @@ import Battler exposing (Battler)
 import Target exposing (Target)
 import Avatar exposing (Avatar)
 import Delve exposing (Delve)
+import Boss exposing (Boss)
 import DelvePhase exposing (DelvePhase)
 import DungeonPath
 import DungeonScene
@@ -216,6 +217,7 @@ viewScenePhase scene sceneModel =
                     , ( "Town", Msg.UserSelectedScene Scene.TownScene )
                     , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
                     , ( "Battle", Msg.UserSelectedScene Scene.BattleScene )
+                    , ( "Boss", Msg.UserSelectedScene Scene.BossSelectScene )
                     ]
         , viewSceneModel scene sceneModel
         ]
@@ -501,6 +503,11 @@ viewSceneModel scene sceneModel =
         Scene.EscapedScene ->
             textList
                 [ "Escaped..."
+                ]
+        
+        Scene.BossSelectScene ->
+            viewBosses
+                [ Boss.byId "ogopogo"
                 ]
 
 viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
@@ -944,14 +951,22 @@ viewTownScene m =
     Html.ul
         []
         [ Html.li
-            [ Html.Events.onClick <| Msg.UserSelectedOnyxTower
-            ]
+            []
             [ Html.text "Onyx Tower"
+            , Html.button
+                [ Html.Events.onClick <| Msg.UserSelectedOnyxTower
+                ]
+                [ Html.text "Go"
+                ]
             ]
         , Html.li
-            [ Html.Events.onClick <| Msg.UserSelectedShop (Shop.byId "potionshop")
-            ]
+            []
             [ Html.text "Potion Shop"
+            , Html.button
+                [ Html.Events.onClick <| Msg.UserSelectedShop (Shop.byId "potionshop")
+                ]
+                [ Html.text "Go"
+                ]
             ]
         ]
 
@@ -964,3 +979,20 @@ viewOnyxTowerScene m =
             [ Html.text "It's the Onyx Tower"
             ]
         ]
+
+viewBosses : List Boss -> Html Msg
+viewBosses bosses =
+    let
+        viewOneBoss boss =
+            Html.li
+                []
+                [ Html.text boss.name
+                , Html.button
+                    []
+                    [ Html.text "Go"
+                    ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map viewOneBoss bosses )

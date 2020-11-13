@@ -9,6 +9,8 @@ import DelvePhase exposing (DelvePhase)
 import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
+import BossPhase exposing (BossPhase)
+import BossState exposing (BossState)
 
 type Scene
     = PlayerScene
@@ -30,3 +32,4 @@ type Scene
     | TownScene
     | OnyxTowerScene
     | BossSelectScene
+    | BossFightScene BossPhase BossState

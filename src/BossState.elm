@@ -3,7 +3,9 @@ module BossState exposing
     )
 
 import Boss exposing (Boss)
+import Monster exposing (Monster)
 
 type alias BossState =
     { boss : Boss
+    , monster : Monster
     }

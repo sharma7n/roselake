@@ -52,6 +52,11 @@ import Weapon exposing (Weapon)
 import Status exposing (Status)
 import Essentia exposing (Essentia)
 
+import BossPhase exposing (BossPhase)
+import BossState exposing (BossState)
+import BossPath exposing (BossPath)
+import BossScene exposing (BossScene)
+
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
@@ -205,6 +210,9 @@ viewScenePhase scene sceneModel =
                 Html.div
                     []
                     []
+            
+            Scene.BossFightScene _ _ ->
+                Html.div [] []
             
             _ ->
                  buttonBar
@@ -509,6 +517,9 @@ viewSceneModel scene sceneModel =
             viewBosses
                 [ Boss.byId "ogopogo"
                 ]
+        
+        Scene.BossFightScene bossPhase bossState ->
+            viewBossFight sceneModel bossPhase bossState
 
 viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeonScene sceneModel delvePhase delve =
@@ -988,7 +999,8 @@ viewBosses bosses =
                 []
                 [ Html.text boss.name
                 , Html.button
-                    []
+                    [ Html.Events.onClick <| Msg.UserSelectedBossFight boss
+                    ]
                     [ Html.text "Go"
                     ]
                 ]
@@ -996,3 +1008,55 @@ viewBosses bosses =
     Html.ul
         []
         ( List.map viewOneBoss bosses )
+
+viewBossFight : SceneModel -> BossPhase -> BossState -> Html Msg
+viewBossFight sceneModel phase state =
+    Html.div
+        []
+        [ textList
+            [ "Boss: " ++ state.monster.name
+            , "HP: " ++ String.fromInt state.monster.hitPoints ++ " / " ++ String.fromInt state.monster.maxHitPoints
+            ]
+        , case phase of
+            BossPhase.ExplorationPhase paths ->
+                bossPathTable paths
+            
+            BossPhase.ActionPhase scene ->
+                case scene of
+                    BossScene.BattleBoss battle intent ->
+                        viewBattleMonsterScene sceneModel battle intent
+                    
+                    _ ->
+                        Html.ul
+                            []
+                            [ Html.text <| BossScene.toString scene
+                            , Html.button
+                                [ Html.Events.onClick <| Msg.UserSelectedContinueBossFight ]
+                                [ Html.text "Continue" ]
+                            ]
+        ]
+
+bossPathTable : List BossPath -> Html Msg
+bossPathTable paths =
+    let
+        pathFn path =
+            Html.li
+                []
+                [ Html.text path.description
+                , explainBossSceneDistribution path.sceneDistribution
+                , Html.button
+                    [ Html.Events.onClick <| Msg.UserSelectedBossPath path ]
+                    [ Html.text "Go" ]
+                ]
+    in
+    Html.ul
+        []
+        ( List.map pathFn paths )
+
+explainBossSceneDistribution : Distribution BossScene -> Html Msg
+explainBossSceneDistribution d =
+    let
+        explainOneScene ( chance, scene ) =
+            String.fromFloat chance ++ "% of " ++ BossScene.toString scene
+    in
+    textList (List.map explainOneScene (Distribution.toList d))

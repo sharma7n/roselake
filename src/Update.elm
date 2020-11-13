@@ -46,6 +46,9 @@ import Item exposing (Item)
 import Weapon exposing (Weapon)
 import Status exposing (Status)
 import Battle exposing (Battle)
+import BossPath exposing (BossPath)
+import BossPhase exposing (BossPhase)
+import BossState exposing (BossState)
 
 import EssentiaContainer exposing (EssentiaContainer)
 
@@ -294,6 +297,16 @@ update msg model =
             in
             ( model, cmd )
         
+        ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ ) ->
+            let
+                pathListGenerator =
+                    Random.list 3 BossPath.generator
+                
+                cmd =
+                    Random.generate (Msg.SystemGotBossInitialization boss) pathListGenerator
+            in
+            ( model, cmd )
+        
         ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase Scene.ExploreScene sceneModel ) ->
             let
                 delve =
@@ -302,6 +315,24 @@ update msg model =
                     }
             in
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ExplorationPhase paths) delve) sceneModel }, Cmd.none )
+        
+        ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase _ sceneModel ) ->
+            let
+                bossState =
+                    { boss = boss
+                    , monster = Monster.new boss.monsterTemplate
+                    }
+                
+                newPhase =
+                    Phase.ScenePhase ( Scene.BossFightScene ( BossPhase.ExplorationPhase paths ) bossState ) sceneModel
+                
+                newModel =
+                    { model
+                        | phase = newPhase
+                    }
+            in
+            ( newModel, Cmd.none )
+            
         
         ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _) ->
             let

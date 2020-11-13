@@ -18,6 +18,9 @@ import MonsterTemplate exposing (MonsterTemplate)
 import Object exposing (Object)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
+import Boss exposing (Boss)
+import BossPath exposing (BossPath)
+import BossScene exposing (BossScene)
 import Weapon exposing (Weapon)
 
 import EssentiaContainer exposing (EssentiaContainer)
@@ -25,8 +28,7 @@ import EssentiaContainer exposing (EssentiaContainer)
 import Scene exposing (Scene)
 
 type Msg
-    = NoOp
-    | UserSelectedScene Scene
+    = UserSelectedScene Scene
     | UserSelectedMonsterTemplate MonsterTemplate
     | UserSelectedLearnSkill Action
     | UserSelectedLearnPassive Passive
@@ -40,26 +42,36 @@ type Msg
     | UserSelectedUnEquipArmor Armor
     | UserSelectedEquipEssentia EssentiaContainer.Index Int Essentia
     | UserSelectedUnEquipEssentia EssentiaContainer.Index Essentia
+    | SystemGotMonsterTemplate MonsterTemplate
+    | SystemGotObject Object
+    | SystemGotReward Reward
+    | SystemGotShop Shop
+    | UserSelectedRest
+    | UserSelectedOpenChest
+    | UserSelectedOnyxTower
+    -- CHARACTER CREATION
+    | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
+    | UserSelectedModifyCharacterCreationAttribute Attribute Int
+    | SystemGotCharacterCreationModel CharacterCreationModel
+    | UserSelectedCharacterCreationConfirmation
+    | UserSelectedRandomCharacterCreation
+    | DevSelectedCharacterCreationConfirmation
+    -- DUNGEON
     | UserSelectedExploreDungeonScene Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath DungeonPath.Path
     | SystemGotDungeonScene DungeonScene.Scene
     | UserSelectedContinueDungeon
-    | UserSelectedExitDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
-    | SystemGotMonsterTemplate MonsterTemplate
+    | UserSelectedExitDungeon
+    -- BOSS
+    | UserSelectedBossFight Boss
+    | SystemGotBossInitialization Boss (List BossPath)
+    | UserSelectedBossPath BossPath
+    | SystemGotBossScene BossScene
+    | UserSelectedContinueBossFight
+    | SystemGotBossFightContinuation (List BossPath)
+    -- BATTLE
     | SystemGotMonsterIntent Action
-    | SystemGotObject Object
-    | SystemGotReward Reward
-    | SystemGotShop Shop
-    | SystemGotCharacterCreationModel CharacterCreationModel
     | UserSelectedBattleAction Action
     | UserSelectedEndBattleTurn
-    | UserSelectedRest
-    | UserSelectedOpenChest
-    | UserSelectedOnyxTower
-    | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
-    | UserSelectedModifyCharacterCreationAttribute Attribute Int
-    | UserSelectedCharacterCreationConfirmation
-    | UserSelectedRandomCharacterCreation
-    | DevSelectedCharacterCreationConfirmation

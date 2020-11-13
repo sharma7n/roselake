@@ -104,4 +104,15 @@ all =
                 , strength = 8
                 , intellect = 8
             })
+    , new "Ogopogo" Behavior.Ogopogo
+        (\m ->
+            { m
+                | experience = 1
+                , gold = 1
+                , abilityPoints = 1
+                , hitPoints = 30
+                , vitality = 2
+                , strength = 8
+                , intellect = 8
+            })
     ]

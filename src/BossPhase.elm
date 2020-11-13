@@ -2,9 +2,9 @@ module BossPhase exposing
     ( BossPhase(..)
     )
 
-import BossPath
-import BossScene
+import BossPath exposing (BossPath)
+import BossScene exposing (BossScene)
 
 type BossPhase
-    = ExplorationPhase (List BossPath.Path)
-    | ActionPhase BossScene.Scene
+    = ExplorationPhase (List BossPath)
+    | ActionPhase BossScene

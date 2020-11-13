@@ -1,19 +1,19 @@
 module BossPath exposing
-    ( Path
+    ( BossPath
     , generator
     )
 
 import Random
 
 import Distribution exposing (Distribution)
-import BossScene
+import BossScene exposing (BossScene)
 
-type alias Path =
+type alias BossPath =
     { description : String
-    , sceneDistribution : Distribution BossScene.Scene
+    , sceneDistribution : Distribution BossScene
     }
 
-generator : Random.Generator Path
+generator : Random.Generator BossPath
 generator =
     Random.constant <|
         { description = "Leap onto ice block"

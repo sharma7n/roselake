@@ -12,12 +12,17 @@ type alias Boss =
     , monsterTemplate : MonsterTemplate
     }
 
+new : String -> MonsterTemplate -> (Boss -> Boss) -> Boss
+new name monsterTemplate f =
+    { id = Util.kebabify name
+    , name = name
+    , monsterTemplate = monsterTemplate
+    }
+        |> f
+
 default : Boss
 default =
-    { id = "null"
-    , name = "Null Boss"
-    , monsterTemplate = MonsterTemplate.byId "null"
-    }
+    new "Null Boss" (MonsterTemplate.byId "null") (\x -> x)
 
 byId : String -> Boss
 byId =
@@ -25,13 +30,7 @@ byId =
 
 all : List Boss
 all =
-    let
-        ogopogo =
-            { default
-                | id = "ogopogo"
-                , name = "Ogopogo"
-                , monsterTemplate = MonsterTemplate.byId "ogopogo"
-            }
-    in
-    [ ogopogo
+    [ new "Leviathan" (MonsterTemplate.byId "ogopogo") (\b ->
+        b
+      )
     ]

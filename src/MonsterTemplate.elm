@@ -104,7 +104,7 @@ all =
                 , strength = 8
                 , intellect = 8
             })
-    , new "Ogopogo" Behavior.Ogopogo
+    , new "Pumpkin Wraith" Behavior.PumpkinWraith
         (\m ->
             { m
                 | experience = 1

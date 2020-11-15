@@ -10,6 +10,7 @@ type alias Boss =
     { id : String
     , name : String
     , monsterTemplate : MonsterTemplate
+    , showBoss : Bool
     }
 
 new : String -> MonsterTemplate -> (Boss -> Boss) -> Boss
@@ -17,6 +18,7 @@ new name monsterTemplate f =
     { id = Util.kebabify name
     , name = name
     , monsterTemplate = monsterTemplate
+    , showBoss = False
     }
         |> f
 
@@ -30,7 +32,7 @@ byId =
 
 all : List Boss
 all =
-    [ new "Leviathan" (MonsterTemplate.byId "ogopogo") (\b ->
+    [ new "Pumpkin Wraith" (MonsterTemplate.byId "pumpkin-wraith") (\b ->
         b
       )
     ]

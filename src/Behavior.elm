@@ -9,4 +9,4 @@ type Behavior
     | BunBun
     | Wyvern
     | MagicEatingTortoise
-    | Ogopogo
+    | PumpkinWraith

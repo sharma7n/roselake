@@ -515,7 +515,7 @@ viewSceneModel scene sceneModel =
         
         Scene.BossSelectScene ->
             viewBosses
-                [ Boss.byId "ogopogo"
+                [ Boss.byId "pumpkin-wraith"
                 ]
         
         Scene.BossFightScene bossPhase bossState ->
@@ -1013,10 +1013,13 @@ viewBossFight : SceneModel -> BossPhase -> BossState -> Html Msg
 viewBossFight sceneModel phase state =
     Html.div
         []
-        [ textList
-            [ "Boss: " ++ state.monster.name
-            , "HP: " ++ String.fromInt state.monster.hitPoints ++ " / " ++ String.fromInt state.monster.maxHitPoints
-            ]
+        [ if state.boss.showBoss then
+            textList
+                [ "Boss: " ++ state.monster.name
+                , "HP: " ++ String.fromInt state.monster.hitPoints ++ " / " ++ String.fromInt state.monster.maxHitPoints
+                ]
+          else
+            Html.div [] []
         , case phase of
             BossPhase.ExplorationPhase paths ->
                 bossPathTable paths

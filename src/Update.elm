@@ -405,6 +405,9 @@ update msg model =
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneModel }, Cmd.none )
 
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent battle)) state) sceneModel ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle intent)) state) sceneModel }, Cmd.none )
+
         ( Msg.SystemGotBossMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene _ state ) sceneModel ) ->
             let
                 newBattle =
@@ -532,6 +535,12 @@ update msg model =
         
         ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) sceneModel ) ->
             updateDungeonEndBattleTurn model battle monsterAction delve sceneModel
+        
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) sceneModel ) ->
+            updateBossBattleAction model battle action monsterAction state sceneModel
+        
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) sceneModel ) ->
+            updateBossEndBattleTurn model battle monsterAction state sceneModel
         
         ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
             let
@@ -820,6 +829,66 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
                 ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+        
+        newSceneModel3 =
+            { newSceneModel2 
+                | actionPoints = newSceneModel2.maxActionPoints
+                , actionStates =
+                    newSceneModel2.actionStates
+                        |> List.map ActionState.tick
+            }
+    in
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
+
+updateBossBattleAction : Model -> Battle -> Action -> Action -> BossState -> SceneModel -> ( Model, Cmd Msg )
+updateBossBattleAction model battle action monsterAction state sceneModel =
+    let
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runPlayerAction action
+        
+        newMonster =
+            newBattle.monster
+        
+        ( newScene, newSceneModel2, newCmd ) =
+            if newBattle.state == Battle.Done then
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) state, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newMonster.hitPoints <= 0 then
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) state, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+            else
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing newBattle monsterAction)) state, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+
+        newSceneModel3 =
+            { newSceneModel2
+                | actionStates =
+                    newSceneModel2.actionStates
+                        |> ActionState.performOneAction action
+            }
+    in
+    ( { model | phase = Phase.ScenePhase newScene newSceneModel3 }, newCmd )
+
+updateBossEndBattleTurn : Model -> Battle -> Action -> BossState -> SceneModel -> ( Model, Cmd Msg )
+updateBossEndBattleTurn model battle monsterAction state sceneModel =
+    let
+        ( newBattle, newSceneModel ) =
+            ( battle, sceneModel )
+                |> Battle.runMonsterAction monsterAction
+                |> Battle.completeRound
+        
+        newMonster =
+            newBattle.monster
+        
+        ( newScene, newSceneModel2, newCmd ) =
+            if newBattle.state == Battle.Done then
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) state, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newSceneModel.hitPoints <= 0 then
+                ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
+            else if newMonster.hitPoints <= 0 then
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) state, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+            else
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent newBattle)) state, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
             { newSceneModel2 

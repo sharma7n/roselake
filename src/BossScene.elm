@@ -22,8 +22,8 @@ type BossScene
     --| Battle
     --| BattleMonsterLoadingIntent Battle
     --| BattleMonster Battle Action
-    ---|-- -VictoryLoading Battle
-    --| Victory Battle Reward
+    | VictoryLoading Battle
+    | Victory Battle Reward
     --| Treasure
     --| ReceiveTreasure Object
     --| Event
@@ -34,7 +34,7 @@ type BossScene
     --| TrapDoor
     --| LoadingGoal
     ---| Goal Reward
-    --| Escaped
+    | Escaped
 
 generator : Random.Generator BossScene
 generator =
@@ -56,3 +56,12 @@ toString s =
         
         BattleBossOngoing _ _ ->
             "Battle Boss"
+        
+        Escaped ->
+            "Escaped"
+        
+        VictoryLoading _ ->
+            "Victory Loading"
+        
+        Victory _ _ ->
+            "Victory"

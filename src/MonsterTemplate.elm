@@ -104,7 +104,7 @@ all =
                 , strength = 8
                 , intellect = 8
             })
-    , new "Pumpkin Wraith" Behavior.PumpkinWraith
+    , new "Leviathan" Behavior.Leviathan
         (\m ->
             { m
                 | experience = 1

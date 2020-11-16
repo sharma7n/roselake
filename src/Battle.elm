@@ -118,7 +118,7 @@ chooseMonsterAction battle =
                 Nothing ->
                     Random.constant <| Action.byId "magic-eating-bite"
         
-        Behavior.PumpkinWraith ->
+        Behavior.Leviathan ->
             Random.constant <| Action.byId "nothing"
 
 runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )

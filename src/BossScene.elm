@@ -15,7 +15,9 @@ import Shop exposing (Shop)
 
 type BossScene
     = Empty
-    | BattleBoss Battle Action
+    | BattleBoss
+    | BattleBossLoadingIntent Battle
+    | BattleBossOngoing Battle Action
     --| Trap
     --| Battle
     --| BattleMonsterLoadingIntent Battle
@@ -46,5 +48,11 @@ toString s =
         Empty ->
             "Empty"
         
-        BattleBoss _ _ ->
+        BattleBoss ->
+            "Battle Boss"
+        
+        BattleBossLoadingIntent _ ->
+            "Battle Boss"
+        
+        BattleBossOngoing _ _ ->
             "Battle Boss"

@@ -49,6 +49,7 @@ import Battle exposing (Battle)
 import BossPath exposing (BossPath)
 import BossPhase exposing (BossPhase)
 import BossState exposing (BossState)
+import BossScene exposing (BossScene)
 
 import EssentiaContainer exposing (EssentiaContainer)
 
@@ -300,7 +301,7 @@ update msg model =
         ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ ) ->
             let
                 pathListGenerator =
-                    Random.list 3 BossPath.generator
+                    Random.list 3 ( BossPath.generator boss.bossBehavior )
                 
                 cmd =
                     Random.generate (Msg.SystemGotBossInitialization boss) pathListGenerator
@@ -341,6 +342,13 @@ update msg model =
             in
             ( model, cmd )
         
+        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _) ->
+            let
+                cmd =
+                    Random.generate Msg.SystemGotBossScene (Distribution.random path.sceneDistribution)
+            in
+            ( model, cmd )
+        
         ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
             let
                 cmd =
@@ -356,6 +364,25 @@ update msg model =
                 
             in
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase scene) delve) sceneModel }, cmd )
+        
+        ( Msg.SystemGotBossScene scene, Phase.ScenePhase (Scene.BossFightScene _ state) _ ) ->
+            let
+                newBattle =
+                    Battle.new state.monster
+
+                cmd =
+                    case scene of
+                        BossScene.BattleBoss ->
+                            let
+                                behaviorGenerator =
+                                    Battle.chooseMonsterAction newBattle
+                            in
+                            Random.generate Msg.SystemGotBossMonsterIntent behaviorGenerator
+                        
+                        _ ->
+                            Cmd.none                
+            in
+            ( model, cmd )
         
         ( Msg.UserSelectedOpenChest, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _ ) ->
             ( model, Random.generate Msg.SystemGotObject Object.generator )
@@ -378,6 +405,19 @@ update msg model =
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel ) ->
             ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneModel }, Cmd.none )
 
+        ( Msg.SystemGotBossMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene _ state ) sceneModel ) ->
+            let
+                newBattle =
+                    Battle.new state.monster
+                
+                newBossPhase =
+                    BossPhase.ActionPhase ( BossScene.BattleBossOngoing newBattle intent )
+                
+                newModel =
+                    { model | phase = Phase.ScenePhase (Scene.BossFightScene newBossPhase state ) sceneModel }
+            in
+            ( newModel, Cmd.none )
+        
         ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
             let
                 newDungeonScene =

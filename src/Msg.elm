@@ -71,6 +71,7 @@ type Msg
     | SystemGotBossScene BossScene
     | UserSelectedContinueBossFight
     | SystemGotBossFightContinuation (List BossPath)
+    | SystemGotBossMonsterIntent Action
     -- BATTLE
     | SystemGotMonsterIntent Action
     | UserSelectedBattleAction Action

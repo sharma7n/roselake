@@ -515,7 +515,7 @@ viewSceneModel scene sceneModel =
         
         Scene.BossSelectScene ->
             viewBosses
-                [ Boss.byId "pumpkin-wraith"
+                [ Boss.byId "leviathan"
                 ]
         
         Scene.BossFightScene bossPhase bossState ->
@@ -1026,7 +1026,13 @@ viewBossFight sceneModel phase state =
             
             BossPhase.ActionPhase scene ->
                 case scene of
-                    BossScene.BattleBoss battle intent ->
+                    BossScene.BattleBoss ->
+                        Html.div [] []
+                    
+                    BossScene.BattleBossLoadingIntent _ ->
+                        Html.div [] []
+                    
+                    BossScene.BattleBossOngoing battle intent ->
                         viewBattleMonsterScene sceneModel battle intent
                     
                     _ ->

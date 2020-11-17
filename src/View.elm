@@ -195,7 +195,6 @@ viewScenePhase scene sceneModel =
             , textListItem <| "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
             , textListItem <| "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
             , statusSetListItem sceneModel.statusSet
-            , textListItem <| "Satiety: " ++ String.fromInt sceneModel.satiety ++ " / " ++ String.fromInt sceneModel.maxSatiety
             , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
             , textListItem <| "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]

@@ -48,8 +48,6 @@ type alias SceneModel =
     , totalAbilityPoints : Int
     , learned : Set String
     , learnedPassives : Set String
-    , satiety : Int
-    , maxSatiety : Int
     , hitPoints : Int
     , maxHitPoints : Int
     , magicPoints : Int
@@ -81,19 +79,6 @@ applyEffectToSceneModel effect m =
         
         Effect.ChangeExperience d ->
             { m | experience = max 0 (m.experience + d) }
-        
-        Effect.ChangeSatiety d ->
-            { m | satiety = Util.boundedBy 0 m.maxSatiety (m.satiety + d) }
-        
-        Effect.ChangeMaxSatiety d ->
-            let
-                newMaxSatiety =
-                    max 1 (m.maxSatiety + d)
-            in
-            { m
-                | maxSatiety = newMaxSatiety
-                , satiety = Util.boundedBy 0 newMaxSatiety m.satiety
-            }
         
         Effect.ChangeHitPoints d ->
             { m | hitPoints = Util.boundedBy 0 m.maxHitPoints (m.hitPoints + d) }
@@ -164,8 +149,6 @@ characterCreationModelToSceneModel model =
             , totalAbilityPoints = 0
             , learned = Set.empty
             , learnedPassives = Set.empty
-            , satiety = 10
-            , maxSatiety = 10
             , hitPoints = 10
             , maxHitPoints = 10
             , magicPoints = 5

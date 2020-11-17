@@ -36,8 +36,19 @@ generator =
                     , ( 10, DungeonScene.Shop )
                     ]
             }
+        
+        monsterNest =
+            { description = "Monster nest"
+            , sceneDistribution = 
+                Distribution.new
+                    ( 10, DungeonScene.Empty )
+                    [ ( 70, DungeonScene.Battle )
+                    , ( 20, DungeonScene.Treasure )
+                    ]
+            }
     in
     Random.weighted
-        ( 20, restArea )
-        [ ( 80, windingTunnels )
+        ( 10, restArea )
+        [ ( 45, windingTunnels )
+        , ( 45, monsterNest )
         ]

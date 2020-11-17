@@ -198,7 +198,6 @@ viewScenePhase scene sceneModel =
             , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
             , textListItem <| "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
             ]
-        , viewInventory sceneModel.inventory
         , case scene of
             Scene.BattleMonsterScene _ _ ->
                 Html.div
@@ -223,10 +222,10 @@ viewScenePhase scene sceneModel =
                     , ( "Shop", Msg.UserSelectedScene Scene.ShopSelectScene )
                     , ( "Town", Msg.UserSelectedScene Scene.TownScene )
                     , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
-                    , ( "Battle", Msg.UserSelectedScene Scene.BattleScene )
                     , ( "Boss", Msg.UserSelectedScene Scene.BossSelectScene )
                     ]
         , viewSceneModel scene sceneModel
+        , viewInventory sceneModel.inventory
         ]
 
 viewInventory : Inventory -> Html Msg

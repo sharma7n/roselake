@@ -32,6 +32,7 @@ type Scene
     | LoadingGoal
     | Goal Reward
     | Escaped
+    | Discovery
 
 generator : Random.Generator Scene
 generator =
@@ -44,6 +45,7 @@ generator =
         , RestArea
         , Shop
         , TrapDoor
+        , Discovery
         ]
 
 toString : Scene -> String
@@ -102,3 +104,6 @@ toString s =
         
         Escaped ->
             "Escaped"
+        
+        Discovery ->
+            "Discovery"

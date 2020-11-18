@@ -46,19 +46,38 @@ generator =
                     []
             }
         
-        monsterNest =
-            { description = "Monster Nest"
+        monsterHunt =
+            { description = "Monster Hunt"
             , sceneDistribution = 
                 Distribution.new
-                    ( 10, DungeonScene.Empty )
-                    [ ( 70, DungeonScene.Battle )
-                    , ( 20, DungeonScene.Treasure )
+                    ( 80, DungeonScene.Battle )
+                    [ ( 20, DungeonScene.Treasure )
+                    ]
+            }
+        
+        monsterStealth =
+            { description = "Monster Stealth"
+            , sceneDistribution =
+                Distribution.new
+                    ( 60, DungeonScene.Empty )
+                    [ ( 40, DungeonScene.Battle )
+                    ]
+            }
+        
+        ricketyBridge =
+            { description = "Rickety Bridge"
+            , sceneDistribution =
+                Distribution.new
+                    ( 50, DungeonScene.Empty )
+                    [ ( 50, DungeonScene.TrapDoor )
                     ]
             }
     in
     Random.weighted
         ( 5, restArea )
-        [ ( 45, windingTunnels )
-        , ( 45, monsterNest )
+        [ ( 40, windingTunnels )
+        , ( 20, monsterHunt )
+        , ( 20, monsterStealth )
         , ( 5, terrainPatch )
+        , ( 10, ricketyBridge )
         ]

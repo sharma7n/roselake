@@ -859,15 +859,18 @@ updateBossBattleAction model battle action monsterAction state sceneModel =
         newMonster =
             newBattle.monster
         
+        newState =
+            { state | monster = newMonster }
+        
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) state, SceneModel.completeBattle newSceneModel, Cmd.none )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) state, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing newBattle monsterAction)) state, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing newBattle monsterAction)) newState, newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
 
         newSceneModel3 =
             { newSceneModel2
@@ -889,15 +892,18 @@ updateBossEndBattleTurn model battle monsterAction state sceneModel =
         newMonster =
             newBattle.monster
         
+        newState =
+            { state | monster = newMonster }
+        
         ( newScene, newSceneModel2, newCmd ) =
             if newBattle.state == Battle.Done then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) state, SceneModel.completeBattle newSceneModel, Cmd.none )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newSceneModel.hitPoints <= 0 then
                 ( Scene.GameOverScene, SceneModel.completeBattle newSceneModel, Cmd.none )
             else if newMonster.hitPoints <= 0 then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) state, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState, newSceneModel, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
             else
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent newBattle)) state, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent newBattle)) newState, Battler.completeRound newSceneModel, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
         
         newSceneModel3 =
             { newSceneModel2 

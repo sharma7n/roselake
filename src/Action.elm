@@ -247,6 +247,20 @@ byId id =
                 ]
             }
         
+        "swim-away" ->
+            { id = "swim-away"
+            , name = "Swim Away"
+            , context = Context.Battle
+            , learnCost = 0
+            , actionPointCost = 3
+            , magicPointCost = 0
+            , cooldown = 0
+            , formulas =
+                [ Formula.SwimAway
+                ]
+            , tags = []
+            }
+        
         _ ->
             { id = "null"
             , name = "Null Action"

@@ -18,3 +18,4 @@ type Formula
     | HalfIce
     | Flee
     | MagicEatingBite
+    | SwimAway

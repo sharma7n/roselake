@@ -119,7 +119,10 @@ chooseMonsterAction battle =
                     Random.constant <| Action.byId "magic-eating-bite"
         
         Behavior.Leviathan ->
-            Random.constant <| Action.byId "attack"
+            Random.weighted
+                ( 50, Action.byId "attack" )
+                [ ( 50, Action.byId "swim-away" )
+                ]
 
 runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
 runPlayerAction action ( battle, player ) =
@@ -255,6 +258,9 @@ applyFormula formula ( a, b, state ) =
                 |> Battler.takeDamage Target.Enemy (Battler.totalAttack a - b.block - Battler.totalDefense b) []
                 |> Battler.applyStatus Target.Self Status.ModifyMagic Duration.Battle 1
                 |> embedState state
+        
+        Formula.SwimAway ->
+            ( a, b, Done )
 
 applyReaction : Action -> ( Battler a, Battler b, State ) -> ( Battler a, Battler b, State )
 applyReaction action ( a, b, s ) =

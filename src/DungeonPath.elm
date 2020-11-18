@@ -17,15 +17,16 @@ generator : Random.Generator Path
 generator =
     let
         restArea =
-            { description = "The glow of a save point"
+            { description = "Save Point"
             , sceneDistribution =
                 Distribution.new
-                    ( 100, DungeonScene.RestArea )
-                    []
+                    ( 95, DungeonScene.RestArea )
+                    [ ( 5, DungeonScene.TrapDoor )
+                    ]
             }
         
         windingTunnels =
-            { description = "Follow the winding tunnels"
+            { description = "Grab Bag"
             , sceneDistribution =
                 Distribution.new
                     ( 20, DungeonScene.Empty )
@@ -37,8 +38,16 @@ generator =
                     ]
             }
         
+        terrainPatch =
+            { description = "Terrain Patch"
+            , sceneDistribution =
+                Distribution.new
+                    ( 100, DungeonScene.Empty )
+                    []
+            }
+        
         monsterNest =
-            { description = "Monster nest"
+            { description = "Monster Nest"
             , sceneDistribution = 
                 Distribution.new
                     ( 10, DungeonScene.Empty )
@@ -48,7 +57,8 @@ generator =
             }
     in
     Random.weighted
-        ( 10, restArea )
+        ( 5, restArea )
         [ ( 45, windingTunnels )
         , ( 45, monsterNest )
+        , ( 5, terrainPatch )
         ]

@@ -69,7 +69,7 @@ type Msg
     | SystemGotBossInitialization Boss (List BossPath)
     | UserSelectedBossPath BossPath
     | SystemGotBossScene BossScene
-    | UserSelectedContinueBossFight
+    | UserSelectedContinueBossFight Boss
     | SystemGotBossFightContinuation (List BossPath)
     | SystemGotBossMonsterIntent Action
     -- BATTLE

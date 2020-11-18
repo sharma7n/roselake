@@ -1038,7 +1038,7 @@ viewBossFight sceneModel phase state =
                             []
                             [ Html.text <| BossScene.toString scene
                             , Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedContinueBossFight ]
+                                [ Html.Events.onClick <| Msg.UserSelectedContinueBossFight state.boss ]
                                 [ Html.text "Continue" ]
                             ]
         ]

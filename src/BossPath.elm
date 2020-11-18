@@ -29,7 +29,7 @@ generator bossBehavior =
         BossBehavior.Leviathan ->
             let
                 iceBlock =
-                    { description = "Leap onto ice block"
+                    { description = "Terrain"
                     , sceneDistribution =
                         Distribution.new
                             ( 100, BossScene.Empty )
@@ -37,7 +37,7 @@ generator bossBehavior =
                     }
                 
                 fightBoss =
-                    { description = "Fight boss"
+                    { description = "Fight Boss"
                     , sceneDistribution =
                         Distribution.new
                             ( 100, BossScene.BattleBoss )

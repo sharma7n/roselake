@@ -8,6 +8,8 @@ module Util exposing
     , getById
     , kebabify
     , uniformGenerator
+    , betweenInclusive
+    , betweenExclusive
     )
 
 import Random
@@ -66,3 +68,11 @@ uniformGenerator ignored all =
     Random.weighted
         ( 0, ignored )
         ( List.map (\a -> ( 1, a )) all)
+
+betweenInclusive : Int -> Int -> Int -> Bool
+betweenInclusive lower upper n =
+    lower <= n && n <= upper
+
+betweenExclusive : Int -> Int -> Int -> Bool
+betweenExclusive lower upper n =
+    lower < n && n < upper

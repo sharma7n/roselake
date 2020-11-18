@@ -568,10 +568,22 @@ update msg model =
                 newCharacterCreationModel =
                     case attr of
                        Attribute.Strength ->
-                        { characterCreationModel
-                            | strength = characterCreationModel.strength + d
-                                |> Util.boundedBy 1 9
-                        }
+                        let
+                            attributePointRange =
+                                characterCreationModel.attributePoints
+                                    |> Util.betweenExclusive 0 25
+                            
+                            attributeRange =
+                                characterCreationModel.strength
+                                    |> Util.betweenExclusive 1 9
+                        in
+                        if attributePointRange && attributeRange then
+                            { characterCreationModel
+                                | strength = characterCreationModel.strength + d
+                                , attributePoints = characterCreationModel.attributePoints - d
+                            }
+                        else
+                            characterCreationModel
                     
                        Attribute.Vitality ->
                         { characterCreationModel

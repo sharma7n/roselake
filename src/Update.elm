@@ -565,49 +565,20 @@ update msg model =
         
         ( Msg.UserSelectedModifyCharacterCreationAttribute attr d, Phase.CharacterCreationPhase characterCreationModel ) ->
             let
+                c =
+                    characterCreationModel
+                
                 newCharacterCreationModel =
-                    case attr of
-                       Attribute.Strength ->
-                        let
-                            attributePointRange =
-                                characterCreationModel.attributePoints
-                                    |> Util.betweenExclusive 0 25
-                            
-                            attributeRange =
-                                characterCreationModel.strength
-                                    |> Util.betweenExclusive 1 9
-                        in
-                        if attributePointRange && attributeRange then
-                            { characterCreationModel
-                                | strength = characterCreationModel.strength + d
-                                , attributePoints = characterCreationModel.attributePoints - d
-                            }
-                        else
-                            characterCreationModel
-                    
-                       Attribute.Vitality ->
-                        { characterCreationModel
-                            | vitality = characterCreationModel.vitality + d
-                                |> Util.boundedBy 1 9
-                        }
-                    
-                       Attribute.Agility ->
-                        { characterCreationModel
-                            | agility = characterCreationModel.agility + d
-                                |> Util.boundedBy 1 9
-                        }
-                    
-                       Attribute.Intellect ->
-                        { characterCreationModel
-                            | intellect = characterCreationModel.intellect + d
-                                |> Util.boundedBy 1 9
-                        }
-
-                       Attribute.Charisma ->
-                        { characterCreationModel
-                            | charisma = characterCreationModel.charisma + d
-                                |> Util.boundedBy 1 9
-                        }
+                    if d >= 0 && c.attributePoints > 0 && CharacterCreationModel.getAttribute attr c < 9 then
+                        c
+                            |> CharacterCreationModel.modifyAttribute attr d
+                            |> CharacterCreationModel.modifyAttributePoints (-1 * d)
+                    else if d < 0 && c.attributePoints < 25 && CharacterCreationModel.getAttribute attr c > 1 then
+                        c
+                            |> CharacterCreationModel.modifyAttribute attr d
+                            |> CharacterCreationModel.modifyAttributePoints (-1 * d)
+                    else
+                        c
                 
                 newModel =
                     { model

@@ -29,7 +29,7 @@ init _ =
         
         initCharacterCreationModel =
             { settings = initCharacterCreationSettings
-            , attributePoints = 25
+            , attributePoints = 20
             , strength = 1
             , vitality = 1
             , agility = 1

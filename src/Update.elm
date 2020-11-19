@@ -599,7 +599,7 @@ update msg model =
                         c
                             |> CharacterCreationModel.modifyAttribute attr d
                             |> CharacterCreationModel.modifyAttributePoints (-1 * d)
-                    else if d < 0 && c.attributePoints < 25 && CharacterCreationModel.getAttribute attr c > 1 then
+                    else if d < 0 && c.attributePoints < 20 && CharacterCreationModel.getAttribute attr c > 1 then
                         c
                             |> CharacterCreationModel.modifyAttribute attr d
                             |> CharacterCreationModel.modifyAttributePoints (-1 * d)

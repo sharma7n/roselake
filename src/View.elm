@@ -26,6 +26,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Requirement exposing (Requirement)
 import Attribute exposing (Attribute)
 import Battle exposing (Battle)
 import Battler exposing (Battler)
@@ -606,6 +607,7 @@ pathTable paths =
             Html.li
                 []
                 [ Html.text path.description
+                , viewRequirements path.requirements
                 , explainSceneDistribution path.sceneDistribution
                 , Html.button
                     [ Html.Events.onClick <| Msg.UserSelectedDungeonPath path ]
@@ -615,6 +617,19 @@ pathTable paths =
     Html.ul
         []
         ( List.map pathFn paths )
+
+viewRequirements : List Requirement -> Html Msg
+viewRequirements l =
+    let
+        viewOneRequirement r =
+            Html.li
+                []
+                [ Html.text <| Requirement.toString r
+                ]  
+    in
+    Html.ul
+        []
+        ( List.map viewOneRequirement l )
 
 viewReward : Reward -> Html Msg
 viewReward r =

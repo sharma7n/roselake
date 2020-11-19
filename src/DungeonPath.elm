@@ -8,6 +8,7 @@ import Random
 import Distribution exposing (Distribution)
 import DungeonScene
 import Requirement exposing (Requirement)
+import Attribute exposing (Attribute)
 
 type alias Path =
     { description : String
@@ -90,7 +91,8 @@ generator =
         boulders =
             { description = "Boulders"
             , requirements =
-                []
+                [ Requirement.AttributeRequirement Attribute.Strength 6
+                ]
             , sceneDistribution =
                 Distribution.new
                     ( 100, DungeonScene.Empty )
@@ -104,5 +106,5 @@ generator =
         , ( 20, monsterStealth )
         , ( 5, terrainPatch )
         , ( 10, ricketyBridge )
-        , ( 10, boulders )
+        , ( 1000, boulders )
         ]

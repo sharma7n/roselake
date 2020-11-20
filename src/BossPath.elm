@@ -10,7 +10,8 @@ import BossScene exposing (BossScene)
 import BossBehavior exposing (BossBehavior)
 
 type alias BossPath =
-    { description : String
+    { id : String
+    , description : String
     , sceneDistribution : Distribution BossScene
     }
 
@@ -19,7 +20,8 @@ generator bossBehavior =
     case bossBehavior of
         BossBehavior.None ->
             Random.constant <|
-                { description = "None"
+                { id = "none"
+                , description = "None"
                 , sceneDistribution =
                     Distribution.new
                         ( 100, BossScene.Empty )
@@ -29,7 +31,8 @@ generator bossBehavior =
         BossBehavior.Leviathan ->
             let
                 iceBlock =
-                    { description = "Terrain"
+                    { id = "terrain"
+                    , description = "Terrain"
                     , sceneDistribution =
                         Distribution.new
                             ( 100, BossScene.Empty )
@@ -37,7 +40,8 @@ generator bossBehavior =
                     }
                 
                 fightBoss =
-                    { description = "Fight Boss"
+                    { id = "fight-boss"
+                    , description = "Fight Boss"
                     , sceneDistribution =
                         Distribution.new
                             ( 100, BossScene.BattleBoss )

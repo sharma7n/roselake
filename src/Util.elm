@@ -10,8 +10,10 @@ module Util exposing
     , uniformGenerator
     , betweenInclusive
     , betweenExclusive
+    , randomDistinctList
     )
 
+import Dict exposing (Dict)
 import Random
 
 boundedBy : Int -> Int -> Int -> Int
@@ -76,3 +78,28 @@ betweenInclusive lower upper n =
 betweenExclusive : Int -> Int -> Int -> Bool
 betweenExclusive lower upper n =
     lower < n && n < upper
+
+randomDistinctList : Int -> Random.Generator { a | id : String } -> Random.Generator (List { a | id : String })
+randomDistinctList n gen =
+    let
+        loop iters rState =
+            rState
+                |> Random.andThen (\state ->
+                    if iters < 128 && Dict.size state < n then
+                        gen
+                            |> Random.andThen (\got ->
+                                let
+                                    newRState =
+                                        state
+                                            |> Dict.insert got.id got
+                                            |> Random.constant
+                                in
+                                loop (iters + 1) newRState
+                            )
+                    else
+                        Random.constant state
+                )
+    in
+    Random.constant Dict.empty
+        |> loop 0
+        |> Random.map Dict.values

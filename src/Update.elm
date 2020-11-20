@@ -291,7 +291,7 @@ update msg model =
         ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.ExploreScene _ ) ->
             let
                 pathListGenerator =
-                    Random.list 3 DungeonPath.generator
+                    Util.randomDistinctList 3 DungeonPath.generator
                 
                 cmd =
                     Random.generate (Msg.SystemGotDungeonInitialization dungeon) pathListGenerator
@@ -301,7 +301,7 @@ update msg model =
         ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ ) ->
             let
                 pathListGenerator =
-                    Random.list 3 ( BossPath.generator boss.bossBehavior )
+                    Util.randomDistinctList 3 ( BossPath.generator boss.bossBehavior )
                 
                 cmd =
                     Random.generate (Msg.SystemGotBossInitialization boss) pathListGenerator
@@ -461,7 +461,7 @@ update msg model =
         ( Msg.UserSelectedContinueDungeon, _ ) ->
             let
                 pathListGenerator =
-                    Random.list 3 DungeonPath.generator
+                    Util.randomDistinctList 3 DungeonPath.generator
 
                 cmd =
                     Random.generate Msg.SystemGotDungeonContinuation pathListGenerator
@@ -471,7 +471,7 @@ update msg model =
         ( Msg.UserSelectedContinueBossFight boss, _ ) ->
             let
                 pathListGenerator =
-                    Random.list 3 ( BossPath.generator boss.bossBehavior )
+                    Util.randomDistinctList 3 ( BossPath.generator boss.bossBehavior )
 
                 cmd =
                     Random.generate Msg.SystemGotBossFightContinuation pathListGenerator

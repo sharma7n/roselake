@@ -4,6 +4,7 @@ module SceneModel exposing
     , applyEffectsToSceneModel
     , applyReward
     , completeBattle
+    , satisfiesRequirements
     )
 
 import Set exposing (Set)
@@ -22,6 +23,7 @@ import Height exposing (Height)
 import Build exposing (Build)
 
 
+import Attribute exposing (Attribute)
 import Action exposing (Action)
 import Passive exposing (Passive)
 import ActionState exposing (ActionState)
@@ -31,6 +33,7 @@ import Effect exposing (Effect)
 import Essentia exposing (Essentia)
 import Inventory exposing (Inventory)
 import Reward exposing (Reward)
+import Requirement exposing (Requirement)
 import Weapon exposing (Weapon)
 
 import EssentiaContainer exposing (EssentiaContainer)
@@ -70,6 +73,24 @@ type alias SceneModel =
     , actionStates : List ActionState
     , block : Int
     }
+
+getAttribute : Attribute -> SceneModel -> Int
+getAttribute attr m =
+    case attr of
+        Attribute.Strength ->
+            m.strength
+        
+        Attribute.Vitality ->
+            m.vitality
+        
+        Attribute.Agility ->
+            m.agility
+        
+        Attribute.Intellect ->
+            m.intellect
+        
+        Attribute.Charisma ->
+            m.charisma
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
 applyEffectToSceneModel effect m =
@@ -230,3 +251,16 @@ initPassives learnedPassives =
     learnedPassives
         |> Set.toList
         |> List.map Passive.byId
+
+satisfiesRequirements : List Requirement -> SceneModel -> Bool
+satisfiesRequirements rs m =
+    rs
+        |> List.all (\r ->
+            satisfiesOneRequirement r m
+        )
+
+satisfiesOneRequirement : Requirement -> SceneModel -> Bool
+satisfiesOneRequirement r m =
+    case r of
+        Requirement.AttributeRequirement attr i ->
+            getAttribute attr m >= i

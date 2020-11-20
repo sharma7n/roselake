@@ -11,7 +11,8 @@ import Requirement exposing (Requirement)
 import Attribute exposing (Attribute)
 
 type alias Path =
-    { description : String
+    { id : String
+    , description : String
     , requirements : List Requirement
     , sceneDistribution : Distribution DungeonScene.Scene
     }
@@ -20,7 +21,8 @@ generator : Random.Generator Path
 generator =
     let
         restArea =
-            { description = "Save Point"
+            { id = "save-point"
+            , description = "Save Point"
             , requirements =
                 []
             , sceneDistribution =
@@ -30,23 +32,9 @@ generator =
                     ]
             }
         
-        windingTunnels =
-            { description = "Grab Bag"
-            , requirements =
-                []
-            , sceneDistribution =
-                Distribution.new
-                    ( 20, DungeonScene.Empty )
-                    [ ( 35, DungeonScene.Battle )
-                    , ( 10, DungeonScene.Treasure )
-                    , ( 20, DungeonScene.RestArea )
-                    , ( 5, DungeonScene.TrapDoor )
-                    , ( 10, DungeonScene.Shop )
-                    ]
-            }
-        
         terrainPatch =
-            { description = "Terrain Patch"
+            { id = "terrain-patch"
+            , description = "Terrain Patch"
             , requirements =
                 []
             , sceneDistribution =
@@ -56,7 +44,8 @@ generator =
             }
         
         monsterHunt =
-            { description = "Monster Hunt"
+            { id = "monster-hunt"
+            , description = "Monster Hunt"
             , requirements =
                 []
             , sceneDistribution = 
@@ -67,7 +56,8 @@ generator =
             }
         
         monsterStealth =
-            { description = "Monster Stealth"
+            { id = "monster-stealth"
+            , description = "Monster Stealth"
             , requirements =
                 []
             , sceneDistribution =
@@ -78,7 +68,8 @@ generator =
             }
         
         ricketyBridge =
-            { description = "Rickety Bridge"
+            { id = "rickety-bridge"
+            , description = "Rickety Bridge"
             , requirements =
                 []
             , sceneDistribution =
@@ -89,7 +80,8 @@ generator =
             }
         
         boulders =
-            { description = "Boulders"
+            { id = "boulders"
+            , description = "Boulders"
             , requirements =
                 [ Requirement.AttributeRequirement Attribute.Strength 6
                 ]
@@ -100,11 +92,10 @@ generator =
             }
     in
     Random.weighted
-        ( 5, restArea )
-        [ ( 30, windingTunnels )
-        , ( 20, monsterHunt )
-        , ( 20, monsterStealth )
-        , ( 5, terrainPatch )
-        , ( 10, ricketyBridge )
-        , ( 1000, boulders )
+        ( 10, restArea )
+        [ ( 25, monsterHunt )
+        , ( 25, monsterStealth )
+        , ( 10, terrainPatch )
+        , ( 15, ricketyBridge )
+        , ( 15, boulders )
         ]

@@ -12,4 +12,4 @@ toString : Requirement -> String
 toString r =
     case r of
         AttributeRequirement attr i ->
-            Attribute.toShortString attr ++ ": " ++ String.fromInt i
+            String.fromInt i ++ " " ++ Attribute.toString attr

@@ -530,7 +530,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
             ]
         , case delvePhase of
             DelvePhase.ExplorationPhase paths ->
-                pathTable paths
+                pathTable sceneModel paths
             
             DelvePhase.ActionPhase scene ->
                 case scene of
@@ -600,17 +600,28 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             ]
         ]
 
-pathTable : List DungeonPath.Path -> Html Msg
-pathTable paths =
+pathTable : SceneModel -> List DungeonPath.Path -> Html Msg
+pathTable m paths =
     let
         pathFn path =
+            let
+                can =
+                    m
+                        |> SceneModel.satisfiesRequirements path.requirements
+                
+                onClick =
+                    if can then
+                        [ Html.Events.onClick <| Msg.UserSelectedDungeonPath path ]
+                    else
+                        [ Html.Attributes.disabled True ]
+            in
             Html.li
                 []
                 [ Html.text path.description
                 , viewRequirements path.requirements
                 , explainSceneDistribution path.sceneDistribution
                 , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedDungeonPath path ]
+                    onClick
                     [ Html.text "Go" ]
                 ]
     in
@@ -624,7 +635,7 @@ viewRequirements l =
         viewOneRequirement r =
             Html.li
                 []
-                [ Html.text <| Requirement.toString r
+                [ Html.text <| "Requires: " ++ Requirement.toString r
                 ]  
     in
     Html.ul

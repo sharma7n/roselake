@@ -18,7 +18,6 @@ type alias CharacterCreationModel =
     , vitality : Int
     , agility : Int
     , intellect : Int
-    , charisma : Int
     }
 
 getAttribute : Attribute -> CharacterCreationModel -> Int
@@ -35,9 +34,6 @@ getAttribute attr c =
         
         Attribute.Intellect ->
             c.intellect
-        
-        Attribute.Charisma ->
-            c.charisma
 
 modifyAttribute : Attribute -> Int -> CharacterCreationModel -> CharacterCreationModel
 modifyAttribute attr d c =
@@ -53,9 +49,6 @@ modifyAttribute attr d c =
         
         Attribute.Intellect ->
             { c | intellect = c.intellect + d }
-        
-        Attribute.Charisma ->
-            { c | charisma = c.charisma + d }
 
 modifyAttributePoints : Int -> CharacterCreationModel -> CharacterCreationModel
 modifyAttributePoints d c =
@@ -73,6 +66,5 @@ generator =
                 , vitality = collection.vitality
                 , agility = collection.agility
                 , intellect = collection.intellect
-                , charisma = collection.charisma
                 }
         ))

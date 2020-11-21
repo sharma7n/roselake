@@ -144,7 +144,6 @@ viewCharacterCreationPhase model =
             , attributeElement Attribute.Vitality model.vitality
             , attributeElement Attribute.Agility model.agility
             , attributeElement Attribute.Intellect model.intellect
-            , attributeElement Attribute.Charisma model.charisma
             ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]
         , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
@@ -346,7 +345,6 @@ viewSceneModel scene sceneModel =
                         , "VIT: " ++ String.fromInt sceneModel.vitality
                         , "AGI: " ++ String.fromInt sceneModel.agility
                         , "INT: " ++ String.fromInt sceneModel.intellect
-                        , "CHA: " ++ String.fromInt sceneModel.charisma
                         ]
                     , Html.text "Equipment"
                     , textList

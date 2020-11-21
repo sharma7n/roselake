@@ -29,12 +29,11 @@ init _ =
         
         initCharacterCreationModel =
             { settings = initCharacterCreationSettings
-            , attributePoints = 20
+            , attributePoints = 16
             , strength = 1
             , vitality = 1
             , agility = 1
             , intellect = 1
-            , charisma = 1
             }
         
         initModel =

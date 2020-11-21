@@ -63,7 +63,6 @@ type alias SceneModel =
     , magicDefense : Int
     , agility : Int
     , intellect : Int
-    , charisma : Int
     , actions : List Action
     , passives : List Passive
     , equippedWeapon : Maybe Weapon
@@ -88,9 +87,6 @@ getAttribute attr m =
         
         Attribute.Intellect ->
             m.intellect
-        
-        Attribute.Charisma ->
-            m.charisma
 
 applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
 applyEffectToSceneModel effect m =
@@ -182,7 +178,6 @@ characterCreationModelToSceneModel model =
             , magicDefense = 0
             , agility = model.agility
             , intellect = model.intellect
-            , charisma = model.charisma
             , actions = initActions (Just startingWeapon) Set.empty
             , passives = initPassives Set.empty
             , equippedWeapon = Just startingWeapon

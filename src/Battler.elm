@@ -45,7 +45,6 @@ type alias Battler a =
         , intellect : Int
         , agility : Int
         , defense : Int
-        , charisma : Int
         , magicDefense : Int
         , equippedWeapon : Maybe Weapon
         , equippedArmor : Maybe Armor

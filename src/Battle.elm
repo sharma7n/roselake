@@ -27,7 +27,7 @@ import PassiveFormula exposing (PassiveFormula)
 import Target exposing (Target)
 import Status exposing (Status)
 import Duration exposing (Duration)
-import SceneModel exposing (SceneModel)
+import Character exposing (Character)
 import Element exposing (Element)
 
 type alias Battle =
@@ -60,7 +60,7 @@ new monster =
     , state = Ongoing
     }
 
-completeRound : ( Battle, SceneModel ) -> ( Battle, SceneModel )
+completeRound : ( Battle, Character ) -> ( Battle, Character )
 completeRound ( b, s ) =
     let
         newBattle =
@@ -70,10 +70,10 @@ completeRound ( b, s ) =
                     Battler.completeRound b.monster
             }
         
-        newSceneModel =
+        newCharacter =
             Battler.completeRound s
     in
-    ( newBattle, newSceneModel )
+    ( newBattle, newCharacter )
     
 
 
@@ -124,7 +124,7 @@ chooseMonsterAction battle =
                 [ ( 50, Action.byId "swim-away" )
                 ]
 
-runPlayerAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
+runPlayerAction : Action -> ( Battle, Character ) -> ( Battle, Character )
 runPlayerAction action ( battle, player ) =
     let
         newPlayer =
@@ -146,7 +146,7 @@ runPlayerAction action ( battle, player ) =
     in
     ( newBattle, newPlayer2 )
 
-runMonsterAction : Action -> ( Battle, SceneModel ) -> ( Battle, SceneModel )
+runMonsterAction : Action -> ( Battle, Character ) -> ( Battle, Character )
 runMonsterAction action ( battle, player ) =
     let
         monster =

@@ -62,7 +62,7 @@ import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
 import Scene exposing (Scene)
-import SceneModel exposing (SceneModel)
+import Character exposing (Character)
 
 import Phase exposing (Phase)
 
@@ -182,7 +182,7 @@ statusSetListItem statusSet =
         ]
 
 
-viewScenePhase : Scene -> SceneModel -> Html Msg
+viewScenePhase : Scene -> Character -> Html Msg
 viewScenePhase scene sceneModel =
     Html.div
         []
@@ -224,7 +224,7 @@ viewScenePhase scene sceneModel =
                     , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
                     , ( "Boss", Msg.UserSelectedScene Scene.BossSelectScene )
                     ]
-        , viewSceneModel scene sceneModel
+        , viewCharacter scene sceneModel
         , viewInventory sceneModel.inventory
         ]
 
@@ -331,8 +331,8 @@ radioButtons toString toMsg items currentItem =
         ( List.map itemFn items )
     
 
-viewSceneModel : Scene -> SceneModel -> Html Msg
-viewSceneModel scene sceneModel =
+viewCharacter : Scene -> Character -> Html Msg
+viewCharacter scene sceneModel =
     case scene of
         Scene.PlayerScene ->
             Html.ul
@@ -518,7 +518,7 @@ viewSceneModel scene sceneModel =
         Scene.BossFightScene bossPhase bossState ->
             viewBossFight sceneModel bossPhase bossState
 
-viewExploreDungeonScene : SceneModel -> DelvePhase -> Delve -> Html Msg
+viewExploreDungeonScene : Character -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeonScene sceneModel delvePhase delve =
     Html.div
         []
@@ -598,14 +598,14 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                             ]
         ]
 
-pathTable : SceneModel -> List DungeonPath.Path -> Html Msg
+pathTable : Character -> List DungeonPath.Path -> Html Msg
 pathTable m paths =
     let
         pathFn path =
             let
                 can =
                     m
-                        |> SceneModel.satisfiesRequirements path.requirements
+                        |> Character.satisfiesRequirements path.requirements
                 
                 onClick =
                     if can then
@@ -718,7 +718,7 @@ explainSceneDistribution d =
     in
     textList (List.map explainOneScene (Distribution.toList d))
 
-viewBattleMonsterScene : SceneModel -> Battle -> Action -> Html Msg
+viewBattleMonsterScene : Character -> Battle -> Action -> Html Msg
 viewBattleMonsterScene sceneModel battle intent =
     let
         monster = battle.monster
@@ -780,7 +780,7 @@ actionTable actionPoints actions =
         []
         ( List.map actionFn actions )
 
-viewShopScene : SceneModel -> Shop -> Html Msg
+viewShopScene : Character -> Shop -> Html Msg
 viewShopScene sceneModel shop =
     let
         buyableFn b =
@@ -905,7 +905,7 @@ viewEssentiaScene e c =
             ( List.indexedMap essentiaFn e )
         ]
 
-viewLearnScene : SceneModel -> Html Msg
+viewLearnScene : Character -> Html Msg
 viewLearnScene m =
     let
         learnableEssentia =
@@ -979,7 +979,7 @@ viewLearnScene m =
         []
         ( List.map viewLearnOneEssentia learnableEssentia )
 
-viewTownScene : SceneModel -> Html Msg
+viewTownScene : Character -> Html Msg
 viewTownScene m =
     Html.ul
         []
@@ -1003,7 +1003,7 @@ viewTownScene m =
             ]
         ]
 
-viewOnyxTowerScene : SceneModel -> Html Msg
+viewOnyxTowerScene : Character -> Html Msg
 viewOnyxTowerScene m =
     Html.ul
         []
@@ -1031,7 +1031,7 @@ viewBosses bosses =
         []
         ( List.map viewOneBoss bosses )
 
-viewBossFight : SceneModel -> BossPhase -> BossState -> Html Msg
+viewBossFight : Character -> BossPhase -> BossState -> Html Msg
 viewBossFight sceneModel phase state =
     Html.div
         []

@@ -5,8 +5,8 @@ module Phase exposing
 import CharacterCreationModel exposing (CharacterCreationModel)
 
 import Scene exposing (Scene)
-import SceneModel exposing (SceneModel)
+import Character exposing (Character)
 
 type Phase
     = CharacterCreationPhase CharacterCreationModel
-    | ScenePhase Scene SceneModel
+    | ScenePhase Scene Character

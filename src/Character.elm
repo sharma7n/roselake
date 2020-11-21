@@ -1,7 +1,7 @@
-module SceneModel exposing
-    ( SceneModel
-    , characterCreationModelToSceneModel
-    , applyEffectsToSceneModel
+module Character exposing
+    ( Character
+    , characterCreationModelToCharacter
+    , applyEffectsToCharacter
     , applyReward
     , completeBattle
     , satisfiesRequirements
@@ -39,7 +39,7 @@ import Weapon exposing (Weapon)
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
-type alias SceneModel =
+type alias Character =
     { name : String
     , avatar : Avatar
     , gold : Int
@@ -73,7 +73,7 @@ type alias SceneModel =
     , block : Int
     }
 
-getAttribute : Attribute -> SceneModel -> Int
+getAttribute : Attribute -> Character -> Int
 getAttribute attr m =
     case attr of
         Attribute.Strength ->
@@ -88,8 +88,8 @@ getAttribute attr m =
         Attribute.Intellect ->
             m.intellect
 
-applyEffectToSceneModel : Effect -> SceneModel -> SceneModel
-applyEffectToSceneModel effect m =
+applyEffectToCharacter : Effect -> Character -> Character
+applyEffectToCharacter effect m =
     case effect of
         Effect.ChangeLevel d ->
             { m | level = max 1 (m.level + d) }
@@ -129,12 +129,12 @@ applyEffectToSceneModel effect m =
         _ ->
             m
 
-applyEffectsToSceneModel : List Effect -> SceneModel -> SceneModel
-applyEffectsToSceneModel effects m =
-    List.foldl applyEffectToSceneModel m effects
+applyEffectsToCharacter : List Effect -> Character -> Character
+applyEffectsToCharacter effects m =
+    List.foldl applyEffectToCharacter m effects
 
-characterCreationModelToSceneModel : CharacterCreationModel -> Result (List CharacterCreationError.Error) SceneModel
-characterCreationModelToSceneModel model =
+characterCreationModelToCharacter : CharacterCreationModel -> Result (List CharacterCreationError.Error) Character
+characterCreationModelToCharacter model =
     FormResult.toValidation model.settings.name
         |> Result.andThen (\name -> FormResult.toValidation model.settings.hairStyle
         |> Result.andThen (\hairStyle -> FormResult.toValidation model.settings.hairColor
@@ -191,7 +191,7 @@ characterCreationModelToSceneModel model =
             }
         )))))))))
 
-applyReward : Reward -> SceneModel -> SceneModel
+applyReward : Reward -> Character -> Character
 applyReward reward m =
     { m
         | experience = m.experience + reward.experience
@@ -229,7 +229,7 @@ initActionStates actions =
     actions
         |> List.map ActionState.initFromAction
 
-completeBattle : SceneModel -> SceneModel
+completeBattle : Character -> Character
 completeBattle m =
     { m
         | actionPoints = m.maxActionPoints
@@ -247,14 +247,14 @@ initPassives learnedPassives =
         |> Set.toList
         |> List.map Passive.byId
 
-satisfiesRequirements : List Requirement -> SceneModel -> Bool
+satisfiesRequirements : List Requirement -> Character -> Bool
 satisfiesRequirements rs m =
     rs
         |> List.all (\r ->
             satisfiesOneRequirement r m
         )
 
-satisfiesOneRequirement : Requirement -> SceneModel -> Bool
+satisfiesOneRequirement : Requirement -> Character -> Bool
 satisfiesOneRequirement r m =
     case r of
         Requirement.AttributeRequirement attr i ->

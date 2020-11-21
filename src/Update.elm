@@ -54,6 +54,7 @@ import BossScene exposing (BossScene)
 import EssentiaContainer exposing (EssentiaContainer)
 
 import Scene exposing (Scene)
+import SceneState exposing (SceneState)
 import Character exposing (Character)
 
 import Phase exposing (Phase)
@@ -64,10 +65,10 @@ import Msg exposing (Msg)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.phase ) of        
-        ( Msg.UserSelectedScene scene, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase scene sceneModel }, Cmd.none )
+        ( Msg.UserSelectedScene scene, Phase.ScenePhase _ sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase scene sceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedMonsterTemplate monsterTemplate, Phase.ScenePhase _ sceneModel ) ->
+        ( Msg.UserSelectedMonsterTemplate monsterTemplate, Phase.ScenePhase _ sceneState character ) ->
             let
                 battle =
                     Battle.new (Monster.new monsterTemplate)
@@ -76,219 +77,219 @@ update msg model =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
                 
                 newCharacter =
-                    Character.completeBattle sceneModel
+                    Character.completeBattle character
             in
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) newCharacter }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene battle) sceneState newCharacter }, cmd )
         
-        ( Msg.UserSelectedLearnSkill action, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedLearnSkill action, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    if action.learnCost <= sceneModel.freeAbilityPoints then
-                        { sceneModel
+                    if action.learnCost <= character.freeAbilityPoints then
+                        { character
                             | freeAbilityPoints =
-                                sceneModel.freeAbilityPoints - action.learnCost
+                                character.freeAbilityPoints - action.learnCost
                             , actions =
-                                action :: sceneModel.actions
+                                action :: character.actions
                             , learned =
-                                sceneModel.learned
+                                character.learned
                                     |> Set.insert action.id
                         }
                     else
-                        sceneModel
+                        character
             in
-            ( { model | phase = Phase.ScenePhase scene newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedLearnPassive passive, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedLearnPassive passive, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    if passive.learnCost <= sceneModel.freeAbilityPoints then
-                        { sceneModel
+                    if passive.learnCost <= character.freeAbilityPoints then
+                        { character
                             | freeAbilityPoints =
-                                sceneModel.freeAbilityPoints - passive.learnCost
+                                character.freeAbilityPoints - passive.learnCost
                             , passives =
-                                passive :: sceneModel.passives
+                                passive :: character.passives
                             , learnedPassives =
-                                sceneModel.learnedPassives
+                                character.learnedPassives
                                     |> Set.insert passive.id
                         }
                     else
-                        sceneModel
+                        character
             in
-            ( { model | phase = Phase.ScenePhase scene newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedEquipWeapon weapon, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedEquipWeapon weapon, Phase.ScenePhase scene sceneState character ) ->
             let
                 newInventory =
-                    case sceneModel.equippedWeapon of
+                    case character.equippedWeapon of
                         Just heldWeapon ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyWeaponQuantity weapon -1
                                 |> Inventory.modifyWeaponQuantity heldWeapon 1
                         
                         Nothing ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyWeaponQuantity weapon -1
                 
                 newCharacter =
-                    { sceneModel
+                    { character
                         | inventory = newInventory
                         , equippedWeapon = Just weapon
                     }
                 
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedUnEquipWeapon weapon, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedUnEquipWeapon weapon, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    { sceneModel
+                    { character
                         | equippedWeapon = Nothing
                         , inventory =
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyWeaponQuantity weapon 1
                     }
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedEquipArmor armor, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedEquipArmor armor, Phase.ScenePhase scene sceneState character ) ->
             let
                 newInventory =
-                    case sceneModel.equippedArmor of
+                    case character.equippedArmor of
                         Just heldArmor ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyArmorQuantity armor -1
                                 |> Inventory.modifyArmorQuantity heldArmor 1
                         
                         Nothing ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyArmorQuantity armor -1
                 
                 newCharacter =
-                    { sceneModel
+                    { character
                         | inventory = newInventory
                         , equippedArmor = Just armor
                     }
                 
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedUnEquipArmor armor, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedUnEquipArmor armor, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    { sceneModel
+                    { character
                         | equippedArmor = Nothing
                         , inventory =
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyArmorQuantity armor 1
                     }
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedEquipEssentia idx listIdx essentia, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedEquipEssentia idx listIdx essentia, Phase.ScenePhase scene sceneState character ) ->
             let
                 equippedEssentia =
-                    EssentiaContainer.getSlot idx sceneModel.essentiaContainer
+                    EssentiaContainer.getSlot idx character.essentiaContainer
                 
                 newEssentia =
-                    sceneModel.essentia
+                    character.essentia
                         |> Util.removeListAt listIdx
                         |> Util.appendMaybe equippedEssentia
                 
                 newEssentiaContainer =
-                    sceneModel.essentiaContainer
+                    character.essentiaContainer
                         |> EssentiaContainer.setSlot idx essentia
                 
                 newCharacter =
-                    { sceneModel
+                    { character
                         | essentia = newEssentia
                         , essentiaContainer = newEssentiaContainer
                     }
                 
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedUnEquipEssentia idx essentia, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedUnEquipEssentia idx essentia, Phase.ScenePhase scene sceneState character ) ->
             let
                 equippedEssentia =
-                    EssentiaContainer.getSlot idx sceneModel.essentiaContainer
+                    EssentiaContainer.getSlot idx character.essentiaContainer
                 
                 newEssentia =
-                    sceneModel.essentia
+                    character.essentia
                         |> Util.appendMaybe equippedEssentia
                 
                 newEssentiaContainer =
-                    sceneModel.essentiaContainer
+                    character.essentiaContainer
                         |> EssentiaContainer.clearSlot idx
                 
                 newCharacter =
-                    { sceneModel
+                    { character
                         | essentia = newEssentia
                         , essentiaContainer = newEssentiaContainer
                     }
                 
                 newModel =
-                    { model | phase = Phase.ScenePhase scene newCharacter }
+                    { model | phase = Phase.ScenePhase scene sceneState newCharacter }
                 
             in
             ( newModel, Cmd.none )
            
-        ( Msg.UserSelectedHomeRest, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedHomeRest, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    { sceneModel 
-                        | hitPoints = sceneModel.maxHitPoints
-                        , magicPoints = sceneModel.maxMagicPoints
+                    { character 
+                        | hitPoints = character.maxHitPoints
+                        , magicPoints = character.maxMagicPoints
                     }
             in
-            ( { model | phase = Phase.ScenePhase scene newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
                
-        ( Msg.UserSelectedShop shop, Phase.ScenePhase Scene.ShopSelectScene sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.ShopScene shop) sceneModel }, Cmd.none )
+        ( Msg.UserSelectedShop shop, Phase.ScenePhase Scene.ShopSelectScene sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.ShopScene shop) sceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedBuy item, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedBuy item, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    if item.cost <= sceneModel.gold then
-                        { sceneModel
-                            | gold = max 0 (sceneModel.gold - item.cost)
+                    if item.cost <= character.gold then
+                        { character
+                            | gold = max 0 (character.gold - item.cost)
                             , inventory =
-                                sceneModel.inventory
+                                character.inventory
                                     |> Inventory.modifyItemQuantity item 1
                         }
                     else
-                        sceneModel
+                        character
 
             in
-            ( { model | phase = Phase.ScenePhase scene newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedUseItem item, Phase.ScenePhase scene sceneModel ) ->
+        ( Msg.UserSelectedUseItem item, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    { sceneModel
+                    { character
                         | inventory =
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyItemQuantity item -1
                     }
                         |> Character.applyEffectsToCharacter item.effects
             in
-            ( { model | phase = Phase.ScenePhase scene newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.ExploreScene _ ) ->
+        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.ExploreScene _ _ ) ->
             let
                 pathListGenerator =
                     Util.randomDistinctList 3 DungeonPath.generator
@@ -298,7 +299,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ ) ->
+        ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ _ ) ->
             let
                 pathListGenerator =
                     Util.randomDistinctList 3 ( BossPath.generator boss.bossBehavior )
@@ -308,16 +309,16 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase Scene.ExploreScene sceneModel ) ->
+        ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase Scene.ExploreScene sceneState character ) ->
             let
                 delve =
                     { dungeon = dungeon
                     , floor = 1
                     }
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ExplorationPhase paths) delve) sceneModel }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ExplorationPhase paths) delve) sceneState character }, Cmd.none )
         
-        ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase _ sceneModel ) ->
+        ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase _ sceneState character ) ->
             let
                 bossState =
                     { boss = boss
@@ -325,7 +326,7 @@ update msg model =
                     }
                 
                 newPhase =
-                    Phase.ScenePhase ( Scene.BossFightScene ( BossPhase.ExplorationPhase paths ) bossState ) sceneModel
+                    Phase.ScenePhase ( Scene.BossFightScene ( BossPhase.ExplorationPhase paths ) bossState ) sceneState character
                 
                 newModel =
                     { model
@@ -335,21 +336,21 @@ update msg model =
             ( newModel, Cmd.none )
             
         
-        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _) ->
+        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _ _) ->
             let
                 cmd =
                     Random.generate Msg.SystemGotDungeonScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _) ->
+        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _ _ ) ->
             let
                 cmd =
                     Random.generate Msg.SystemGotBossScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneState character ) ->
             let
                 cmd =
                     case scene of
@@ -363,9 +364,9 @@ update msg model =
                             Cmd.none
                 
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase scene) delve) sceneModel }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase scene) delve) sceneState character }, cmd )
         
-        ( Msg.SystemGotBossScene scene, Phase.ScenePhase (Scene.BossFightScene _ state) sceneModel ) ->
+        ( Msg.SystemGotBossScene scene, Phase.ScenePhase (Scene.BossFightScene _ state) sceneState character ) ->
             let
                 newBattle =
                     Battle.new state.monster
@@ -383,20 +384,20 @@ update msg model =
                             Cmd.none
 
                 newPhase =
-                    Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase scene) state) sceneModel
+                    Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase scene) state) sceneState character
                 
                 newModel =
                     { model | phase = newPhase }           
             in
             ( newModel, cmd )
         
-        ( Msg.UserSelectedOpenChest, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _ ) ->
+        ( Msg.UserSelectedOpenChest, Phase.ScenePhase (Scene.ExploreDungeonScene _ _) _ _ ) ->
             ( model, Random.generate Msg.SystemGotObject Object.generator )
         
-        ( Msg.SystemGotShop shop, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Shopping shop)) delve) sceneModel }, Cmd.none )
+        ( Msg.SystemGotShop shop, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Shopping shop)) delve) sceneState character }, Cmd.none )
         
-        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneModel ) ->
+        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeonScene delvePhase delve) sceneState character ) ->
             let
                 battle = Battle.new (Monster.new monsterTemplate)
                 
@@ -404,17 +405,17 @@ update msg model =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
                 
                 newCharacter =
-                    Character.completeBattle sceneModel
+                    Character.completeBattle character
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) newCharacter }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneState newCharacter }, cmd )
         
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneModel }, Cmd.none )
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneState character }, Cmd.none )
 
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent battle)) state) sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle intent)) state) sceneModel }, Cmd.none )
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent battle)) state) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle intent)) state) sceneState character }, Cmd.none )
 
-        ( Msg.SystemGotBossMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene _ state ) sceneModel ) ->
+        ( Msg.SystemGotBossMonsterIntent intent, Phase.ScenePhase (Scene.BossFightScene _ state ) sceneState character ) ->
             let
                 newBattle =
                     Battle.new state.monster
@@ -423,11 +424,11 @@ update msg model =
                     BossPhase.ActionPhase ( BossScene.BattleBossOngoing newBattle intent )
                 
                 newModel =
-                    { model | phase = Phase.ScenePhase (Scene.BossFightScene newBossPhase state ) sceneModel }
+                    { model | phase = Phase.ScenePhase (Scene.BossFightScene newBossPhase state ) sceneState character }
             in
             ( newModel, Cmd.none )
         
-        ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneState character ) ->
             let
                 newDungeonScene =
                     DelvePhase.ActionPhase <| DungeonScene.ReceiveTreasure object
@@ -435,25 +436,25 @@ update msg model =
                 newInventory =
                     case object of
                         Object.Item i ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyItemQuantity i 1
                         
                         Object.Weapon w ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyWeaponQuantity w 1
                         
                         Object.Armor a ->
-                            sceneModel.inventory
+                            character.inventory
                                 |> Inventory.modifyArmorQuantity a 1
                 
                 newCharacter =
-                    { sceneModel
+                    { character
                         | inventory = newInventory
                     }
                 
                 newModel =
                     { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene newDungeonScene delve) newCharacter
+                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene newDungeonScene delve) sceneState newCharacter
                     }
             in
             ( newModel, Cmd.none )
@@ -478,7 +479,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneModel ) ->
+        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase (Scene.ExploreDungeonScene _ delve) sceneState character ) ->
             let
                 cmd =
                     if delve.floor >= delve.dungeon.depth then
@@ -500,9 +501,9 @@ update msg model =
                         in
                         Scene.ExploreDungeonScene (DelvePhase.ExplorationPhase paths) newDelve
             in 
-            ( { model | phase = Phase.ScenePhase newScene sceneModel }, cmd )
+            ( { model | phase = Phase.ScenePhase newScene sceneState character }, cmd )
         
-        ( Msg.SystemGotBossFightContinuation paths, Phase.ScenePhase (Scene.BossFightScene _ state) sceneModel ) ->
+        ( Msg.SystemGotBossFightContinuation paths, Phase.ScenePhase (Scene.BossFightScene _ state) sceneState character ) ->
             let
                 cmd =
                     Cmd.none
@@ -510,30 +511,30 @@ update msg model =
                 newScene =
                     Scene.BossFightScene (BossPhase.ExplorationPhase paths) state
             in 
-            ( { model | phase = Phase.ScenePhase newScene sceneModel }, cmd )
+            ( { model | phase = Phase.ScenePhase newScene sceneState character }, cmd )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoadingScene monster) sceneModel ) ->
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoadingScene monster) sceneState character ) ->
             let
                 newCharacter =
-                    sceneModel
+                    character
                         |> Character.applyReward reward
                         |> Character.completeBattle
             in
-            ( { model | phase = Phase.ScenePhase (Scene.VictoryScene monster reward) newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase (Scene.VictoryScene monster reward) sceneState newCharacter }, Cmd.none )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve) sceneModel ) ->
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve) sceneState character ) ->
             let
                 newCharacter =
-                    sceneModel
+                    character
                         |> Character.applyReward reward
                         |> Character.completeBattle
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve) newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve) sceneState newCharacter }, Cmd.none )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.LoadingGoal) delve) sceneModel ) ->
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.LoadingGoal) delve) sceneState character ) ->
             let
                 newCharacter =
-                    sceneModel
+                    character
                         |> Character.applyReward reward
                         |> Character.completeBattle
                         |> Util.forEach reward.items (\(item, qty) -> \s ->
@@ -542,49 +543,49 @@ update msg model =
                 
                 newModel =
                     { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Goal reward)) delve) newCharacter
+                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Goal reward)) delve) sceneState newCharacter
                     }
             in
             ( newModel, Cmd.none )
         
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene monster) sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterScene monster intent) sceneModel }, Cmd.none )
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntentScene monster) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterScene monster intent) sceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonsterScene battle monsterAction) sceneModel ) ->
-            updateBattleAction model battle action monsterAction sceneModel
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonsterScene battle monsterAction) _ character ) ->
+            updateBattleAction model battle action monsterAction character
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonsterScene battle monsterAction) sceneModel ) ->
-            updateEndBattleTurn model battle monsterAction sceneModel
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonsterScene battle monsterAction) _ character ) ->
+            updateEndBattleTurn model battle monsterAction character
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) sceneModel ) ->
-            updateDungeonBattleAction model battle action monsterAction delve sceneModel
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) _ character ) ->
+            updateDungeonBattleAction model battle action monsterAction delve character
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) sceneModel ) ->
-            updateDungeonEndBattleTurn model battle monsterAction delve sceneModel
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) _ character ) ->
+            updateDungeonEndBattleTurn model battle monsterAction delve character
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) sceneModel ) ->
-            updateBossBattleAction model battle action monsterAction state sceneModel
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) _ character ) ->
+            updateBossBattleAction model battle action monsterAction state character
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) sceneModel ) ->
-            updateBossEndBattleTurn model battle monsterAction state sceneModel
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction)) state) _ character ) ->
+            updateBossEndBattleTurn model battle monsterAction state character
         
-        ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.RestArea) delve) sceneModel ) ->
+        ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.RestArea) delve) sceneState character ) ->
             let
                 newCharacter =
-                    { sceneModel
-                        | hitPoints = sceneModel.maxHitPoints
-                        , magicPoints = sceneModel.maxMagicPoints
+                    { character
+                        | hitPoints = character.maxHitPoints
+                        , magicPoints = character.maxMagicPoints
                     }
                 
                 newModel =
                     { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.Rested) delve) newCharacter
+                        | phase = Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase DungeonScene.Rested) delve) sceneState newCharacter
                     }
             in
             ( newModel, Cmd.none )
         
-        ( Msg.UserSelectedExitDungeon, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase _) _) sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.ExploreScene sceneModel }, Cmd.none )
+        ( Msg.UserSelectedExitDungeon, Phase.ScenePhase (Scene.ExploreDungeonScene (DelvePhase.ActionPhase _) _) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase Scene.ExploreScene sceneState character }, Cmd.none )
         
         ( Msg.UserSelectedCharacterCreationSettingSelection selection, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
@@ -629,8 +630,8 @@ update msg model =
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateDevCharacterCreationConfirmation model characterCreationModel
         
-        ( Msg.UserSelectedOnyxTower, Phase.ScenePhase _ sceneModel ) ->
-            ( { model | phase = Phase.ScenePhase Scene.OnyxTowerScene sceneModel }, Cmd.none )
+        ( Msg.UserSelectedOnyxTower, Phase.ScenePhase _ sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase Scene.OnyxTowerScene sceneState character }, Cmd.none )
         
         _ ->
             ( model, Cmd.none )
@@ -684,14 +685,14 @@ updateCharacterCreationConfirmation model characterCreationModel =
         newSettings =
             CharacterCreationSettings.check characterCreationModel.settings
         
-        sceneModelResult =
+        characterResult =
             Character.characterCreationModelToCharacter { characterCreationModel | settings = newSettings }
         
         newModel =
-            case sceneModelResult of
-                Ok sceneModel ->
+            case characterResult of
+                Ok character ->
                     { model 
-                        | phase = Phase.ScenePhase Scene.PlayerScene sceneModel 
+                        | phase = Phase.ScenePhase Scene.PlayerScene SceneState.Normal character 
                     }
                 
                 Err _ ->
@@ -706,20 +707,20 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
         newSettings =
             CharacterCreationSettings.check characterCreationModel.settings
         
-        sceneModelResult =
+        characterResult =
             Character.characterCreationModelToCharacter { characterCreationModel | settings = newSettings }
         
         newModel =
-            case sceneModelResult of
-                Ok sceneModel ->
+            case characterResult of
+                Ok character ->
                     let
                         devCharacter =
-                            { sceneModel
+                            { character
                                 | freeAbilityPoints = 100
                                 , totalAbilityPoints = 100
                             }
                     in
-                    { model | phase = Phase.ScenePhase Scene.PlayerScene devCharacter }
+                    { model | phase = Phase.ScenePhase Scene.PlayerScene SceneState.Normal devCharacter }
                 
                 Err _ ->
                     { model | phase = Phase.CharacterCreationPhase { characterCreationModel | settings = newSettings }}
@@ -728,25 +729,43 @@ updateDevCharacterCreationConfirmation model characterCreationModel =
     ( newModel, Cmd.none )
 
 updateBattleAction : Model -> Battle -> Action -> Action -> Character -> ( Model, Cmd Msg )
-updateBattleAction model battle action monsterAction sceneModel =
+updateBattleAction model battle action monsterAction character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runPlayerAction action
         
         newMonster =
             newBattle.monster
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.EscapedScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.EscapedScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal 
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.VictoryLoadingScene newBattle, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.VictoryLoadingScene newBattle
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Battling newBattle
+                }
             else
-                ( Scene.BattleMonsterScene newBattle monsterAction, newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.BattleMonsterScene newBattle monsterAction
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling newBattle 
+                }
         
+        newCharacter2 = next.character
+
         newCharacter3 =
             { newCharacter2
                 | actionStates =
@@ -754,27 +773,45 @@ updateBattleAction model battle action monsterAction sceneModel =
                         |> ActionState.performOneAction action
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
 updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> Character -> ( Model, Cmd Msg )
-updateDungeonBattleAction model battle action monsterAction delve sceneModel =
+updateDungeonBattleAction model battle action monsterAction delve character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runPlayerAction action
         
         newMonster =
             newBattle.monster
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Delving delve
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Delving delve 
+                }
             else
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve, newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling newBattle
+                }
+
+        newCharacter2 = next.character
 
         newCharacter3 =
             { newCharacter2
@@ -783,31 +820,48 @@ updateDungeonBattleAction model battle action monsterAction delve sceneModel =
                         |> ActionState.performOneAction action
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
 
 
 updateEndBattleTurn : Model -> Battle -> Action -> Character -> ( Model, Cmd Msg )
-updateEndBattleTurn model battle monsterAction sceneModel =
+updateEndBattleTurn model battle monsterAction character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runMonsterAction monsterAction
                 |> Battle.completeRound
         
         newMonster =
             newBattle.monster
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.EscapedScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.EscapedScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.VictoryLoadingScene newBattle, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.VictoryLoadingScene newBattle
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Normal
+                }
             else
-                ( Scene.BattleMonsterLoadingIntentScene newBattle, Battler.completeRound newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.BattleMonsterLoadingIntentScene newBattle
+                , character = Battler.completeRound newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling newBattle
+                }
         
+        newCharacter2 = next.character
         newCharacter3 =
             { newCharacter2 
                 | actionPoints = newCharacter2.maxActionPoints
@@ -816,29 +870,47 @@ updateEndBattleTurn model battle monsterAction sceneModel =
                         |> List.map ActionState.tick
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
 updateDungeonEndBattleTurn : Model -> Battle -> Action -> Delve -> Character -> ( Model, Cmd Msg )
-updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
+updateDungeonEndBattleTurn model battle monsterAction delve character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runMonsterAction monsterAction
                 |> Battle.completeRound
         
         newMonster =
             newBattle.monster
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Delving delve
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Delving delve
+                }
             else
-                ( Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve, Battler.completeRound newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.ExploreDungeonScene (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve
+                , character = Battler.completeRound newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling battle
+                }
         
+        newCharacter2 = next.character
+
         newCharacter3 =
             { newCharacter2 
                 | actionPoints = newCharacter2.maxActionPoints
@@ -847,13 +919,13 @@ updateDungeonEndBattleTurn model battle monsterAction delve sceneModel =
                         |> List.map ActionState.tick
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
 updateBossBattleAction : Model -> Battle -> Action -> Action -> BossState -> Character -> ( Model, Cmd Msg )
-updateBossBattleAction model battle action monsterAction state sceneModel =
+updateBossBattleAction model battle action monsterAction state character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runPlayerAction action
         
         newMonster =
@@ -862,15 +934,33 @@ updateBossBattleAction model battle action monsterAction state sceneModel =
         newState =
             { state | monster = newMonster }
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Normal
+                }
             else
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing newBattle monsterAction)) newState, newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossOngoing newBattle monsterAction)) newState
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling newBattle
+                }
+
+        newCharacter2 = next.character
 
         newCharacter3 =
             { newCharacter2
@@ -879,13 +969,13 @@ updateBossBattleAction model battle action monsterAction state sceneModel =
                         |> ActionState.performOneAction action
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
 updateBossEndBattleTurn : Model -> Battle -> Action -> BossState -> Character -> ( Model, Cmd Msg )
-updateBossEndBattleTurn model battle monsterAction state sceneModel =
+updateBossEndBattleTurn model battle monsterAction state character =
     let
         ( newBattle, newCharacter ) =
-            ( battle, sceneModel )
+            ( battle, character )
                 |> Battle.runMonsterAction monsterAction
                 |> Battle.completeRound
         
@@ -895,16 +985,34 @@ updateBossEndBattleTurn model battle monsterAction state sceneModel =
         newState =
             { state | monster = newMonster }
         
-        ( newScene, newCharacter2, newCmd ) =
+        next =
             if newBattle.state == Battle.Done then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newCharacter.hitPoints <= 0 then
-                ( Scene.GameOverScene, Character.completeBattle newCharacter, Cmd.none )
+                { scene = Scene.GameOverScene
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                , sceneState = SceneState.Normal
+                }
             else if newMonster.hitPoints <= 0 then
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState, newCharacter, Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster) )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.VictoryLoading newBattle)) newState
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                , sceneState = SceneState.Normal
+                }
             else
-                ( Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent newBattle)) newState, Battler.completeRound newCharacter, Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle) )
+                { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent newBattle)) newState
+                , character = Battler.completeRound newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                , sceneState = SceneState.Battling newBattle
+                }
         
+        newCharacter2 = next.character
+
         newCharacter3 =
             { newCharacter2 
                 | actionPoints = newCharacter2.maxActionPoints
@@ -913,4 +1021,4 @@ updateBossEndBattleTurn model battle monsterAction state sceneModel =
                         |> List.map ActionState.tick
             }
     in
-    ( { model | phase = Phase.ScenePhase newScene newCharacter3 }, newCmd )
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )

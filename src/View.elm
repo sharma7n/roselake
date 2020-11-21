@@ -75,8 +75,8 @@ view model =
         Phase.CharacterCreationPhase characterCreationModel ->
             viewCharacterCreationPhase characterCreationModel
         
-        Phase.ScenePhase scene sceneModel ->
-            viewScenePhase scene sceneModel
+        Phase.ScenePhase scene _ character ->
+            viewScenePhase scene character
 
 viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
 viewCharacterCreationPhase model =
@@ -183,20 +183,20 @@ statusSetListItem statusSet =
 
 
 viewScenePhase : Scene -> Character -> Html Msg
-viewScenePhase scene sceneModel =
+viewScenePhase scene character =
     Html.div
         []
         [ Html.ul
             []
-            [ textListItem <| sceneModel.name
-            , textListItem <| Avatar.description sceneModel.avatar
-            , textListItem <| "G: " ++ String.fromInt sceneModel.gold
-            , textListItem <| "LV: " ++ String.fromInt sceneModel.level
-            , textListItem <| "EXP: " ++ String.fromInt sceneModel.experience ++ " / " ++ String.fromInt (levelUpExperience sceneModel.level)
-            , textListItem <| "AP: " ++ String.fromInt sceneModel.freeAbilityPoints ++ " / " ++ String.fromInt sceneModel.totalAbilityPoints
-            , statusSetListItem sceneModel.statusSet
-            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
-            , textListItem <| "MP: " ++ String.fromInt sceneModel.magicPoints ++ " / " ++ String.fromInt sceneModel.maxMagicPoints
+            [ textListItem <| character.name
+            , textListItem <| Avatar.description character.avatar
+            , textListItem <| "G: " ++ String.fromInt character.gold
+            , textListItem <| "LV: " ++ String.fromInt character.level
+            , textListItem <| "EXP: " ++ String.fromInt character.experience ++ " / " ++ String.fromInt (levelUpExperience character.level)
+            , textListItem <| "AP: " ++ String.fromInt character.freeAbilityPoints ++ " / " ++ String.fromInt character.totalAbilityPoints
+            , statusSetListItem character.statusSet
+            , textListItem <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
+            , textListItem <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
             ]
         , case scene of
             Scene.BattleMonsterScene _ _ ->
@@ -224,8 +224,8 @@ viewScenePhase scene sceneModel =
                     , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
                     , ( "Boss", Msg.UserSelectedScene Scene.BossSelectScene )
                     ]
-        , viewCharacter scene sceneModel
-        , viewInventory sceneModel.inventory
+        , viewCharacter scene character
+        , viewInventory character.inventory
         ]
 
 viewInventory : Inventory -> Html Msg
@@ -332,7 +332,7 @@ radioButtons toString toMsg items currentItem =
     
 
 viewCharacter : Scene -> Character -> Html Msg
-viewCharacter scene sceneModel =
+viewCharacter scene character =
     case scene of
         Scene.PlayerScene ->
             Html.ul
@@ -341,26 +341,26 @@ viewCharacter scene sceneModel =
                     []
                     [ Html.text "Attributes"
                     , textList
-                        [ "STR: " ++ String.fromInt sceneModel.strength
-                        , "VIT: " ++ String.fromInt sceneModel.vitality
-                        , "AGI: " ++ String.fromInt sceneModel.agility
-                        , "INT: " ++ String.fromInt sceneModel.intellect
+                        [ "STR: " ++ String.fromInt character.strength
+                        , "VIT: " ++ String.fromInt character.vitality
+                        , "AGI: " ++ String.fromInt character.agility
+                        , "INT: " ++ String.fromInt character.intellect
                         ]
                     , Html.text "Equipment"
                     , textList
-                        [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name sceneModel.equippedWeapon)
-                        , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name sceneModel.equippedArmor)
+                        [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
+                        , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
                         ]
                     , Html.text "Passives"
                     , textList
-                        ( sceneModel.learnedPassives
+                        ( character.learnedPassives
                             |> Set.toList
                             |> List.map Passive.byId
                             |> List.map .name
                         )
                     , Html.text "Actions"
                     , textList
-                        ( sceneModel.learned
+                        ( character.learned
                             |> Set.toList
                             |> List.map Action.byId
                             |> List.map .name
@@ -369,15 +369,15 @@ viewCharacter scene sceneModel =
                 ]
         
         Scene.EssentiaScene ->
-            viewEssentiaScene sceneModel.essentia sceneModel.essentiaContainer
+            viewEssentiaScene character.essentia character.essentiaContainer
         
         Scene.LearnSelectScene ->
-            viewLearnScene sceneModel
+            viewLearnScene character
         
         Scene.EquipScene ->
             let
                 equippedWeaponElement =
-                    case sceneModel.equippedWeapon of
+                    case character.equippedWeapon of
                         Just weapon ->
                             Html.div
                                 []
@@ -394,7 +394,7 @@ viewCharacter scene sceneModel =
                                 ]
                 
                 equippedArmorElement =
-                    case sceneModel.equippedArmor of
+                    case character.equippedArmor of
                         Just armor ->
                             Html.div
                                 []
@@ -432,7 +432,7 @@ viewCharacter scene sceneModel =
                   in
                   Html.ul
                     []
-                    (List.map equipableFn (Inventory.listWeapons sceneModel.inventory))
+                    (List.map equipableFn (Inventory.listWeapons character.inventory))
                 , let
 
                     equipableFn (w, q) =
@@ -446,7 +446,7 @@ viewCharacter scene sceneModel =
                   in
                   Html.ul
                     []
-                    (List.map equipableFn (Inventory.listArmors sceneModel.inventory))
+                    (List.map equipableFn (Inventory.listArmors character.inventory))
                 ]
         
         Scene.HomeScene ->
@@ -460,13 +460,13 @@ viewCharacter scene sceneModel =
                 ]
         
         Scene.ShopScene shop ->
-            viewShopScene sceneModel shop
+            viewShopScene character shop
         
         Scene.TownScene ->
-            viewTownScene sceneModel
+            viewTownScene character
         
         Scene.OnyxTowerScene ->
-            viewOnyxTowerScene sceneModel
+            viewOnyxTowerScene character
         
         Scene.ExploreScene ->
             dungeonTable
@@ -474,7 +474,7 @@ viewCharacter scene sceneModel =
                 ]
         
         Scene.ExploreDungeonScene delvePhase delve ->
-            viewExploreDungeonScene sceneModel delvePhase delve
+            viewExploreDungeonScene character delvePhase delve
         
         Scene.BattleScene ->
             monsterTable
@@ -488,7 +488,7 @@ viewCharacter scene sceneModel =
             Html.text <| battle.monster.name ++ " is thinking..."
         
         Scene.BattleMonsterScene battle intent ->
-            viewBattleMonsterScene sceneModel battle intent
+            viewBattleMonsterScene character battle intent
         
         Scene.VictoryLoadingScene _ ->
             Html.text "Loading..."
@@ -516,10 +516,10 @@ viewCharacter scene sceneModel =
                 ]
         
         Scene.BossFightScene bossPhase bossState ->
-            viewBossFight sceneModel bossPhase bossState
+            viewBossFight character bossPhase bossState
 
 viewExploreDungeonScene : Character -> DelvePhase -> Delve -> Html Msg
-viewExploreDungeonScene sceneModel delvePhase delve =
+viewExploreDungeonScene character delvePhase delve =
     Html.div
         []
         [ textList
@@ -528,12 +528,12 @@ viewExploreDungeonScene sceneModel delvePhase delve =
             ]
         , case delvePhase of
             DelvePhase.ExplorationPhase paths ->
-                pathTable sceneModel paths
+                pathTable character paths
             
             DelvePhase.ActionPhase scene ->
                 case scene of
                     DungeonScene.BattleMonster battle intent ->
-                        viewBattleMonsterScene sceneModel battle intent
+                        viewBattleMonsterScene character battle intent
                     
                     DungeonScene.RestArea ->
                         buttonList
@@ -582,7 +582,7 @@ viewExploreDungeonScene sceneModel delvePhase delve =
                     DungeonScene.Shopping shop ->
                         Html.ul
                             []
-                            [ viewShopScene sceneModel shop
+                            [ viewShopScene character shop
                             , Html.button
                                 [ Html.Events.onClick Msg.UserSelectedContinueDungeon ]
                                 [ Html.text "Continue" ]
@@ -719,7 +719,7 @@ explainSceneDistribution d =
     textList (List.map explainOneScene (Distribution.toList d))
 
 viewBattleMonsterScene : Character -> Battle -> Action -> Html Msg
-viewBattleMonsterScene sceneModel battle intent =
+viewBattleMonsterScene character battle intent =
     let
         monster = battle.monster
     in
@@ -740,13 +740,13 @@ viewBattleMonsterScene sceneModel battle intent =
         , Html.ul
             []
             [ textListItem <| "Player"
-            , textListItem <| sceneModel.name
-            , statusSetListItem <| sceneModel.statusSet
-            , textListItem <| "HP: " ++ String.fromInt sceneModel.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints sceneModel)
-            , textListItem <| "AP: " ++ String.fromInt sceneModel.actionPoints ++ " / " ++ String.fromInt sceneModel.maxActionPoints
-            , textListItem <| "Block: " ++ String.fromInt sceneModel.block
+            , textListItem <| character.name
+            , statusSetListItem <| character.statusSet
+            , textListItem <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
+            , textListItem <| "AP: " ++ String.fromInt character.actionPoints ++ " / " ++ String.fromInt character.maxActionPoints
+            , textListItem <| "Block: " ++ String.fromInt character.block
             ]
-        , actionTable sceneModel.actionPoints sceneModel.actionStates
+        , actionTable character.actionPoints character.actionStates
         , Html.button
             [ Html.Events.onClick Msg.UserSelectedEndBattleTurn ]
             [ Html.text "End Turn" ]
@@ -781,7 +781,7 @@ actionTable actionPoints actions =
         ( List.map actionFn actions )
 
 viewShopScene : Character -> Shop -> Html Msg
-viewShopScene sceneModel shop =
+viewShopScene character shop =
     let
         buyableFn b =
             Html.li
@@ -1032,7 +1032,7 @@ viewBosses bosses =
         ( List.map viewOneBoss bosses )
 
 viewBossFight : Character -> BossPhase -> BossState -> Html Msg
-viewBossFight sceneModel phase state =
+viewBossFight character phase state =
     Html.div
         []
         [ if state.boss.showBoss then
@@ -1055,7 +1055,7 @@ viewBossFight sceneModel phase state =
                         Html.div [] []
                     
                     BossScene.BattleBossOngoing battle intent ->
-                        viewBattleMonsterScene sceneModel battle intent
+                        viewBattleMonsterScene character battle intent
                     
                     _ ->
                         Html.ul

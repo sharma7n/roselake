@@ -990,7 +990,8 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 { scene = Scene.BossFightScene (BossPhase.ActionPhase (BossScene.Escaped)) newState
                 , character = Character.completeBattle newCharacter
                 , cmd = Cmd.none
-                , sceneState = SceneState.Normal
+                , sceneState =
+                    { ambient = SceneState.Rest }
                 }
             else if newCharacter.hitPoints <= 0 then
                 { scene = Scene.GameOverScene
@@ -1019,6 +1020,68 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 , actionStates =
                     newCharacter2.actionStates
                         |> List.map ActionState.tick
+            }
+    in
+    ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
+
+updateGenericBattleAction : Action -> Action -> Character -> Battle -> SceneState -> Model -> ( Model, Cmd Msg )
+updateGenericBattleAction characterAction monsterAction character battle sceneState m =
+    let
+        ( newBattle, newCharacter ) =
+            ( battle, character )
+                |> Battle.runPlayerAction characterAction
+        
+        newMonster =
+            newBattle.monster
+        
+        newSceneState =
+            case sceneState.ambient of
+                SceneState.Rest ->
+                    sceneState
+                        |> SceneState.setBattle newBattle
+                
+                SceneState.Delving delve ->
+                    sceneState
+                        |> SceneState.setBattle newBattle
+
+                SceneState.BossFight bossState ->
+                    let
+                        newBossState =
+                            { bossState | monster = newMonster }
+                    in
+                    { ambient = SceneState.BossFight
+                    , maybeBattle = Just newBattle
+                    }
+        
+        next =
+            if newBattle.state == Battle.Done then
+                { scene = Scene.Escaped
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                }
+            else if newCharacter.hitPoints <= 0 then
+                { scene = Scene.GameOver
+                , character = Character.completeBattle newCharacter
+                , cmd = Cmd.none
+                }
+            else if newMonster.hitPoints <= 0 then
+                { scene = Scene.VictoryLoading
+                , character = Character.completeBattle newCharacter
+                , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
+                }
+            else
+                { scene = Scene.Battle
+                , character = newCharacter
+                , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
+                }
+
+        newCharacter2 = next.character
+
+        newCharacter3 =
+            { newCharacter2
+                | actionStates =
+                    newCharacter2.actionStates
+                        |> ActionState.performOneAction action
             }
     in
     ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )

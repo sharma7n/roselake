@@ -25,7 +25,6 @@ type Scene
     | BattleSelect
     | BattleMonsterLoadingIntent
     | BattleMonster Action
-    | Battle Action
     | VictoryLoading Monster
     | Victory Monster Reward
     | GameOver

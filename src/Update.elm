@@ -1160,7 +1160,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 }
             else
-                { scene = Scene.Battle monsterAction
+                { scene = Scene.BattleMonster monsterAction
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 }

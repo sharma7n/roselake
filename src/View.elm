@@ -530,9 +530,6 @@ viewCharacter scene sceneState character =
                 
                 _ ->
                     textList []
-        
-        Scene.Battle _ ->
-            textList []
 
 viewExploreDungeon : Character -> DelvePhase -> Delve -> Html Msg
 viewExploreDungeon character delvePhase delve =

@@ -498,15 +498,20 @@ viewCharacter scene sceneState character =
                 Nothing ->
                     textList []
         
-        Scene.VictoryLoading _ ->
+        Scene.VictoryLoading ->
             Html.text "Loading..."
         
-        Scene.Victory monster reward ->
-            textList
-                [ "You defeated " ++ monster.name ++ "!"
-                , "Reward:"
-                , "EXP: " ++ String.fromInt reward.experience
-                ]
+        Scene.Victory reward ->
+            case sceneState.maybeBattle of
+                Just battle ->
+                    textList
+                        [ "You defeated " ++ battle.monster.name ++ "!"
+                        , "Reward:"
+                        , "EXP: " ++ String.fromInt reward.experience
+                        ]
+                
+                Nothing ->
+                    textList []
         
         Scene.GameOver ->
             textList

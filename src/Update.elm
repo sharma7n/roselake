@@ -539,14 +539,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoading monster) sceneState character ) ->
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoading) sceneState character ) ->
             let
                 newCharacter =
                     character
                         |> Character.applyReward reward
                         |> Character.completeBattle
             in
-            ( { model | phase = Phase.ScenePhase (Scene.Victory monster reward) sceneState newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase (Scene.Victory reward) sceneState newCharacter }, Cmd.none )
         
         ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve) sceneState character ) ->
             let
@@ -798,7 +798,7 @@ updateBattleAction model battle action monsterAction character =
                 , sceneState = SceneState.new
                 }
             else if newMonster.hitPoints <= 0 then
-                { scene = Scene.VictoryLoading newMonster
+                { scene = Scene.VictoryLoading
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 , sceneState = { ambient = SceneState.Rest, maybeBattle = Just newBattle }
@@ -904,7 +904,7 @@ updateEndBattleTurn model battle monsterAction character =
                 , sceneState = SceneState.new
                 }
             else if newMonster.hitPoints <= 0 then
-                { scene = Scene.VictoryLoading newMonster
+                { scene = Scene.VictoryLoading
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 , sceneState = SceneState.new
@@ -1155,7 +1155,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                 , cmd = Cmd.none
                 }
             else if newMonster.hitPoints <= 0 then
-                { scene = Scene.VictoryLoading newMonster
+                { scene = Scene.VictoryLoading
                 , character = Character.completeBattle newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 }

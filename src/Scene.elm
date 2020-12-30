@@ -25,8 +25,8 @@ type Scene
     | BattleSelect
     | BattleMonsterLoadingIntent
     | BattleMonster Action
-    | VictoryLoading Monster
-    | Victory Monster Reward
+    | VictoryLoading
+    | Victory Reward
     | GameOver
     | Escaped
     | Town

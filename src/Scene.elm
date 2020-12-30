@@ -20,12 +20,9 @@ type Scene
     | Home
     | ShopSelect
     | Shop Shop
-    | DungeonSelect
-    | Dungeon DelvePhase
     | Explore
     | ExploreDungeon DelvePhase Delve
     | BattleSelect
-    | BattleLoadingIntent
     | BattleMonsterLoadingIntent Battle
     | BattleMonster Battle Action
     | Battle Action
@@ -36,4 +33,4 @@ type Scene
     | Town
     | OnyxTower
     | BossSelect
-    | BossFight BossPhase BossState
+    | BossFight BossPhase

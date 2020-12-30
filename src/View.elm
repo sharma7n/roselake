@@ -26,6 +26,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import SceneState exposing (SceneState)
 import Requirement exposing (Requirement)
 import Attribute exposing (Attribute)
 import Battle exposing (Battle)
@@ -75,8 +76,8 @@ view model =
         Phase.CharacterCreationPhase characterCreationModel ->
             viewCharacterCreationPhase characterCreationModel
         
-        Phase.ScenePhase scene _ character ->
-            viewScenePhase scene character
+        Phase.ScenePhase scene sceneState character ->
+            viewScenePhase scene sceneState character
 
 viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
 viewCharacterCreationPhase model =
@@ -182,8 +183,8 @@ statusSetListItem statusSet =
         ]
 
 
-viewScenePhase : Scene -> Character -> Html Msg
-viewScenePhase scene character =
+viewScenePhase : Scene -> SceneState -> Character -> Html Msg
+viewScenePhase scene sceneState character =
     Html.div
         []
         [ Html.ul
@@ -209,9 +210,6 @@ viewScenePhase scene character =
                     []
                     []
             
-            Scene.BossFight _ _ ->
-                Html.div [] []
-            
             _ ->
                  buttonBar
                     [ ( "Player", Msg.UserSelectedScene Scene.Player )
@@ -224,7 +222,7 @@ viewScenePhase scene character =
                     , ( "Explore", Msg.UserSelectedScene Scene.Explore )
                     , ( "Boss", Msg.UserSelectedScene Scene.BossSelect )
                     ]
-        , viewCharacter scene character
+        , viewCharacter scene sceneState character
         , viewInventory character.inventory
         ]
 
@@ -331,8 +329,8 @@ radioButtons toString toMsg items currentItem =
         ( List.map itemFn items )
     
 
-viewCharacter : Scene -> Character -> Html Msg
-viewCharacter scene character =
+viewCharacter : Scene -> SceneState -> Character -> Html Msg
+viewCharacter scene sceneState character =
     case scene of
         Scene.Player ->
             Html.ul
@@ -515,17 +513,13 @@ viewCharacter scene character =
                 [ Boss.byId "leviathan"
                 ]
         
-        Scene.BossFight bossPhase bossState ->
-            viewBossFight character bossPhase bossState
-        
-        Scene.DungeonSelect ->
-            textList []
-        
-        Scene.Dungeon _ ->
-            textList []
-        
-        Scene.BattleLoadingIntent ->
-            textList []
+        Scene.BossFight bossPhase ->
+            case sceneState.ambient of
+                SceneState.BossFight bossState ->
+                    viewBossFight character bossPhase bossState
+                
+                _ ->
+                    textList []
         
         Scene.Battle _ ->
             textList []

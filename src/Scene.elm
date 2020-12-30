@@ -3,10 +3,14 @@ module Scene exposing
     )
 
 import Action exposing (Action)
+import Battle exposing (Battle)
 import DelvePhase exposing (DelvePhase)
+import Delve exposing (Delve)
+import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
 import BossPhase exposing (BossPhase)
+import BossState exposing (BossState)
 
 type Scene
     = Player
@@ -18,13 +22,18 @@ type Scene
     | Shop Shop
     | DungeonSelect
     | Dungeon DelvePhase
+    | Explore
+    | ExploreDungeon DelvePhase Delve
     | BattleSelect
     | BattleLoadingIntent
+    | BattleMonsterLoadingIntent Battle
+    | BattleMonster Battle Action
     | Battle Action
-    | VictoryLoading
-    | Victory Reward
+    | VictoryLoading Monster
+    | Victory Monster Reward
     | GameOver
     | Escaped
     | Town
     | OnyxTower
     | BossSelect
+    | BossFight BossPhase BossState

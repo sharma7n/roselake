@@ -199,30 +199,30 @@ viewScenePhase scene character =
             , textListItem <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
             ]
         , case scene of
-            Scene.BattleMonsterScene _ _ ->
+            Scene.BattleMonster _ _ ->
                 Html.div
                     []
                     []
             
-            Scene.ExploreDungeonScene _ _ ->
+            Scene.ExploreDungeon _ _ ->
                 Html.div
                     []
                     []
             
-            Scene.BossFightScene _ _ ->
+            Scene.BossFight _ _ ->
                 Html.div [] []
             
             _ ->
                  buttonBar
-                    [ ( "Player", Msg.UserSelectedScene Scene.PlayerScene )
-                    , ( "Essentia", Msg.UserSelectedScene Scene.EssentiaScene )
-                    , ( "Learn", Msg.UserSelectedScene Scene.LearnSelectScene )
-                    , ( "Equip", Msg.UserSelectedScene Scene.EquipScene )
-                    , ( "Home", Msg.UserSelectedScene Scene.HomeScene )
-                    , ( "Shop", Msg.UserSelectedScene Scene.ShopSelectScene )
-                    , ( "Town", Msg.UserSelectedScene Scene.TownScene )
-                    , ( "Explore", Msg.UserSelectedScene Scene.ExploreScene )
-                    , ( "Boss", Msg.UserSelectedScene Scene.BossSelectScene )
+                    [ ( "Player", Msg.UserSelectedScene Scene.Player )
+                    , ( "Essentia", Msg.UserSelectedScene Scene.Essentia )
+                    , ( "Learn", Msg.UserSelectedScene Scene.LearnSelect )
+                    , ( "Equip", Msg.UserSelectedScene Scene.Equip )
+                    , ( "Home", Msg.UserSelectedScene Scene.Home )
+                    , ( "Shop", Msg.UserSelectedScene Scene.ShopSelect )
+                    , ( "Town", Msg.UserSelectedScene Scene.Town )
+                    , ( "Explore", Msg.UserSelectedScene Scene.Explore )
+                    , ( "Boss", Msg.UserSelectedScene Scene.BossSelect )
                     ]
         , viewCharacter scene character
         , viewInventory character.inventory
@@ -334,7 +334,7 @@ radioButtons toString toMsg items currentItem =
 viewCharacter : Scene -> Character -> Html Msg
 viewCharacter scene character =
     case scene of
-        Scene.PlayerScene ->
+        Scene.Player ->
             Html.ul
                 []
                 [ Html.ol
@@ -368,13 +368,13 @@ viewCharacter scene character =
                     ]
                 ]
         
-        Scene.EssentiaScene ->
+        Scene.Essentia ->
             viewEssentiaScene character.essentia character.essentiaContainer
         
-        Scene.LearnSelectScene ->
+        Scene.LearnSelect ->
             viewLearnScene character
         
-        Scene.EquipScene ->
+        Scene.Equip ->
             let
                 equippedWeaponElement =
                     case character.equippedWeapon of
@@ -449,34 +449,34 @@ viewCharacter scene character =
                     (List.map equipableFn (Inventory.listArmors character.inventory))
                 ]
         
-        Scene.HomeScene ->
+        Scene.Home ->
             buttonList
                 [ ( "Rest", Msg.UserSelectedHomeRest )
                 ]
         
-        Scene.ShopSelectScene ->
+        Scene.ShopSelect ->
             shopTable
                 [ Shop.byId "potionshop"
                 ]
         
-        Scene.ShopScene shop ->
+        Scene.Shop shop ->
             viewShopScene character shop
         
-        Scene.TownScene ->
+        Scene.Town ->
             viewTownScene character
         
-        Scene.OnyxTowerScene ->
+        Scene.OnyxTower ->
             viewOnyxTowerScene character
         
-        Scene.ExploreScene ->
+        Scene.Explore ->
             dungeonTable
                 [ Dungeon.byId "beginnerscave"
                 ]
         
-        Scene.ExploreDungeonScene delvePhase delve ->
-            viewExploreDungeonScene character delvePhase delve
+        Scene.ExploreDungeon delvePhase delve ->
+            viewExploreDungeon character delvePhase delve
         
-        Scene.BattleScene ->
+        Scene.BattleSelect ->
             monsterTable
                 [ MonsterTemplate.byId "dummy"
                 , MonsterTemplate.byId "gremlin"
@@ -484,42 +484,54 @@ viewCharacter scene character =
                 , MonsterTemplate.byId "wyvern"
                 ]
         
-        Scene.BattleMonsterLoadingIntentScene battle ->
+        Scene.BattleMonsterLoadingIntent battle ->
             Html.text <| battle.monster.name ++ " is thinking..."
         
-        Scene.BattleMonsterScene battle intent ->
-            viewBattleMonsterScene character battle intent
+        Scene.BattleMonster battle intent ->
+            viewBattleMonster character battle intent
         
-        Scene.VictoryLoadingScene _ ->
+        Scene.VictoryLoading _ ->
             Html.text "Loading..."
         
-        Scene.VictoryScene battle reward ->
+        Scene.Victory monster reward ->
             textList
-                [ "You defeated " ++ battle.monster.name ++ "!"
+                [ "You defeated " ++ monster.name ++ "!"
                 , "Reward:"
                 , "EXP: " ++ String.fromInt reward.experience
                 ]
         
-        Scene.GameOverScene ->
+        Scene.GameOver ->
             textList
                 [ "Defeated..."
                 ]
         
-        Scene.EscapedScene ->
+        Scene.Escaped ->
             textList
                 [ "Escaped..."
                 ]
         
-        Scene.BossSelectScene ->
+        Scene.BossSelect ->
             viewBosses
                 [ Boss.byId "leviathan"
                 ]
         
-        Scene.BossFightScene bossPhase bossState ->
+        Scene.BossFight bossPhase bossState ->
             viewBossFight character bossPhase bossState
+        
+        Scene.DungeonSelect ->
+            textList []
+        
+        Scene.Dungeon _ ->
+            textList []
+        
+        Scene.BattleLoadingIntent ->
+            textList []
+        
+        Scene.Battle _ ->
+            textList []
 
-viewExploreDungeonScene : Character -> DelvePhase -> Delve -> Html Msg
-viewExploreDungeonScene character delvePhase delve =
+viewExploreDungeon : Character -> DelvePhase -> Delve -> Html Msg
+viewExploreDungeon character delvePhase delve =
     Html.div
         []
         [ textList
@@ -533,7 +545,7 @@ viewExploreDungeonScene character delvePhase delve =
             DelvePhase.ActionPhase scene ->
                 case scene of
                     DungeonScene.BattleMonster battle intent ->
-                        viewBattleMonsterScene character battle intent
+                        viewBattleMonster character battle intent
                     
                     DungeonScene.RestArea ->
                         buttonList
@@ -718,8 +730,8 @@ explainSceneDistribution d =
     in
     textList (List.map explainOneScene (Distribution.toList d))
 
-viewBattleMonsterScene : Character -> Battle -> Action -> Html Msg
-viewBattleMonsterScene character battle intent =
+viewBattleMonster : Character -> Battle -> Action -> Html Msg
+viewBattleMonster character battle intent =
     let
         monster = battle.monster
     in
@@ -1055,7 +1067,7 @@ viewBossFight character phase state =
                         Html.div [] []
                     
                     BossScene.BattleBossOngoing battle intent ->
-                        viewBattleMonsterScene character battle intent
+                        viewBattleMonster character battle intent
                     
                     _ ->
                         Html.ul

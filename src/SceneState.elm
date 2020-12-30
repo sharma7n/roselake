@@ -3,6 +3,7 @@ module SceneState exposing
     , Ambient(..)
     , setBattle
     , clearBattle
+    , new
     )
 
 import Battle exposing (Battle)
@@ -18,6 +19,12 @@ type Ambient
     = Rest
     | Delving Delve
     | BossFight BossState
+
+new : SceneState
+new =
+    { ambient = Rest
+    , maybeBattle = Nothing
+    }
 
 setBattle : Battle -> SceneState -> SceneState
 setBattle battle s =

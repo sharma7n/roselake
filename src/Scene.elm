@@ -23,8 +23,8 @@ type Scene
     | Explore
     | ExploreDungeon DelvePhase Delve
     | BattleSelect
-    | BattleMonsterLoadingIntent Battle
-    | BattleMonster Battle Action
+    | BattleMonsterLoadingIntent
+    | BattleMonster Action
     | Battle Action
     | VictoryLoading Monster
     | Victory Monster Reward

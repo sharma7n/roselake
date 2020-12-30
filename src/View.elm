@@ -200,7 +200,7 @@ viewScenePhase scene sceneState character =
             , textListItem <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
             ]
         , case scene of
-            Scene.BattleMonster _ _ ->
+            Scene.BattleMonster _ ->
                 Html.div
                     []
                     []
@@ -482,11 +482,21 @@ viewCharacter scene sceneState character =
                 , MonsterTemplate.byId "wyvern"
                 ]
         
-        Scene.BattleMonsterLoadingIntent battle ->
-            Html.text <| battle.monster.name ++ " is thinking..."
+        Scene.BattleMonsterLoadingIntent ->
+            case sceneState.maybeBattle of
+                Just battle ->
+                    Html.text <| battle.monster.name ++ " is thinking..."
+                
+                Nothing ->
+                    textList []
         
-        Scene.BattleMonster battle intent ->
-            viewBattleMonster character battle intent
+        Scene.BattleMonster intent ->
+            case sceneState.maybeBattle of
+                Just battle ->
+                    viewBattleMonster character battle intent
+                
+                Nothing ->
+                    textList []
         
         Scene.VictoryLoading _ ->
             Html.text "Loading..."

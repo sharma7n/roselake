@@ -76,10 +76,13 @@ update msg model =
                 cmd =
                     Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
                 
+                newSceneState =
+                    { sceneState | maybeBattle = Just battle }
+                
                 newCharacter =
                     Character.completeBattle character
             in
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntent battle) sceneState newCharacter }, cmd )
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonsterLoadingIntent) newSceneState newCharacter }, cmd )
         
         ( Msg.UserSelectedLearnSkill action, Phase.ScenePhase scene sceneState character ) ->
             let
@@ -571,14 +574,24 @@ update msg model =
             in
             ( newModel, Cmd.none )
         
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntent monster) sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonster monster intent) sceneState character }, Cmd.none )
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntent) sceneState character ) ->
+            ( { model | phase = Phase.ScenePhase (Scene.BattleMonster intent) sceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonster battle monsterAction) _ character ) ->
-            updateBattleAction model battle action monsterAction character
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonster monsterAction) sceneState character ) ->
+            case sceneState.maybeBattle of
+                Just battle ->
+                    updateBattleAction model battle action monsterAction character
+                
+                _ ->
+                    ( model, Cmd.none )
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonster battle monsterAction) _ character ) ->
-            updateEndBattleTurn model battle monsterAction character
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonster monsterAction) sceneState character ) ->
+            case sceneState.maybeBattle of
+                Just battle ->
+                    updateEndBattleTurn model battle monsterAction character
+                
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) _ character ) ->
             updateDungeonBattleAction model battle action monsterAction delve character
@@ -791,7 +804,7 @@ updateBattleAction model battle action monsterAction character =
                 , sceneState = { ambient = SceneState.Rest, maybeBattle = Just newBattle }
                 }
             else
-                { scene = Scene.BattleMonster newBattle monsterAction
+                { scene = Scene.BattleMonster monsterAction
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 , sceneState = { ambient = SceneState.Rest, maybeBattle = Just newBattle } 
@@ -897,7 +910,7 @@ updateEndBattleTurn model battle monsterAction character =
                 , sceneState = SceneState.new
                 }
             else
-                { scene = Scene.BattleMonsterLoadingIntent newBattle
+                { scene = Scene.BattleMonsterLoadingIntent
                 , character = Battler.completeRound newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 , sceneState =

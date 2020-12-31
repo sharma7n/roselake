@@ -297,16 +297,6 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.DungeonSelect _ _ ) ->
-            let
-                pathListGenerator =
-                    Util.randomDistinctList 3 DungeonPath.generator
-                
-                cmd =
-                    Random.generate (Msg.SystemGotDungeonInitialization dungeon) pathListGenerator
-            in
-            ( model, cmd )
-        
         ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ _ ) ->
             let
                 pathListGenerator =
@@ -314,6 +304,16 @@ update msg model =
                 
                 cmd =
                     Random.generate (Msg.SystemGotBossInitialization boss) pathListGenerator
+            in
+            ( model, cmd )
+        
+        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.DungeonSelect _ _ ) ->
+            let
+                pathListGenerator =
+                    Util.randomDistinctList 3 DungeonPath.generator
+                
+                cmd =
+                    Random.generate (Msg.SystemGotDungeonInitialization dungeon) pathListGenerator
             in
             ( model, cmd )
         
@@ -328,7 +328,9 @@ update msg model =
                     }
                 
                 newSceneState =
-                    { sceneState | ambient = SceneState.Delving delvePhase delve }
+                    { sceneState 
+                        | ambient = SceneState.Delving delvePhase delve 
+                    }
             in
             ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, Cmd.none )
         
@@ -355,17 +357,10 @@ update msg model =
             ( newModel, Cmd.none )
             
         
-        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeon) _ _) ->
+        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase Scene.ExploreDungeon _ _) ->
             let
                 cmd =
                     Random.generate Msg.SystemGotDungeonScene (Distribution.random path.sceneDistribution)
-            in
-            ( model, cmd )
-        
-        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _ _ ) ->
-            let
-                cmd =
-                    Random.generate Msg.SystemGotBossScene (Distribution.random path.sceneDistribution)
             in
             ( model, cmd )
         
@@ -373,6 +368,14 @@ update msg model =
             case sceneState.ambient of
                 SceneState.Delving delvePhase delve ->
                     let
+                        newDelvePhase =
+                            DelvePhase.ActionPhase scene
+                        
+                        newSceneState =
+                            { sceneState
+                                | ambient = SceneState.Delving newDelvePhase delve
+                            }
+                        
                         cmd =
                             case scene of
                                 DungeonScene.Battle ->
@@ -385,10 +388,17 @@ update msg model =
                                     Cmd.none
                         
                     in
-                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, cmd )
+                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, cmd )
                 
                 _ ->
                     ( model, Cmd.none )
+        
+        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _ _ ) ->
+            let
+                cmd =
+                    Random.generate Msg.SystemGotBossScene (Distribution.random path.sceneDistribution)
+            in
+            ( model, cmd )
         
         ( Msg.SystemGotBossScene bossScene, Phase.ScenePhase scene sceneState character ) ->
             case sceneState.ambient of
@@ -558,7 +568,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
             case sceneState.ambient of
                 SceneState.Delving delvePhase delve ->
                     let
@@ -583,9 +593,9 @@ update msg model =
                                 ( Scene.ExploreDungeon, (DelvePhase.ExplorationPhase paths), newDelve2 )
                         
                         newSceneState =
-                            SceneState.Delving newDelvePhase newDelve
+                            SceneState.new (SceneState.Delving newDelvePhase newDelve)
                     in 
-                    ( { model | phase = Phase.ScenePhase newScene sceneState character }, cmd )
+                    ( { model | phase = Phase.ScenePhase newScene newSceneState character }, cmd )
                 
                 _ ->
                     ( model, Cmd.none )

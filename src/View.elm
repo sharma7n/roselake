@@ -533,9 +533,9 @@ viewCharacter scene sceneState character =
                 [ Boss.byId "leviathan"
                 ]
         
-        Scene.BossFight bossPhase ->
+        Scene.BossFight ->
             case sceneState.ambient of
-                SceneState.BossFight bossState ->
+                SceneState.BossFight bossPhase bossState ->
                     viewBossFight character bossPhase bossState
                 
                 _ ->

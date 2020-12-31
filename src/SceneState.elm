@@ -10,6 +10,7 @@ import Action exposing (Action)
 import Battle exposing (Battle)
 import Delve exposing (Delve)
 import DelvePhase exposing (DelvePhase)
+import BossPhase exposing (BossPhase)
 import BossState exposing (BossState)
 
 type alias SceneState =
@@ -21,7 +22,7 @@ type alias SceneState =
 type Ambient
     = Rest
     | Delving DelvePhase Delve
-    | BossFight BossState
+    | BossFight BossPhase BossState
 
 new : SceneState
 new =

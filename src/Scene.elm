@@ -32,4 +32,4 @@ type Scene
     | Town
     | OnyxTower
     | BossSelect
-    | BossFight BossPhase
+    | BossFight

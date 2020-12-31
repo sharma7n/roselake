@@ -10,7 +10,7 @@ type Scene
     | Home
     | ShopSelect
     | Shop
-    | Explore
+    | DungeonSelect
     | ExploreDungeon
     | BattleSelect
     | BattleMonsterLoadingIntent

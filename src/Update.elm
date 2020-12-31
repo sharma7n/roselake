@@ -297,7 +297,7 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.Explore _ _ ) ->
+        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.DungeonSelect _ _ ) ->
             let
                 pathListGenerator =
                     Util.randomDistinctList 3 DungeonPath.generator
@@ -317,7 +317,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase Scene.Explore sceneState character ) ->
+        ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase _ sceneState character ) ->
             let
                 delvePhase =
                     DelvePhase.ExplorationPhase paths
@@ -713,7 +713,7 @@ update msg model =
         ( Msg.UserSelectedExitDungeon, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
             case sceneState.ambient of
                 SceneState.Delving delvePhase delve ->
-                    ( { model | phase = Phase.ScenePhase Scene.Explore sceneState character }, Cmd.none )
+                    ( { model | phase = Phase.ScenePhase Scene.DungeonSelect sceneState character }, Cmd.none )
                 
                 _ ->
                     ( model, Cmd.none )

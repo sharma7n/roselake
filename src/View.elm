@@ -219,7 +219,7 @@ viewScenePhase scene sceneState character =
                     , ( "Home", Msg.UserSelectedScene Scene.Home )
                     , ( "Shop", Msg.UserSelectedScene Scene.ShopSelect )
                     , ( "Town", Msg.UserSelectedScene Scene.Town )
-                    , ( "Explore", Msg.UserSelectedScene Scene.Explore )
+                    , ( "Explore", Msg.UserSelectedScene Scene.DungeonSelect )
                     , ( "Boss", Msg.UserSelectedScene Scene.BossSelect )
                     ]
         , viewCharacter scene sceneState character
@@ -471,7 +471,7 @@ viewCharacter scene sceneState character =
         Scene.OnyxTower ->
             viewOnyxTowerScene character
         
-        Scene.Explore ->
+        Scene.DungeonSelect ->
             dungeonTable
                 [ Dungeon.byId "beginnerscave"
                 ]

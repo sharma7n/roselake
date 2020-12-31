@@ -6,24 +6,28 @@ module SceneState exposing
     , new
     )
 
+import Action exposing (Action)
 import Battle exposing (Battle)
 import Delve exposing (Delve)
+import DelvePhase exposing (DelvePhase)
 import BossState exposing (BossState)
 
 type alias SceneState =
     { ambient : Ambient
     , maybeBattle : Maybe Battle
+    , maybeMonsterAction : Maybe Action
     }
 
 type Ambient
     = Rest
-    | Delving Delve
+    | Delving DelvePhase Delve
     | BossFight BossState
 
 new : SceneState
 new =
     { ambient = Rest
     , maybeBattle = Nothing
+    , maybeMonsterAction = Nothing
     }
 
 setBattle : Battle -> SceneState -> SceneState

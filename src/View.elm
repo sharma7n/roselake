@@ -205,7 +205,7 @@ viewScenePhase scene sceneState character =
                     []
                     []
             
-            Scene.ExploreDungeon _ _ ->
+            Scene.ExploreDungeon ->
                 Html.div
                     []
                     []
@@ -471,8 +471,13 @@ viewCharacter scene sceneState character =
                 [ Dungeon.byId "beginnerscave"
                 ]
         
-        Scene.ExploreDungeon delvePhase delve ->
-            viewExploreDungeon character delvePhase delve
+        Scene.ExploreDungeon ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    viewExploreDungeon character delvePhase delve
+                
+                _ ->
+                    textList []
         
         Scene.BattleSelect ->
             monsterTable

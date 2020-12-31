@@ -21,7 +21,7 @@ type Scene
     | ShopSelect
     | Shop Shop
     | Explore
-    | ExploreDungeon DelvePhase Delve
+    | ExploreDungeon
     | BattleSelect
     | BattleMonsterLoadingIntent
     | BattleMonster Action

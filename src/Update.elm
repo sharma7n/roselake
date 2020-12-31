@@ -319,7 +319,7 @@ update msg model =
                     , floor = 1
                     }
             in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ExplorationPhase paths) delve) sceneState character }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, Cmd.none )
         
         ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase _ sceneState character ) ->
             let
@@ -342,7 +342,7 @@ update msg model =
             ( newModel, Cmd.none )
             
         
-        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeon _ _) _ _) ->
+        ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase (Scene.ExploreDungeon) _ _) ->
             let
                 cmd =
                     Random.generate Msg.SystemGotDungeonScene (Distribution.random path.sceneDistribution)
@@ -356,21 +356,26 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeon _ delve) sceneState character ) ->
-            let
-                cmd =
-                    case scene of
-                        DungeonScene.Battle ->
-                            Random.generate Msg.SystemGotMonsterTemplate (Dungeon.generateMonsterTemplate delve.dungeon)
+        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    let
+                        cmd =
+                            case scene of
+                                DungeonScene.Battle ->
+                                    Random.generate Msg.SystemGotMonsterTemplate (Dungeon.generateMonsterTemplate delve.dungeon)
+                                
+                                DungeonScene.Shop ->
+                                    Random.generate Msg.SystemGotShop Shop.generator
+                                
+                                _ ->
+                                    Cmd.none
                         
-                        DungeonScene.Shop ->
-                            Random.generate Msg.SystemGotShop Shop.generator
-                        
-                        _ ->
-                            Cmd.none
+                    in
+                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, cmd )
                 
-            in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase scene) delve) sceneState character }, cmd )
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.SystemGotBossScene scene, Phase.ScenePhase (Scene.BossFight _) sceneState character ) ->
             case sceneState.ambient of
@@ -402,26 +407,41 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.UserSelectedOpenChest, Phase.ScenePhase (Scene.ExploreDungeon _ _) _ _ ) ->
+        ( Msg.UserSelectedOpenChest, Phase.ScenePhase (Scene.ExploreDungeon) _ _ ) ->
             ( model, Random.generate Msg.SystemGotObject Object.generator )
         
-        ( Msg.SystemGotShop shop, Phase.ScenePhase (Scene.ExploreDungeon _ delve) sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.Shopping shop)) delve) sceneState character }, Cmd.none )
-        
-        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeon delvePhase delve) sceneState character ) ->
-            let
-                battle = Battle.new (Monster.new monsterTemplate)
+        ( Msg.SystemGotShop shop, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, Cmd.none )
                 
-                cmd =
-                    Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
-                
-                newCharacter =
-                    Character.completeBattle character
-            in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneState newCharacter }, cmd )
+                _ ->
+                    ( model, Cmd.none )
         
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent battle)) delve) sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle intent)) delve) sceneState character }, Cmd.none )
+        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    let
+                        battle = Battle.new (Monster.new monsterTemplate)
+                        
+                        cmd =
+                            Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
+                        
+                        newCharacter =
+                            Character.completeBattle character
+                    in
+                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState newCharacter }, cmd )
+            
+                _ ->
+                    ( model, Cmd.none )
+        
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
+            case ( sceneState.ambient, sceneState.maybeBattle ) of
+                ( SceneState.Delving delvePhase delve, Just battle ) ->
+                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, Cmd.none )
+                
+                _ ->
+                    ( model, Cmd.none )
 
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BossFight (BossPhase.ActionPhase (BossScene.BattleBossLoadingIntent battle))) sceneState character ) ->
             case sceneState.ambient of
@@ -449,36 +469,47 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeon _ delve) sceneState character ) ->
-            let
-                newDungeonScene =
-                    DelvePhase.ActionPhase <| DungeonScene.ReceiveTreasure object
-                
-                newInventory =
-                    case object of
-                        Object.Item i ->
-                            character.inventory
-                                |> Inventory.modifyItemQuantity i 1
+        ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    let
+                        newDungeonScene =
+                            DelvePhase.ActionPhase <| DungeonScene.ReceiveTreasure object
                         
-                        Object.Weapon w ->
-                            character.inventory
-                                |> Inventory.modifyWeaponQuantity w 1
+                        newInventory =
+                            case object of
+                                Object.Item i ->
+                                    character.inventory
+                                        |> Inventory.modifyItemQuantity i 1
+                                
+                                Object.Weapon w ->
+                                    character.inventory
+                                        |> Inventory.modifyWeaponQuantity w 1
+                                
+                                Object.Armor a ->
+                                    character.inventory
+                                        |> Inventory.modifyArmorQuantity a 1
                         
-                        Object.Armor a ->
-                            character.inventory
-                                |> Inventory.modifyArmorQuantity a 1
-                
-                newCharacter =
-                    { character
-                        | inventory = newInventory
-                    }
-                
-                newModel =
-                    { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeon newDungeonScene delve) sceneState newCharacter
-                    }
-            in
-            ( newModel, Cmd.none )
+                        newCharacter =
+                            { character
+                                | inventory = newInventory
+                            }
+                        
+                        newSceneState =
+                             { ambient = SceneState.Delving newDungeonScene delve
+                             , maybeBattle = Nothing
+                             , maybeMonsterAction = Nothing
+                             }
+                        
+                        newModel =
+                            { model
+                                | phase = Phase.ScenePhase (Scene.ExploreDungeon) newSceneState newCharacter
+                            }
+                    in
+                    ( newModel, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.UserSelectedContinueDungeon, _ ) ->
             let
@@ -500,29 +531,37 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase (Scene.ExploreDungeon _ delve) sceneState character ) ->
-            let
-                cmd =
-                    if delve.floor >= delve.dungeon.depth then
-                        Random.generate Msg.SystemGotReward (Dungeon.generateReward delve.dungeon)
-                    else
-                        Cmd.none
+        ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    let
+                        cmd =
+                            if delve.floor >= delve.dungeon.depth then
+                                Random.generate Msg.SystemGotReward (Dungeon.generateReward delve.dungeon)
+                            else
+                                Cmd.none
+                        
+                        ( newScene, newDelvePhase, newDelve ) =
+                            if delve.floor >= delve.dungeon.depth then
+                                ( Scene.ExploreDungeon, (DelvePhase.ActionPhase DungeonScene.LoadingGoal),  delve )
+                            else
+                                let
+                                    newDelve2 =
+                                        { delve
+                                            | floor =
+                                                delve.floor + 1
+                                                    |> Util.boundedBy 1 delve.dungeon.depth
+                                        }
+                                in
+                                ( Scene.ExploreDungeon, (DelvePhase.ExplorationPhase paths), newDelve2 )
+                        
+                        newSceneState =
+                            SceneState.Delving newDelvePhase newDelve
+                    in 
+                    ( { model | phase = Phase.ScenePhase newScene sceneState character }, cmd )
                 
-                newScene =
-                    if delve.floor >= delve.dungeon.depth then
-                        Scene.ExploreDungeon (DelvePhase.ActionPhase DungeonScene.LoadingGoal) delve
-                    else
-                        let
-                            newDelve =
-                                { delve
-                                    | floor =
-                                        delve.floor + 1
-                                            |> Util.boundedBy 1 delve.dungeon.depth
-                                }
-                        in
-                        Scene.ExploreDungeon (DelvePhase.ExplorationPhase paths) newDelve
-            in 
-            ( { model | phase = Phase.ScenePhase newScene sceneState character }, cmd )
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.SystemGotBossFightContinuation paths, Phase.ScenePhase (Scene.BossFight _) sceneState character ) ->
             case sceneState.ambient of
@@ -548,31 +587,19 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase (Scene.Victory reward) sceneState newCharacter }, Cmd.none )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newMonster)) delve) sceneState character ) ->
-            let
-                newCharacter =
-                    character
-                        |> Character.applyReward reward
-                        |> Character.completeBattle
-            in
-            ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.Victory newMonster reward)) delve) sceneState newCharacter }, Cmd.none )
-        
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase DungeonScene.LoadingGoal) delve) sceneState character ) ->
-            let
-                newCharacter =
-                    character
-                        |> Character.applyReward reward
-                        |> Character.completeBattle
-                        |> Util.forEach reward.items (\(item, qty) -> \s ->
-                            { s | inventory = Inventory.modifyItemQuantity item qty s.inventory }
-                        )
+        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case ( sceneState.ambient, sceneState.maybeBattle ) of
+                ( SceneState.Delving delvePhase delve, Just battle ) ->
+                    let
+                        newCharacter =
+                            character
+                                |> Character.applyReward reward
+                                |> Character.completeBattle
+                    in
+                    ( { model | phase = Phase.ScenePhase (Scene.ExploreDungeon) sceneState newCharacter }, Cmd.none )
                 
-                newModel =
-                    { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.Goal reward)) delve) sceneState newCharacter
-                    }
-            in
-            ( newModel, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntent) sceneState character ) ->
             ( { model | phase = Phase.ScenePhase (Scene.BattleMonster intent) sceneState character }, Cmd.none )
@@ -593,11 +620,21 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) _ character ) ->
-            updateDungeonBattleAction model battle action monsterAction delve character
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
+            case ( sceneState.ambient, sceneState.maybeBattle, sceneState.maybeMonsterAction ) of
+                ( SceneState.Delving delvePhase delve, Just battle, Just monsterAction ) ->
+                    updateDungeonBattleAction model battle action monsterAction delvePhase delve character
+                
+                _ ->
+                    ( model, Cmd.none )
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonster battle monsterAction)) delve) _ character ) ->
-            updateDungeonEndBattleTurn model battle monsterAction delve character
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case ( sceneState.ambient, sceneState.maybeBattle, sceneState.maybeMonsterAction ) of
+                ( SceneState.Delving delvePhase delve, Just battle, Just monsterAction ) ->
+                    updateDungeonEndBattleTurn model battle monsterAction delvePhase delve character
+                
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BossFight (BossPhase.ActionPhase (BossScene.BattleBossOngoing battle monsterAction))) sceneState character ) ->
             case sceneState.ambient of
@@ -615,23 +652,33 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase DungeonScene.RestArea) delve) sceneState character ) ->
-            let
-                newCharacter =
-                    { character
-                        | hitPoints = character.maxHitPoints
-                        , magicPoints = character.maxMagicPoints
-                    }
+        ( Msg.UserSelectedRest, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    let
+                        newCharacter =
+                            { character
+                                | hitPoints = character.maxHitPoints
+                                , magicPoints = character.maxMagicPoints
+                            }
+                        
+                        newModel =
+                            { model
+                                | phase = Phase.ScenePhase (Scene.ExploreDungeon) sceneState newCharacter
+                            }
+                    in
+                    ( newModel, Cmd.none )
                 
-                newModel =
-                    { model
-                        | phase = Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase DungeonScene.Rested) delve) sceneState newCharacter
-                    }
-            in
-            ( newModel, Cmd.none )
+                _ ->
+                    ( model, Cmd.none )
         
-        ( Msg.UserSelectedExitDungeon, Phase.ScenePhase (Scene.ExploreDungeon (DelvePhase.ActionPhase _) _) sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase Scene.Explore sceneState character }, Cmd.none )
+        ( Msg.UserSelectedExitDungeon, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
+            case sceneState.ambient of
+                SceneState.Delving delvePhase delve ->
+                    ( { model | phase = Phase.ScenePhase Scene.Explore sceneState character }, Cmd.none )
+                
+                _ ->
+                    ( model, Cmd.none )
         
         ( Msg.UserSelectedCharacterCreationSettingSelection selection, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateCharacterCreationSettingSelection model characterCreationModel selection
@@ -801,13 +848,21 @@ updateBattleAction model battle action monsterAction character =
                 { scene = Scene.VictoryLoading
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
-                , sceneState = { ambient = SceneState.Rest, maybeBattle = Just newBattle }
+                , sceneState = 
+                    { ambient = SceneState.Rest
+                    , maybeBattle = Just newBattle
+                    , maybeMonsterAction = Nothing 
+                    }
                 }
             else
                 { scene = Scene.BattleMonster monsterAction
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
-                , sceneState = { ambient = SceneState.Rest, maybeBattle = Just newBattle } 
+                , sceneState = 
+                    { ambient = SceneState.Rest
+                    , maybeBattle = Just newBattle
+                    , maybeMonsterAction = Nothing
+                    }
                 }
         
         newCharacter2 = next.character
@@ -821,8 +876,8 @@ updateBattleAction model battle action monsterAction character =
     in
     ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
-updateDungeonBattleAction : Model -> Battle -> Action -> Action -> Delve -> Character -> ( Model, Cmd Msg )
-updateDungeonBattleAction model battle action monsterAction delve character =
+updateDungeonBattleAction : Model -> Battle -> Action -> Action -> DelvePhase -> Delve -> Character -> ( Model, Cmd Msg )
+updateDungeonBattleAction model battle action monsterAction delvePhase delve character =
     let
         ( newBattle, newCharacter ) =
             ( battle, character )
@@ -833,12 +888,13 @@ updateDungeonBattleAction model battle action monsterAction delve character =
         
         next =
             if newBattle.state == Battle.Done then
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve
+                { scene = Scene.ExploreDungeon
                 , character = Character.completeBattle newCharacter
                 , cmd = Cmd.none
                 , sceneState =
-                    { ambient = SceneState.Delving delve
+                    { ambient = SceneState.Delving delvePhase delve
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newCharacter.hitPoints <= 0 then
@@ -848,21 +904,23 @@ updateDungeonBattleAction model battle action monsterAction delve character =
                 , sceneState = SceneState.new
                 }
             else if newMonster.hitPoints <= 0 then
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve
+                { scene = Scene.ExploreDungeon
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 , sceneState =
-                    { ambient = SceneState.Delving delve
+                    { ambient = SceneState.Delving delvePhase delve
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonster newBattle monsterAction)) delve
+                { scene = Scene.ExploreDungeon
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 , sceneState = 
-                    { ambient = SceneState.Delving delve
-                    , maybeBattle = Just newBattle 
+                    { ambient = SceneState.Delving delvePhase delve
+                    , maybeBattle = Just newBattle
+                    , maybeMonsterAction = Nothing
                     }
                 }
 
@@ -916,6 +974,7 @@ updateEndBattleTurn model battle monsterAction character =
                 , sceneState =
                     { ambient = SceneState.Rest
                     , maybeBattle = Just newBattle
+                    , maybeMonsterAction = Nothing
                     }
                 }
         
@@ -930,8 +989,8 @@ updateEndBattleTurn model battle monsterAction character =
     in
     ( { model | phase = Phase.ScenePhase next.scene next.sceneState newCharacter3 }, next.cmd )
 
-updateDungeonEndBattleTurn : Model -> Battle -> Action -> Delve -> Character -> ( Model, Cmd Msg )
-updateDungeonEndBattleTurn model battle monsterAction delve character =
+updateDungeonEndBattleTurn : Model -> Battle -> Action -> DelvePhase -> Delve -> Character -> ( Model, Cmd Msg )
+updateDungeonEndBattleTurn model battle monsterAction delvePhase delve character =
     let
         ( newBattle, newCharacter ) =
             ( battle, character )
@@ -943,12 +1002,13 @@ updateDungeonEndBattleTurn model battle monsterAction delve character =
         
         next =
             if newBattle.state == Battle.Done then
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.Escaped)) delve
+                { scene = Scene.ExploreDungeon
                 , character = Character.completeBattle newCharacter
                 , cmd = Cmd.none
                 , sceneState =
-                    { ambient = SceneState.Delving delve
+                    { ambient = SceneState.Delving delvePhase delve
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newCharacter.hitPoints <= 0 then
@@ -958,21 +1018,23 @@ updateDungeonEndBattleTurn model battle monsterAction delve character =
                 , sceneState = SceneState.new
                 }
             else if newMonster.hitPoints <= 0 then
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.VictoryLoading newBattle)) delve
+                { scene = Scene.ExploreDungeon
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 , sceneState =
-                    { ambient = SceneState.Delving delve
+                    { ambient = SceneState.Delving delvePhase delve
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else
-                { scene = Scene.ExploreDungeon (DelvePhase.ActionPhase (DungeonScene.BattleMonsterLoadingIntent newBattle)) delve
+                { scene = Scene.ExploreDungeon
                 , character = Battler.completeRound newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 , sceneState =
-                    { ambient = SceneState.Delving delve
-                    , maybeBattle =  Just battle
+                    { ambient = SceneState.Delving delvePhase delve
+                    , maybeBattle = Just battle
+                    , maybeMonsterAction = Nothing
                     }
                 }
         
@@ -1009,6 +1071,7 @@ updateBossBattleAction model battle action monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newCharacter.hitPoints <= 0 then
@@ -1018,6 +1081,7 @@ updateBossBattleAction model battle action monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newMonster.hitPoints <= 0 then
@@ -1027,6 +1091,7 @@ updateBossBattleAction model battle action monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else
@@ -1036,6 +1101,7 @@ updateBossBattleAction model battle action monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Just battle
+                    , maybeMonsterAction = Nothing
                     }
                 }
 
@@ -1072,6 +1138,7 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newCharacter.hitPoints <= 0 then
@@ -1081,6 +1148,7 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else if newMonster.hitPoints <= 0 then
@@ -1090,6 +1158,7 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Nothing
+                    , maybeMonsterAction = Nothing
                     }
                 }
             else
@@ -1099,6 +1168,7 @@ updateBossEndBattleTurn model battle monsterAction state character =
                 , sceneState =
                     { ambient = SceneState.BossFight newState
                     , maybeBattle = Just battle
+                    , maybeMonsterAction = Nothing
                     }
                 }
         
@@ -1130,7 +1200,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                     sceneState
                         |> SceneState.setBattle newBattle
                 
-                SceneState.Delving delve ->
+                SceneState.Delving delvePhase delve ->
                     sceneState
                         |> SceneState.setBattle newBattle
 
@@ -1141,6 +1211,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                     in
                     { ambient = SceneState.Rest
                     , maybeBattle = Just newBattle
+                    , maybeMonsterAction = Nothing
                     }
         
         next =

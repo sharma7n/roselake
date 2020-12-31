@@ -24,7 +24,7 @@ type Scene
     | ExploreDungeon
     | BattleSelect
     | BattleMonsterLoadingIntent
-    | BattleMonster Action
+    | BattleMonster
     | VictoryLoading
     | Victory Reward
     | GameOver

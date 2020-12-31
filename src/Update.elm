@@ -630,20 +630,25 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase (Scene.BattleMonsterLoadingIntent) sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase (Scene.BattleMonster intent) sceneState character }, Cmd.none )
+        ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase Scene.BattleMonsterLoadingIntent sceneState character ) ->
+            let
+                newSceneState =
+                    sceneState
+                        |> SceneState.setMonsterAction intent
+            in
+            ( { model | phase = Phase.ScenePhase Scene.BattleMonster newSceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase (Scene.BattleMonster monsterAction) sceneState character ) ->
-            case sceneState.maybeBattle of
-                Just battle ->
+        ( Msg.UserSelectedBattleAction action, Phase.ScenePhase Scene.BattleMonster sceneState character ) ->
+            case ( sceneState.maybeBattle, sceneState.maybeMonsterAction ) of
+                ( Just battle, Just monsterAction ) ->
                     updateBattleAction model battle action monsterAction character
                 
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase (Scene.BattleMonster monsterAction) sceneState character ) ->
-            case sceneState.maybeBattle of
-                Just battle ->
+        ( Msg.UserSelectedEndBattleTurn, Phase.ScenePhase Scene.BattleMonster sceneState character ) ->
+            case ( sceneState.maybeBattle, sceneState.maybeMonsterAction ) of
+                ( Just battle, Just monsterAction ) ->
                     updateEndBattleTurn model battle monsterAction character
                 
                 _ ->
@@ -880,12 +885,13 @@ updateBattleAction model battle action monsterAction character =
                 , sceneState = SceneState.new SceneState.Rest
                 }
             else
-                { scene = Scene.BattleMonster monsterAction
+                { scene = Scene.BattleMonster
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 , sceneState =
                     SceneState.new SceneState.Rest
                         |> SceneState.setBattle newBattle
+                        |> SceneState.setMonsterAction monsterAction
                 }
         
         newCharacter2 = next.character
@@ -1192,6 +1198,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                     in
                     SceneState.new (SceneState.BossFight bossPhase newBossState)
                         |> SceneState.setBattle newBattle
+                        |> SceneState.setMonsterAction monsterAction
         
         next =
             if newBattle.state == Battle.Done then
@@ -1210,7 +1217,7 @@ updateGenericBattleAction characterAction monsterAction character battle sceneSt
                 , cmd = Random.generate Msg.SystemGotReward (Monster.generateReward newBattle.monster)
                 }
             else
-                { scene = Scene.BattleMonster monsterAction
+                { scene = Scene.BattleMonster
                 , character = newCharacter
                 , cmd = Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction newBattle)
                 }

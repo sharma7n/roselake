@@ -200,7 +200,7 @@ viewScenePhase scene sceneState character =
             , textListItem <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
             ]
         , case scene of
-            Scene.BattleMonster _ ->
+            Scene.BattleMonster ->
                 Html.div
                     []
                     []
@@ -500,12 +500,12 @@ viewCharacter scene sceneState character =
                 Nothing ->
                     textList []
         
-        Scene.BattleMonster intent ->
-            case sceneState.maybeBattle of
-                Just battle ->
-                    viewBattleMonster character battle intent
+        Scene.BattleMonster->
+            case ( sceneState.maybeBattle, sceneState.maybeMonsterAction ) of
+                ( Just battle, Just monsterAction ) ->
+                    viewBattleMonster character battle monsterAction
                 
-                Nothing ->
+                _ ->
                     textList []
         
         Scene.VictoryLoading ->

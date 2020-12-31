@@ -607,14 +607,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.VictoryLoading) sceneState character ) ->
+        ( Msg.SystemGotReward reward, Phase.ScenePhase Scene.VictoryLoading sceneState character ) ->
             let
                 newCharacter =
                     character
                         |> Character.applyReward reward
                         |> Character.completeBattle
+                
+                newSceneState =
+                    sceneState
+                        |> SceneState.setReward reward
             in
-            ( { model | phase = Phase.ScenePhase (Scene.Victory reward) sceneState newCharacter }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase Scene.Victory newSceneState newCharacter }, Cmd.none )
         
         ( Msg.SystemGotReward reward, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
             case ( sceneState.ambient, sceneState.maybeBattle ) of

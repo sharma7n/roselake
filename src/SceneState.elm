@@ -3,6 +3,8 @@ module SceneState exposing
     , Ambient(..)
     , setBattle
     , clearBattle
+    , setMonsterAction
+    , setShop
     , new
     )
 
@@ -12,11 +14,13 @@ import Delve exposing (Delve)
 import DelvePhase exposing (DelvePhase)
 import BossPhase exposing (BossPhase)
 import BossState exposing (BossState)
+import Shop exposing (Shop)
 
 type alias SceneState =
     { ambient : Ambient
     , maybeBattle : Maybe Battle
     , maybeMonsterAction : Maybe Action
+    , maybeShop : Maybe Shop
     }
 
 type Ambient
@@ -24,11 +28,12 @@ type Ambient
     | Delving DelvePhase Delve
     | BossFight BossPhase BossState
 
-new : SceneState
-new =
-    { ambient = Rest
+new : Ambient -> SceneState
+new ambient =
+    { ambient = ambient
     , maybeBattle = Nothing
     , maybeMonsterAction = Nothing
+    , maybeShop = Nothing
     }
 
 setBattle : Battle -> SceneState -> SceneState
@@ -38,3 +43,11 @@ setBattle battle s =
 clearBattle : SceneState -> SceneState
 clearBattle s =
     { s | maybeBattle = Nothing }
+
+setMonsterAction : Action -> SceneState -> SceneState
+setMonsterAction monsterAction s =
+    { s | maybeMonsterAction = Just monsterAction }
+
+setShop : Shop -> SceneState -> SceneState
+setShop shop s =
+    { s | maybeShop = Just shop }

@@ -19,7 +19,7 @@ type Scene
     | Equip
     | Home
     | ShopSelect
-    | Shop Shop
+    | Shop
     | Explore
     | ExploreDungeon
     | BattleSelect

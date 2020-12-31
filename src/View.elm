@@ -457,8 +457,13 @@ viewCharacter scene sceneState character =
                 [ Shop.byId "potionshop"
                 ]
         
-        Scene.Shop shop ->
-            viewShopScene character shop
+        Scene.Shop ->
+            case sceneState.maybeShop of
+                Just shop ->
+                    viewShopScene character shop
+                
+                _ ->
+                    textList []
         
         Scene.Town ->
             viewTownScene character

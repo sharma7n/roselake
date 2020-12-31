@@ -314,12 +314,18 @@ update msg model =
         
         ( Msg.SystemGotDungeonInitialization dungeon paths, Phase.ScenePhase Scene.Explore sceneState character ) ->
             let
+                delvePhase =
+                    DelvePhase.ExplorationPhase paths
+                
                 delve =
                     { dungeon = dungeon
                     , floor = 1
                     }
+                
+                newSceneState =
+                    { sceneState | ambient = SceneState.Delving delvePhase delve }
             in
-            ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState character }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, Cmd.none )
         
         ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase _ sceneState character ) ->
             let
@@ -356,7 +362,7 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
+        ( Msg.SystemGotDungeonScene scene, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
             case sceneState.ambient of
                 SceneState.Delving delvePhase delve ->
                     let
@@ -418,22 +424,23 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
         
-        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
-            case sceneState.ambient of
-                SceneState.Delving delvePhase delve ->
-                    let
-                        battle = Battle.new (Monster.new monsterTemplate)
-                        
-                        cmd =
-                            Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
-                        
-                        newCharacter =
-                            Character.completeBattle character
-                    in
-                    ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon sceneState newCharacter }, cmd )
-            
-                _ ->
-                    ( model, Cmd.none )
+        ( Msg.SystemGotMonsterTemplate monsterTemplate, Phase.ScenePhase scene sceneState character ) ->
+            let
+                battle =
+                    Battle.new (Monster.new monsterTemplate)
+                
+                cmd =
+                    Random.generate Msg.SystemGotMonsterIntent (Battle.chooseMonsterAction battle)
+                
+                newCharacter =
+                    Character.completeBattle character
+                
+                newModel =
+                    { model
+                        | phase = Phase.ScenePhase scene sceneState newCharacter
+                    }
+            in
+            ( newModel, cmd )
         
         ( Msg.SystemGotMonsterIntent intent, Phase.ScenePhase Scene.ExploreDungeon sceneState character ) ->
             case ( sceneState.ambient, sceneState.maybeBattle ) of

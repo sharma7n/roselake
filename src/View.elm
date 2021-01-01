@@ -10,6 +10,8 @@ import Json.Decode
 import Random
 import Set exposing (Set)
 
+import Maybe.Extra
+
 import Distribution exposing (Distribution)
 import Util
 
@@ -512,16 +514,40 @@ viewCharacter scene sceneState character =
             Html.text "Loading..."
         
         Scene.Victory ->
-            case ( sceneState.maybeBattle, sceneState.maybeReward ) of
-                ( Just battle, Just reward ) ->
-                    textList
-                        [ "You defeated " ++ battle.monster.name ++ "!"
-                        , "Reward:"
-                        , "EXP: " ++ String.fromInt reward.experience
-                        ]
-                
-                _ ->
-                    textList []
+            let
+                f battle reward =
+                    let
+                        victoryMessage =
+                            textList
+                                [ "You defeated " ++ battle.monster.name ++ "!"
+                                , "Reward:"
+                                , "EXP: " ++ String.fromInt reward.experience
+                                ]
+                    in
+                    case sceneState.ambient of
+                        SceneState.Rest ->
+                            Html.ul
+                                []
+                                [ victoryMessage
+                                ]
+                        
+                        SceneState.Delving _ _ ->
+                            Html.ul
+                                []
+                                [ victoryMessage
+                                , continueButton
+                                ]
+                        
+                        SceneState.BossFight _ _ ->
+                            Html.ul
+                                []
+                                [ victoryMessage
+                                ]
+            in
+            Just f
+                |> Maybe.Extra.andMap sceneState.maybeBattle
+                |> Maybe.Extra.andMap sceneState.maybeReward
+                |> Maybe.withDefault (textList [])
         
         Scene.GameOver ->
             textList
@@ -574,9 +600,7 @@ viewExploreDungeon character delvePhase delve =
                         Html.ul
                             []
                             [ Html.text "A trap door!"
-                            , Html.button
-                                [ Html.Events.onClick Msg.UserSelectedExitDungeon ]
-                                [ Html.text "Exit Dungeon" ]
+                            , exitButtonDungeon
                             ]
                     
                     DungeonScene.LoadingGoal ->
@@ -587,9 +611,7 @@ viewExploreDungeon character delvePhase delve =
                             []
                             [ Html.text "Goal!"
                             , viewReward reward
-                            , Html.button
-                                [ Html.Events.onClick Msg.UserSelectedExitDungeon ]
-                                [ Html.text "Exit Dungeon" ]
+                            , exitButtonDungeon
                             ]
                     
                     DungeonScene.Shop ->
@@ -602,28 +624,37 @@ viewExploreDungeon character delvePhase delve =
                             , Html.button
                                 [ Html.Events.onClick Msg.UserSelectedOpenChest ]
                                 [ Html.text "Open" ]
-                            , Html.button
-                                [ Html.Events.onClick Msg.UserSelectedContinueDungeon ]
-                                [ Html.text "Continue" ]
+                            , continueButton
                             ]
                     
                     DungeonScene.Shopping shop ->
                         Html.ul
                             []
                             [ viewShopScene character shop
-                            , Html.button
-                                [ Html.Events.onClick Msg.UserSelectedContinueDungeon ]
-                                [ Html.text "Continue" ]
+                            , continueButton
                             ]
                     
                     _ ->
                         Html.ul
                             []
                             [ Html.text <| DungeonScene.toString scene
-                            , Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedContinueDungeon ]
-                                [ Html.text "Continue" ]
+                            , continueButton
                             ]
+        ]
+continueButton : Html Msg
+continueButton =
+    Html.button
+        [ Html.Events.onClick Msg.UserSelectedContinueDungeon
+        ]
+        [ Html.text "Continue"
+        ]
+
+exitButtonDungeon : Html Msg
+exitButtonDungeon =
+    Html.button
+        [ Html.Events.onClick Msg.UserSelectedExitDungeon
+        ]
+        [ Html.text "Exit Dungeon"
         ]
 
 pathTable : Character -> List DungeonPath.Path -> Html Msg

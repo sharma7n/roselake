@@ -9,6 +9,8 @@ module Character exposing
 
 import Set exposing (Set)
 
+import Result.Extra
+
 import FormResult
 import Util
 
@@ -135,16 +137,8 @@ applyEffectsToCharacter effects m =
 
 characterCreationModelToCharacter : CharacterCreationModel -> Result (List CharacterCreationError.Error) Character
 characterCreationModelToCharacter model =
-    FormResult.toValidation model.settings.name
-        |> Result.andThen (\name -> FormResult.toValidation model.settings.hairStyle
-        |> Result.andThen (\hairStyle -> FormResult.toValidation model.settings.hairColor
-        |> Result.andThen (\hairColor -> FormResult.toValidation model.settings.eyeColor
-        |> Result.andThen (\eyeColor -> FormResult.toValidation model.settings.complexion
-        |> Result.andThen (\complexion -> FormResult.toValidation model.settings.height
-        |> Result.andThen (\height -> FormResult.toValidation model.settings.build
-        |> Result.andThen (\build -> FormResult.toValidation model.settings.startingWeapon
-        |> Result.andThen (\startingWeapon -> FormResult.toValidation model.settings.startingEssentia
-        |> Result.andThen (\startingEssentia -> Ok <|
+    let
+        f name hairStyle hairColor eyeColor complexion height build startingWeapon startingEssentia =
             let
                 avatar =
                     { hairStyle = hairStyle
@@ -189,7 +183,18 @@ characterCreationModelToCharacter model =
             , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
             }
-        )))))))))
+    in
+    Ok f
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.name)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.hairStyle)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.hairColor)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.eyeColor)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.complexion)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.height)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.build)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.startingWeapon)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.startingEssentia)
+    
 
 applyReward : Reward -> Character -> Character
 applyReward reward m =

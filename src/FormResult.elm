@@ -3,6 +3,7 @@ module FormResult exposing
     , map
     , andThen
     , toValidation
+    , toMaybe
     , fold
     , check
     )
@@ -68,3 +69,7 @@ check x =
         
         _ ->
             x
+
+toMaybe : FormResult e a -> Maybe a
+toMaybe =
+    fold (\e -> Nothing) (\a -> Just a) (\e -> Nothing)

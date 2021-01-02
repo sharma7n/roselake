@@ -83,6 +83,7 @@ view model =
         , Element.Font.family
             [ Element.Font.typeface "Verdana"
             ]
+        , Element.padding 10
         ]
         ( viewModel model )
 
@@ -111,49 +112,66 @@ viewCharacterCreationPhase model =
                     Element.text <| CharacterCreationError.toString e
     in
     Element.column
-        []
-        [ Element.text "Create Character"
-        , formList
-            [ ( "Name"
-              , Element.html <|
-                Html.input 
-                    [ Html.Events.onInput (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection) 
-                    ] 
-                    []
-              , settingToInfo (\a -> a) model.settings.name 
-              )
-            , ( "Hair Style"
-              , radioButtons HairStyle.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairStyleSelection) HairStyle.all model.settings.hairStyle
-              , settingToInfo HairStyle.toString model.settings.hairStyle
-              )
-            , ( "Hair Color"
-              , radioButtons HairColor.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairColorSelection) HairColor.all model.settings.hairColor
-              , settingToInfo HairColor.toString model.settings.hairColor
-              )
-            , ( "Eye Color"
-              , radioButtons EyeColor.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.EyeColorSelection) EyeColor.all model.settings.eyeColor
-              , settingToInfo EyeColor.toString model.settings.eyeColor
-              )
-            , ( "Complexion"
-              , radioButtons Complexion.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.ComplexionSelection) Complexion.all model.settings.complexion
-              , settingToInfo Complexion.toString model.settings.complexion
-              )
-            , ( "Height"
-              , radioButtons Height.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HeightSelection) Height.all model.settings.height
-              , settingToInfo Height.toString model.settings.height
-              )
-            , ( "Build"
-              , radioButtons Build.toString (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.BuildSelection) Build.all model.settings.build
-              , settingToInfo Build.toString model.settings.build
-              )
-            , ( "Starting Weapon"
-              , radioButtons .name (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingWeaponSelection) Weapon.listStarting model.settings.startingWeapon
-              , settingToInfo .name model.settings.startingWeapon
-              )
-            , ( "Starting Essentia"
-              , radioButtons .name (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingEssentiaSelection) Essentia.listStarting model.settings.startingEssentia
-              , settingToInfo .name model.settings.startingEssentia
-              )
+        [ Element.spacing 10
+        ]
+        [ Element.el
+            [ Element.Font.heavy
+            ]
+            ( Element.text "Create Character" )
+        , Element.column
+            [ Element.width Element.fill
+            , Element.spacing 10
+            ]
+            [ Element.Input.text
+                []
+                { onChange = (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection)
+                , text = FormResult.fold (\e -> "") (\a -> a) (\e -> "") model.settings.name
+                , placeholder = Nothing
+                , label =
+                    Element.Input.labelLeft
+                        []
+                        ( Element.text "Name" )
+                }
+            , radioButtons 
+                HairStyle.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairStyleSelection) 
+                HairStyle.all 
+                model.settings.hairStyle
+            , radioButtons 
+                HairColor.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairColorSelection) 
+                HairColor.all 
+                model.settings.hairColor
+            , radioButtons 
+                EyeColor.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.EyeColorSelection) 
+                EyeColor.all 
+                model.settings.eyeColor
+            , radioButtons 
+                Complexion.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.ComplexionSelection) 
+                Complexion.all 
+                model.settings.complexion
+            , radioButtons 
+                Height.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HeightSelection) 
+                Height.all 
+                model.settings.height
+            , radioButtons 
+                Build.toString 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.BuildSelection) 
+                Build.all 
+                model.settings.build
+            , radioButtons 
+                .name 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingWeaponSelection) 
+                Weapon.listStarting 
+                model.settings.startingWeapon
+            , radioButtons 
+                .name 
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingEssentiaSelection) 
+                Essentia.listStarting 
+                model.settings.startingEssentia
             ]
         , Element.column
             []
@@ -288,40 +306,29 @@ buttonBar items =
         []
         ( List.map itemFn items )
 
-formList : List ( String, Element Msg, Element Msg ) -> Element Msg
-formList items =
-    let
-        itemFn ( label, form, info ) =
-            Element.column
-                []
-                [ Element.text label
-                , form
-                , info
-                ]
-    in
-    Element.column
-        []
-        ( List.map itemFn items )
-
 radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Element Msg
 radioButtons toString toMsg items currentItem =
-    let     
-        itemFn item =
-            Element.html <|
-                Html.div
-                    []
-                    [ Html.input
-                        [ Html.Attributes.type_ "radio"
-                        , Html.Attributes.checked (FormResult.FROk item == currentItem)
-                        , Html.Events.on "change" (Json.Decode.succeed <| toMsg item)
-                        ]
-                        []
-                    , Html.text <| toString item
-                    ]
-    in
-    Element.row
+    Element.Input.radioRow
         []
-        ( List.map itemFn items )
+        { onChange = toMsg
+        , options =
+            items
+                |> List.map (\i ->
+                    Element.Input.option
+                        i
+                        ( Element.text <| toString i )
+                )
+        , selected = FormResult.toMaybe currentItem
+        , label =
+            Element.Input.labelLeft
+                []
+                ( currentItem
+                    |> FormResult.toMaybe
+                    |> Maybe.map toString
+                    |> Maybe.withDefault ""
+                    |> Element.text
+                )
+        }
     
 
 viewCharacter : Scene -> SceneState -> Character -> Element Msg

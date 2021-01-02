@@ -36,7 +36,6 @@ import Battler exposing (Battler)
 import Target exposing (Target)
 import Avatar exposing (Avatar)
 import Delve exposing (Delve)
-import Boss exposing (Boss)
 import DelvePhase exposing (DelvePhase)
 import DungeonPath
 import DungeonScene
@@ -56,11 +55,6 @@ import Weapon exposing (Weapon)
 import Status exposing (Status)
 import Essentia exposing (Essentia)
 
-import BossPhase exposing (BossPhase)
-import BossState exposing (BossState)
-import BossPath exposing (BossPath)
-import BossScene exposing (BossScene)
-
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
 
@@ -72,8 +66,28 @@ import Phase exposing (Phase)
 import Model exposing (Model)
 import Msg exposing (Msg)
 
+import Element exposing (Element)
+import Element.Background
+import Element.Border
+import Element.Events
+import Element.Font
+import Element.Input
+import Element.Keyed
+import Element.Lazy
+import Element.Region
+
 view : Model -> Html Msg
 view model =
+    Element.layout
+        [ Element.Font.size 14
+        , Element.Font.family
+            [ Element.Font.typeface "Verdana"
+            ]
+        ]
+        ( viewModel model )
+
+viewModel : Model -> Element Msg
+viewModel model =
     case model.phase of
         Phase.CharacterCreationPhase characterCreationModel ->
             viewCharacterCreationPhase characterCreationModel
@@ -81,27 +95,31 @@ view model =
         Phase.ScenePhase scene sceneState character ->
             viewScenePhase scene sceneState character
 
-viewCharacterCreationPhase : CharacterCreationModel -> Html Msg
+viewCharacterCreationPhase : CharacterCreationModel -> Element Msg
 viewCharacterCreationPhase model =
     let
-        settingToInfo : (a -> String) -> FormResult CharacterCreationError.Error a -> Html Msg
+        settingToInfo : (a -> String) -> FormResult CharacterCreationError.Error a -> Element Msg
         settingToInfo aToString x =
             case x of
                 FormResult.FRBlank _ ->
-                    Html.text <| ""
+                    Element.text <| ""
                 
                 FormResult.FROk a ->
-                    Html.text <| aToString a
+                    Element.text <| aToString a
                 
                 FormResult.FRErr e ->
-                    Html.text <| CharacterCreationError.toString e
+                    Element.text <| CharacterCreationError.toString e
     in
-    Html.div
+    Element.column
         []
-        [ Html.text "Create Character"
+        [ Element.text "Create Character"
         , formList
             [ ( "Name"
-              , Html.input [ Html.Events.onInput (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection) ] []
+              , Element.html <|
+                Html.input 
+                    [ Html.Events.onInput (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection) 
+                    ] 
+                    []
               , settingToInfo (\a -> a) model.settings.name 
               )
             , ( "Hair Style"
@@ -137,80 +155,71 @@ viewCharacterCreationPhase model =
               , settingToInfo .name model.settings.startingEssentia
               )
             ]
-        , Html.ul
+        , Element.column
             []
-            [ Html.li
-                []
-                [ Html.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
-                ]
+            [ Element.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
             , attributeElement Attribute.Strength model.strength
             , attributeElement Attribute.Vitality model.vitality
             , attributeElement Attribute.Agility model.agility
             , attributeElement Attribute.Intellect model.intellect
             ]
-        , Html.button [ Html.Events.onClick Msg.UserSelectedRandomCharacterCreation ] [ Html.text "Randomize" ]
-        , Html.button [ Html.Events.onClick Msg.UserSelectedCharacterCreationConfirmation ] [ Html.text "Create" ]
-        , Html.button [ Html.Events.onClick Msg.DevSelectedCharacterCreationConfirmation ] [ Html.text "Dev Create" ]
+        , button "Randomize" Msg.UserSelectedRandomCharacterCreation
+        , button "Create" Msg.UserSelectedCharacterCreationConfirmation
+        , button "Dev Create" Msg.DevSelectedCharacterCreationConfirmation
         ]
 
-attributeElement : Attribute -> Int -> Html Msg
+attributeElement : Attribute -> Int -> Element Msg
 attributeElement attr value =
-    Html.li
+    Element.column
         []
-        [ Html.text <| Attribute.toShortString attr ++ ": " ++ String.fromInt value
-        , Html.button
-            [ Html.Events.onClick <| Msg.UserSelectedModifyCharacterCreationAttribute attr (-1)
-            ]
-            [ Html.text "-"
-            ]
-        , Html.button
-            [ Html.Events.onClick <| Msg.UserSelectedModifyCharacterCreationAttribute attr 1
-            ]
-            [ Html.text "+"
-            ]
+        [ Element.text <| Attribute.toShortString attr ++ ": " ++ String.fromInt value
+        , button "-" (Msg.UserSelectedModifyCharacterCreationAttribute attr (-1))
+        , button "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1)
         ]
 
-textListItem : String -> Html Msg
+textListItem : String -> Element Msg
 textListItem text =
-    Html.li
-        []
-        [ Html.text text
-        ]
+    Element.text text
 
-statusSetListItem : StatusSet -> Html Msg
+statusSetListItem : StatusSet -> Element Msg
 statusSetListItem statusSet =
-    Html.li
+    Element.column
         []
         [ viewStatusSet statusSet
         ]
 
 
-viewScenePhase : Scene -> SceneState -> Character -> Html Msg
+viewScenePhase : Scene -> SceneState -> Character -> Element Msg
 viewScenePhase scene sceneState character =
-    Html.div
+    Element.column
         []
-        [ Html.ul
+        [ Element.row
             []
-            [ textListItem <| character.name
-            , textListItem <| Avatar.description character.avatar
-            , textListItem <| "G: " ++ String.fromInt character.gold
-            , textListItem <| "LV: " ++ String.fromInt character.level
-            , textListItem <| "EXP: " ++ String.fromInt character.experience ++ " / " ++ String.fromInt (levelUpExperience character.level)
-            , textListItem <| "AP: " ++ String.fromInt character.freeAbilityPoints ++ " / " ++ String.fromInt character.totalAbilityPoints
-            , statusSetListItem character.statusSet
-            , textListItem <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
-            , textListItem <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
+            [ Element.column
+                []
+                [ Element.text <| character.name
+                , Element.text <| "G: " ++ String.fromInt character.gold
+                , Element.text <| "LV: " ++ String.fromInt character.level
+                , Element.text <| "EXP: " ++ String.fromInt character.experience ++ " / " ++ String.fromInt (levelUpExperience character.level)
+                , Element.text <| "AP: " ++ String.fromInt character.freeAbilityPoints ++ " / " ++ String.fromInt character.totalAbilityPoints
+                , Element.text <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
+                , Element.text <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
+                ]
+            , Element.column
+                []
+                [ Element.text <| "Build: " ++ Height.toString character.avatar.height ++ " & " ++ Build.toString character.avatar.build
+                , Element.text <| "Complexion: " ++ Complexion.toString character.avatar.complexion
+                , Element.text <| "Hair: " ++ HairStyle.toString character.avatar.hairStyle ++ " & " ++ HairColor.toString character.avatar.hairColor
+                , Element.text <| "Eye Color: " ++ EyeColor.toString character.avatar.eyeColor
+                ]
+            , viewStatusSet character.statusSet
             ]
         , case scene of
             Scene.BattleMonster ->
-                Html.div
-                    []
-                    []
+                Element.none
             
             Scene.ExploreDungeon ->
-                Html.div
-                    []
-                    []
+                Element.none
             
             _ ->
                  buttonBar
@@ -218,27 +227,22 @@ viewScenePhase scene sceneState character =
                     , ( "Essentia", Msg.UserSelectedScene Scene.Essentia )
                     , ( "Learn", Msg.UserSelectedScene Scene.LearnSelect )
                     , ( "Equip", Msg.UserSelectedScene Scene.Equip )
-                    , ( "Home", Msg.UserSelectedScene Scene.Home )
-                    , ( "Shop", Msg.UserSelectedScene Scene.ShopSelect )
                     , ( "Town", Msg.UserSelectedScene Scene.Town )
                     , ( "Explore", Msg.UserSelectedScene Scene.DungeonSelect )
-                    , ( "Boss", Msg.UserSelectedScene Scene.BossSelect )
                     ]
         , viewCharacter scene sceneState character
         , viewInventory character.inventory
         ]
 
-viewInventory : Inventory -> Html Msg
+viewInventory : Inventory -> Element Msg
 viewInventory i =
     let
         itemQtyFn ( item, qty ) =
-            Html.li
+            Element.column
                 []
-                [ Html.text <| item.name ++ ": "
-                , Html.text <| String.fromInt qty ++ " "
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedUseItem item ]
-                    [ Html.text "Use" ]
+                [ Element.text <| item.name ++ ": "
+                , Element.text <| String.fromInt qty ++ " "
+                , button "Use" (Msg.UserSelectedUseItem item)
                 ]
         
         visibleItemQtys =
@@ -246,119 +250,108 @@ viewInventory i =
                 |> Inventory.listItems
                 |> List.filter (\(_, q) -> q > 0)
     in
-    Html.div
+    Element.column
         []
-        [ Html.text "Inventory:"
-        , Html.ul
+        [ Element.text "Inventory:"
+        , Element.column
             []
             ( List.map itemQtyFn visibleItemQtys )
         ]
 
-textList : List String -> Html Msg
+textList : List String -> Element Msg
 textList items =
     let
         itemFn item =
-            Html.li
-                []
-                [ Html.text item ]
+            Element.text item
     in
-    Html.ul
+    Element.column
         []
         ( List.map itemFn items )
 
-buttonList : List ( String, Msg ) -> Html Msg
+buttonList : List ( String, Msg ) -> Element Msg
 buttonList items =
     let
         itemFn ( label, msg ) =
-            Html.li
-                []
-                [ Html.button
-                    [ Html.Events.onClick msg ]
-                    [ Html.text label ]
-                ]
+            button label msg
     in
-    Html.ul
+    Element.column
         []
         ( List.map itemFn items )
 
-buttonBar : List ( String, Msg ) -> Html Msg
+buttonBar : List ( String, Msg ) -> Element Msg
 buttonBar items =
     let
         itemFn ( label, msg ) =
-            Html.span
-                []
-                [ Html.button
-                    [ Html.Events.onClick msg ]
-                    [ Html.text label ]
-                ]
+            button label msg
     in
-    Html.div
+    Element.row
         []
         ( List.map itemFn items )
 
-formList : List ( String, Html Msg, Html Msg ) -> Html Msg
+formList : List ( String, Element Msg, Element Msg ) -> Element Msg
 formList items =
     let
         itemFn ( label, form, info ) =
-            Html.li
+            Element.column
                 []
-                [ Html.text label
+                [ Element.text label
                 , form
                 , info
                 ]
     in
-    Html.ul
+    Element.column
         []
         ( List.map itemFn items )
 
-radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Html Msg
+radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Element Msg
 radioButtons toString toMsg items currentItem =
     let     
         itemFn item =
-            Html.span
-                []
-                [ Html.input
-                    [ Html.Attributes.type_ "radio"
-                    , Html.Attributes.checked (FormResult.FROk item == currentItem)
-                    , Html.Events.on "change" (Json.Decode.succeed <| toMsg item)
-                    ]
+            Element.html <|
+                Html.div
                     []
-                , Html.text <| toString item
-                ]
+                    [ Html.input
+                        [ Html.Attributes.type_ "radio"
+                        , Html.Attributes.checked (FormResult.FROk item == currentItem)
+                        , Html.Events.on "change" (Json.Decode.succeed <| toMsg item)
+                        ]
+                        []
+                    , Html.text <| toString item
+                    ]
     in
-    Html.div
+    Element.row
         []
         ( List.map itemFn items )
     
 
-viewCharacter : Scene -> SceneState -> Character -> Html Msg
+viewCharacter : Scene -> SceneState -> Character -> Element Msg
 viewCharacter scene sceneState character =
     case scene of
         Scene.Player ->
-            Html.ul
+            Element.column
                 []
-                [ Html.ol
+                [ Element.column
                     []
-                    [ Html.text "Attributes"
+                    [ Element.text "Attributes"
                     , textList
                         [ "STR: " ++ String.fromInt character.strength
                         , "VIT: " ++ String.fromInt character.vitality
                         , "AGI: " ++ String.fromInt character.agility
                         , "INT: " ++ String.fromInt character.intellect
                         ]
-                    , Html.text "Equipment"
+                    , Element.text "Equipment"
                     , textList
                         [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
                         , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
                         ]
-                    , Html.text "Passives"
+                    , Element.text "Passives"
                     , textList
                         ( character.learnedPassives
                             |> Set.toList
                             |> List.map Passive.byId
                             |> List.map .name
                         )
-                    , Html.text "Actions"
+                    , Element.text "Actions"
                     , textList
                         ( character.learned
                             |> Set.toList
@@ -379,72 +372,61 @@ viewCharacter scene sceneState character =
                 equippedWeaponElement =
                     case character.equippedWeapon of
                         Just weapon ->
-                            Html.div
+                            Element.column
                                 []
-                                [ Html.text <| "Weapon: " ++ weapon.name
-                                , Html.button
-                                    [ Html.Events.onClick <| Msg.UserSelectedUnEquipWeapon weapon ]
-                                    [ Html.text "Un-equip" ]
+                                [ Element.text <| "Weapon: " ++ weapon.name
+                                , button "Un-Equip" (Msg.UserSelectedUnEquipWeapon weapon)
                                 ]
                         
                         Nothing ->
-                            Html.div
+                            Element.column
                                 []
-                                [ Html.text <| "Weapon: - "
+                                [ Element.text <| "Weapon: - "
                                 ]
                 
                 equippedArmorElement =
                     case character.equippedArmor of
                         Just armor ->
-                            Html.div
+                            Element.column
                                 []
-                                [ Html.text <| "Armor: " ++ armor.name
-                                , Html.button
-                                    [ Html.Events.onClick <| Msg.UserSelectedUnEquipArmor armor ]
-                                    [ Html.text "Un-equip" ]
+                                [ Element.text <| "Armor: " ++ armor.name
+                                , button "Un-Equip" (Msg.UserSelectedUnEquipArmor armor)
                                 ]
                         
                         Nothing ->
-                            Html.div
-                                []
-                                [ Html.text <| "Armor: - "
-                                ]
+                            Element.text <| "Armor: - "
             in
-            Html.div
+            Element.column
                 []
-                [ Html.text "Equipped"
-                , Html.ul
+                [ Element.text "Equipped"
+                , Element.column
                     []
                     [ equippedWeaponElement
                     , equippedArmorElement
                     ]
-                , Html.text "Equipable"
+                , Element.text "Equipable"
                 , let
 
                     equipableFn (w, q) =
-                        Html.li
+                        Element.column
                             []
-                            [ Html.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
-                            , Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedEquipWeapon w ]
-                                [ Html.text "Equip" ]
+                            [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
+                            , button "Equip" (Msg.UserSelectedEquipWeapon w)
                             ]
                   in
-                  Html.ul
+                  Element.column
                     []
                     (List.map equipableFn (Inventory.listWeapons character.inventory))
                 , let
 
                     equipableFn (w, q) =
-                        Html.li
+                        Element.column
                             []
-                            [ Html.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
-                            , Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedEquipArmor w ]
-                                [ Html.text "Equip" ]
+                            [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
+                            , button "Equip" (Msg.UserSelectedEquipArmor w)
                             ]
                   in
-                  Html.ul
+                  Element.column
                     []
                     (List.map equipableFn (Inventory.listArmors character.inventory))
                 ]
@@ -470,9 +452,6 @@ viewCharacter scene sceneState character =
         Scene.Town ->
             viewTownScene character
         
-        Scene.OnyxTower ->
-            viewOnyxTowerScene character
-        
         Scene.DungeonSelect ->
             dungeonTable
                 [ Dungeon.byId "beginnerscave"
@@ -497,7 +476,7 @@ viewCharacter scene sceneState character =
         Scene.BattleMonsterLoadingIntent ->
             case sceneState.maybeBattle of
                 Just battle ->
-                    Html.text <| battle.monster.name ++ " is thinking..."
+                    Element.text <| battle.monster.name ++ " is thinking..."
                 
                 Nothing ->
                     textList []
@@ -511,7 +490,7 @@ viewCharacter scene sceneState character =
                     textList []
         
         Scene.VictoryLoading ->
-            Html.text "Loading..."
+            Element.text "Loading..."
         
         Scene.Victory ->
             let
@@ -526,22 +505,16 @@ viewCharacter scene sceneState character =
                     in
                     case sceneState.ambient of
                         SceneState.Rest ->
-                            Html.ul
+                            Element.column
                                 []
                                 [ victoryMessage
                                 ]
                         
                         SceneState.Delving _ _ ->
-                            Html.ul
+                            Element.column
                                 []
                                 [ victoryMessage
                                 , continueButton
-                                ]
-                        
-                        SceneState.BossFight _ _ ->
-                            Html.ul
-                                []
-                                [ victoryMessage
                                 ]
             in
             Just f
@@ -558,23 +531,10 @@ viewCharacter scene sceneState character =
             textList
                 [ "Escaped..."
                 ]
-        
-        Scene.BossSelect ->
-            viewBosses
-                [ Boss.byId "leviathan"
-                ]
-        
-        Scene.BossFight ->
-            case sceneState.ambient of
-                SceneState.BossFight bossPhase bossState ->
-                    viewBossFight character bossPhase bossState
-                
-                _ ->
-                    textList []
 
-viewExploreDungeon : Character -> DelvePhase -> Delve -> Html Msg
+viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg
 viewExploreDungeon character delvePhase delve =
-    Html.div
+    Element.column
         []
         [ textList
             [ "Exploring: " ++ delve.dungeon.name
@@ -597,67 +557,57 @@ viewExploreDungeon character delvePhase delve =
                             ]
                     
                     DungeonScene.TrapDoor ->
-                        Html.ul
+                        Element.column
                             []
-                            [ Html.text "A trap door!"
+                            [ Element.text "A trap door!"
                             , exitButtonDungeon
                             ]
                     
                     DungeonScene.LoadingGoal ->
-                        Html.text "Loading goal..."
+                        Element.text "Loading goal..."
                     
                     DungeonScene.Goal reward ->
-                        Html.ul
+                        Element.column
                             []
-                            [ Html.text "Goal!"
+                            [ Element.text "Goal!"
                             , viewReward reward
                             , exitButtonDungeon
                             ]
                     
                     DungeonScene.Shop ->
-                        Html.text "Loading shop..."
+                        Element.text "Loading shop..."
                     
                     DungeonScene.Treasure ->
-                        Html.ul
+                        Element.column
                             []
-                            [ Html.text "You find a treasure chest!"
-                            , Html.button
-                                [ Html.Events.onClick Msg.UserSelectedOpenChest ]
-                                [ Html.text "Open" ]
+                            [ Element.text "You find a treasure chest!"
+                            , button "Open" Msg.UserSelectedOpenChest
                             , continueButton
                             ]
                     
                     DungeonScene.Shopping shop ->
-                        Html.ul
+                        Element.column
                             []
                             [ viewShopScene character shop
                             , continueButton
                             ]
                     
                     _ ->
-                        Html.ul
+                        Element.column
                             []
-                            [ Html.text <| DungeonScene.toString scene
+                            [ Element.text <| DungeonScene.toString scene
                             , continueButton
                             ]
         ]
-continueButton : Html Msg
+continueButton : Element Msg
 continueButton =
-    Html.button
-        [ Html.Events.onClick Msg.UserSelectedContinueDungeon
-        ]
-        [ Html.text "Continue"
-        ]
+    button "Continue" Msg.UserSelectedContinueDungeon
 
-exitButtonDungeon : Html Msg
+exitButtonDungeon : Element Msg
 exitButtonDungeon =
-    Html.button
-        [ Html.Events.onClick Msg.UserSelectedExitDungeon
-        ]
-        [ Html.text "Exit Dungeon"
-        ]
+    button "Exit Dungeon" Msg.UserSelectedExitDungeon
 
-pathTable : Character -> List DungeonPath.Path -> Html Msg
+pathTable : Character -> List DungeonPath.Path -> Element Msg
 pathTable m paths =
     let
         pathFn path =
@@ -672,54 +622,51 @@ pathTable m paths =
                     else
                         [ Html.Attributes.disabled True ]
             in
-            Html.li
+            Element.Input.button
                 []
-                [ Html.text path.description
-                , viewRequirements path.requirements
-                , explainSceneDistribution path.sceneDistribution
-                , Html.button
-                    onClick
-                    [ Html.text "Go" ]
-                ]
+                { onPress =
+                    if can then
+                        Just <| Msg.UserSelectedDungeonPath path
+                    else
+                        Nothing
+                , label =
+                    Element.column
+                        []
+                        [ Element.text path.description
+                        , viewRequirements path.requirements
+                        , explainSceneDistribution path.sceneDistribution
+                        ]
+                }
     in
-    Html.ul
+    Element.column
         []
         ( List.map pathFn paths )
 
-viewRequirements : List Requirement -> Html Msg
+viewRequirements : List Requirement -> Element Msg
 viewRequirements l =
     let
         viewOneRequirement r =
-            Html.li
-                []
-                [ Html.text <| "Requires: " ++ Requirement.toString r
-                ]  
+            Element.text <| "Requires: " ++ Requirement.toString r
     in
-    Html.ul
+    Element.column
         []
         ( List.map viewOneRequirement l )
 
-viewReward : Reward -> Html Msg
+viewReward : Reward -> Element Msg
 viewReward r =
     let
         ( experienceReward, expVis ) =
-            ( Html.li
-                []
-                [ Html.text <| "Got: " ++ String.fromInt r.experience ++ " EXP!" ]
+            ( Element.text <| "Got: " ++ String.fromInt r.experience ++ " EXP!"
             , r.experience > 0
             )
         
         ( goldReward, goldVis ) =
-            ( Html.li
-                []
-                [ Html.text <| "Got: " ++ String.fromInt r.gold ++ " G!" ]
+            ( Element.text <| "Got: " ++ String.fromInt r.gold ++ " G!"
             , r.gold > 0
             )
         
         ( apReward, apVis ) =
-            ( Html.li
-                []
-                [ Html.text <| "Got: " ++ String.fromInt r.abilityPoints ++ " AP!" ]
+            ( Element.text <| "Got: " ++ String.fromInt r.abilityPoints ++ " AP!"
             , r.abilityPoints > 0
             )
         
@@ -732,9 +679,9 @@ viewReward r =
             ( let
 
                 oneItemReward ( item, qty )=
-                    Html.text <| "Got: " ++ String.fromInt qty ++ "x " ++ item.name ++ "!"
+                    Element.text <| "Got: " ++ String.fromInt qty ++ "x " ++ item.name ++ "!"
               in
-              Html.li
+              Element.column
                 []
                 ( List.map oneItemReward relevant )
             , List.length relevant > 0
@@ -749,27 +696,25 @@ viewReward r =
                 |> List.filter (\(_, vis) -> vis)
                 |> List.map (\(d,_) -> d)            
     in
-    Html.ul
+    Element.column
         []
         display
 
-shopTable : List Shop -> Html Msg
+shopTable : List Shop -> Element Msg
 shopTable shops =
     let
         shopFn shop =
-            Html.li
+            Element.column
                 []
-                [ Html.text shop.name
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedShop shop ]
-                    [ Html.text "Go" ]
+                [ Element.text shop.name
+                , button "Go" (Msg.UserSelectedShop shop)
                 ]
     in
-    Html.ul
+    Element.column
         []
         ( List.map shopFn shops )
     
-explainSceneDistribution : Distribution DungeonScene.Scene -> Html Msg
+explainSceneDistribution : Distribution DungeonScene.Scene -> Element Msg
 explainSceneDistribution d =
     let
         explainOneScene ( chance, scene ) =
@@ -777,87 +722,81 @@ explainSceneDistribution d =
     in
     textList (List.map explainOneScene (Distribution.toList d))
 
-viewBattleMonster : Character -> Battle -> Action -> Html Msg
+viewBattleMonster : Character -> Battle -> Action -> Element Msg
 viewBattleMonster character battle intent =
     let
         monster = battle.monster
     in
-    Html.div
+    Element.column
         []
         [ textList
             [ "Round: " ++ String.fromInt battle.round
             ]
-        , Html.ul
+        , Element.column
             []
-            [ textListItem <| "Enemy"
-            , textListItem <| monster.name
-            , statusSetListItem <| monster.statusSet
-            , textListItem <| "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints monster)
-            , textListItem <| "Intent: " ++ intent.name
-            , textListItem <| "Block: " ++ String.fromInt monster.block
+            [ Element.text <| "Enemy"
+            , Element.text <| monster.name
+            , viewStatusSet <| monster.statusSet
+            , Element.text <| "HP: " ++ String.fromInt monster.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints monster)
+            , Element.text <| "Intent: " ++ intent.name
+            , Element.text <| "Block: " ++ String.fromInt monster.block
             ]
-        , Html.ul
+        , Element.column
             []
-            [ textListItem <| "Player"
-            , textListItem <| character.name
-            , statusSetListItem <| character.statusSet
-            , textListItem <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
-            , textListItem <| "AP: " ++ String.fromInt character.actionPoints ++ " / " ++ String.fromInt character.maxActionPoints
-            , textListItem <| "Block: " ++ String.fromInt character.block
+            [ Element.text <| "Player"
+            , Element.text <| character.name
+            , viewStatusSet <| character.statusSet
+            , Element.text <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
+            , Element.text <| "AP: " ++ String.fromInt character.actionPoints ++ " / " ++ String.fromInt character.maxActionPoints
+            , Element.text <| "Block: " ++ String.fromInt character.block
             ]
         , actionTable character.actionPoints character.actionStates
-        , Html.button
-            [ Html.Events.onClick Msg.UserSelectedEndBattleTurn ]
-            [ Html.text "End Turn" ]
+        , button "End Turn" (Msg.UserSelectedEndBattleTurn)
         ]
 
-actionTable : Int -> List ActionState -> Html Msg
+actionTable : Int -> List ActionState -> Element Msg
 actionTable actionPoints actions =
     let
         actionFn actionState =
             let
                 buttonElement =
                     if ActionState.canUse actionPoints actionState then
-                        Html.button
-                            [ Html.Events.onClick <| Msg.UserSelectedBattleAction actionState.action ]
-                            [ Html.text "Go" ]
+                        button "Go" (Msg.UserSelectedBattleAction actionState.action)
                     else
-                        Html.text ""
+                        Element.text ""
             in
-            Html.li
+            Element.column
                 []
-                [ Html.text <| actionState.action.name
-                , Html.text " | "
-                , Html.text <| "AP: " ++ String.fromInt actionState.action.actionPointCost
-                , Html.text " | "
-                , Html.text <| ActionState.stateToString actionState.state
-                , Html.text " | "
+                [ Element.text <| actionState.action.name
+                , Element.text " | "
+                , Element.text <| "AP: " ++ String.fromInt actionState.action.actionPointCost
+                , Element.text " | "
+                , Element.text <| ActionState.stateToString actionState.state
+                , Element.text " | "
                 , buttonElement
                 ]
     in
-    Html.ul
+    Element.column
         []
         ( List.map actionFn actions )
 
-viewShopScene : Character -> Shop -> Html Msg
+viewShopScene : Character -> Shop -> Element Msg
 viewShopScene character shop =
     let
         buyableFn b =
-            Html.li
+            Element.column
                 []
-                [ Html.text <| b.name ++ " | "
-                , Html.text <| String.fromInt b.cost ++ " "
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedBuy b ]
-                    [ Html.text "Buy" ]
+                [ Element.text <| b.name ++ " | "
+                , Element.text <| String.fromInt b.cost ++ " "
+                , button "Buy" (Msg.UserSelectedBuy b)
                 ]
     in
-    Html.div
+    Element.column
         []
         [ textList
             [ "Shop: " ++ shop.name
             ]
-        , Html.ul
+        , Element.column
             []
             ( List.map buyableFn shop.stock )
         ]
@@ -865,106 +804,92 @@ levelUpExperience : Int -> Int
 levelUpExperience n =
     10 * n * n
 
-dungeonTable : List Dungeon -> Html Msg
+dungeonTable : List Dungeon -> Element Msg
 dungeonTable dungeons =
     let
         dungeonFn dungeon =
-            Html.span
+            Element.row
                 []
-                [ Html.text <| dungeon.name
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedExploreDungeonScene dungeon ]
-                    [ Html.text "Explore" ]
+                [ Element.text <| dungeon.name
+                , button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
                 ]
         
     in
-    Html.ul
+    Element.column
         []
         ( List.map dungeonFn dungeons )
 
-monsterTable : List MonsterTemplate -> Html Msg
+monsterTable : List MonsterTemplate -> Element Msg
 monsterTable monsters =
     let
         monsterFn monsterTemplate =
-            Html.li
+            Element.column
                 []
-                [ Html.text <| monsterTemplate.name
-                , Html.text <| " | HP: " ++ String.fromInt monsterTemplate.hitPoints
-                , Html.text <| " | EXP: " ++ String.fromInt monsterTemplate.experience ++ " "
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedMonsterTemplate monsterTemplate ]
-                    [ Html.text "Fight" ]
+                [ Element.text <| monsterTemplate.name
+                , Element.text <| " | HP: " ++ String.fromInt monsterTemplate.hitPoints
+                , Element.text <| " | EXP: " ++ String.fromInt monsterTemplate.experience ++ " "
+                , button "Fight" (Msg.UserSelectedMonsterTemplate monsterTemplate)
                 ]
     in
-    Html.ul
+    Element.column
         []
         ( List.map monsterFn monsters )
 
-viewStatusSet : StatusSet -> Html Msg
+viewStatusSet : StatusSet -> Element Msg
 viewStatusSet s =
-    Html.div
-        []
-        [ Html.text "Statuses: "
-        , viewStatusData (StatusSet.toList s)
-        ]
+    viewStatusData (StatusSet.toList s)
 
-viewStatusData : List StatusSet.Data -> Html Msg
+viewStatusData : List StatusSet.Data -> Element Msg
 viewStatusData data =
     let
         viewOneStatusData datum =
-            Html.li
-                []
-                [ Html.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
-                ]
+            Element.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
     in
-    Html.ul
+    Element.column
         []
         ( List.map viewOneStatusData data )
 
-viewEssentiaScene : List Essentia -> EssentiaContainer -> Html Msg
+viewEssentiaScene : List Essentia -> EssentiaContainer -> Element Msg
 viewEssentiaScene e c =
     let
         containerSlotFn ( slotIndex, slot ) =
             case slot of
                 Just essentia ->
-                    Html.li
+                    Element.column
                         []
-                        [ Html.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
-                        , Html.button
-                            [ Html.Events.onClick <| Msg.UserSelectedUnEquipEssentia slotIndex essentia ]
-                            [ Html.text "Un-Equip" ]
+                        [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
+                        , button "Un-Equip" (Msg.UserSelectedUnEquipEssentia slotIndex essentia)
                         ]
                 
                 Nothing ->
-                    Html.li
+                    Element.column
                         []
-                        [ Html.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": -"
+                        [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": -"
                         ]
 
         equipEssentiaButtonFn esn listIdx slotIndex =
-            Html.button
-                [ Html.Events.onClick <| Msg.UserSelectedEquipEssentia slotIndex listIdx esn ]
-                [ Html.text <| "Equip in Slot " ++ EssentiaContainer.indexToString slotIndex ]
+            button ("Equip in Slot " ++ EssentiaContainer.indexToString slotIndex) (Msg.UserSelectedEquipEssentia slotIndex listIdx esn)
+
         essentiaFn listIdx esn =
-            Html.div
+           Element.column
                 []
-                ( Html.text esn.name
+                ( Element.text esn.name
                 :: ( List.map (equipEssentiaButtonFn esn listIdx) EssentiaContainer.listIndices )
                 )
     in
-    Html.ul
+    Element.column
         []
-        [ Html.text "Equipped"
-        , Html.ul
+        [ Element.text "Equipped"
+        , Element.column
             []
             ( List.map containerSlotFn (EssentiaContainer.toList c))
-        , Html.text "Equipable"
-        , Html.ul
+        , Element.text "Equipable"
+        , Element.column
             []
             ( List.indexedMap essentiaFn e )
         ]
 
-viewLearnScene : Character -> Html Msg
+viewLearnScene : Character -> Element Msg
 viewLearnScene m =
     let
         learnableEssentia =
@@ -976,24 +901,16 @@ viewLearnScene m =
             let
                 learnElement =
                     if Set.member a.id m.learned then
-                        Html.text "Learned"
+                        Element.text "Learned"
                     else
                         if a.learnCost <= m.freeAbilityPoints then
-                            Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedLearnSkill a
-                                ]
-                                [ Html.text <| "Learn (" ++ String.fromInt a.learnCost ++ " AP)"
-                                ]
+                            button ("Learn (" ++ String.fromInt a.learnCost ++ " AP)") (Msg.UserSelectedLearnSkill a)
                         else
-                            Html.button
-                                [ Html.Attributes.disabled True
-                                ]
-                                [ Html.text <| "Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)"
-                                ]
+                            disabledButton ("Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)")
             in
-            Html.div
+            Element.column
                 []
-                [ Html.text a.name
+                [ Element.text a.name
                 , learnElement
                 ]
         
@@ -1001,152 +918,64 @@ viewLearnScene m =
             let
                 learnElement =
                     if Set.member p.id m.learnedPassives then
-                        Html.text "Learned"
+                        Element.text "Learned"
                     else
                         if p.learnCost <= m.freeAbilityPoints then
-                            Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedLearnPassive p
-                                ]
-                                [ Html.text <| "Learn (" ++ String.fromInt p.learnCost ++ " AP)"
-                                ]
+                            button ("Learn (" ++ String.fromInt p.learnCost ++ " AP)") (Msg.UserSelectedLearnPassive p)
                         else
-                            Html.button
-                                [ Html.Attributes.disabled True
-                                ]
-                                [ Html.text <| "Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)"
-                                ]
+                            disabledButton ("Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)")
             in
-            Html.div
+            Element.column
                 []
-                [ Html.text p.name
+                [ Element.text p.name
                 , learnElement
                 ]
         
         viewLearnOneEssentia e =
-            Html.div
+            Element.column
                 []
-                [ Html.text e.name
-                , Html.li
+                [ Element.text e.name
+                , Element.column
                     []
                     ( List.map viewLearnOneAction e.actions )
-                , Html.li
+                , Element.column
                     []
                     ( List.map viewLearnOnePassive e.passives )
                 ]
     in
-    Html.span
+    Element.row
         []
         ( List.map viewLearnOneEssentia learnableEssentia )
 
-viewTownScene : Character -> Html Msg
+viewTownScene : Character -> Element Msg
 viewTownScene m =
-    Html.ul
+    Element.column
         []
-        [ Html.li
+        [ Element.row
             []
-            [ Html.text "Onyx Tower"
-            , Html.button
-                [ Html.Events.onClick <| Msg.UserSelectedOnyxTower
-                ]
-                [ Html.text "Go"
-                ]
+            [ Element.text "Home"
+            , button "Go" (Msg.UserSelectedScene Scene.Home)
             ]
-        , Html.li
+        , Element.row
             []
-            [ Html.text "Potion Shop"
-            , Html.button
-                [ Html.Events.onClick <| Msg.UserSelectedShop (Shop.byId "potionshop")
-                ]
-                [ Html.text "Go"
-                ]
+            [ Element.text "Potion Shop"
+            , button "Go" (Msg.UserSelectedShop (Shop.byId "potionshop"))
             ]
+
         ]
 
-viewOnyxTowerScene : Character -> Html Msg
-viewOnyxTowerScene m =
-    Html.ul
+button : String -> Msg -> Element Msg
+button labelText msg =
+    Element.Input.button
         []
-        [ Html.li
-            []
-            [ Html.text "It's the Onyx Tower"
-            ]
-        ]
+        { onPress = Just msg
+        , label = Element.text labelText
+        }
 
-viewBosses : List Boss -> Html Msg
-viewBosses bosses =
-    let
-        viewOneBoss boss =
-            Html.li
-                []
-                [ Html.text boss.name
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedBossFight boss
-                    ]
-                    [ Html.text "Go"
-                    ]
-                ]
-    in
-    Html.ul
+disabledButton : String -> Element Msg
+disabledButton labelText =
+    Element.Input.button
         []
-        ( List.map viewOneBoss bosses )
-
-viewBossFight : Character -> BossPhase -> BossState -> Html Msg
-viewBossFight character phase state =
-    Html.div
-        []
-        [ if state.boss.showBoss then
-            textList
-                [ "Boss: " ++ state.monster.name
-                , "HP: " ++ String.fromInt state.monster.hitPoints ++ " / " ++ String.fromInt state.monster.maxHitPoints
-                ]
-          else
-            Html.div [] []
-        , case phase of
-            BossPhase.ExplorationPhase paths ->
-                bossPathTable paths
-            
-            BossPhase.ActionPhase scene ->
-                case scene of
-                    BossScene.BattleBoss ->
-                        Html.div [] []
-                    
-                    BossScene.BattleBossLoadingIntent _ ->
-                        Html.div [] []
-                    
-                    BossScene.BattleBossOngoing battle intent ->
-                        viewBattleMonster character battle intent
-                    
-                    _ ->
-                        Html.ul
-                            []
-                            [ Html.text <| BossScene.toString scene
-                            , Html.button
-                                [ Html.Events.onClick <| Msg.UserSelectedContinueBossFight state.boss ]
-                                [ Html.text "Continue" ]
-                            ]
-        ]
-
-bossPathTable : List BossPath -> Html Msg
-bossPathTable paths =
-    let
-        pathFn path =
-            Html.li
-                []
-                [ Html.text path.description
-                , explainBossSceneDistribution path.sceneDistribution
-                , Html.button
-                    [ Html.Events.onClick <| Msg.UserSelectedBossPath path ]
-                    [ Html.text "Go" ]
-                ]
-    in
-    Html.ul
-        []
-        ( List.map pathFn paths )
-
-explainBossSceneDistribution : Distribution BossScene -> Html Msg
-explainBossSceneDistribution d =
-    let
-        explainOneScene ( chance, scene ) =
-            String.fromFloat chance ++ "% of " ++ BossScene.toString scene
-    in
-    textList (List.map explainOneScene (Distribution.toList d))
+        { onPress = Nothing
+        , label = Element.text labelText
+        }

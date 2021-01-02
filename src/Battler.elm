@@ -28,7 +28,7 @@ import PassiveFormula exposing (PassiveFormula)
 import Armor exposing (Armor)
 import Status exposing (Status)
 import Weapon exposing (Weapon)
-import Element exposing (Element)
+import ElementType exposing (ElementType)
 
 import StatusSet exposing (StatusSet)
 
@@ -97,7 +97,7 @@ recoverhitPoints t amt ( a, b ) =
         Target.Enemy ->
             ( a, recoverOneHitPoints b )
 
-takeDamage : Target -> Int -> List Element -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
+takeDamage : Target -> Int -> List ElementType -> ( Battler a, Battler b ) -> ( Battler a, Battler b )
 takeDamage t dmg _ ( a, b ) =
     let
         receivedDamage =

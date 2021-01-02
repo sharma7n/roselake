@@ -28,7 +28,7 @@ import Target exposing (Target)
 import Status exposing (Status)
 import Duration exposing (Duration)
 import Character exposing (Character)
-import Element exposing (Element)
+import ElementType exposing (ElementType)
 
 type alias Battle =
     { round : Int
@@ -237,7 +237,7 @@ applyFormula formula ( a, b, state ) =
         Formula.HalfFire ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
-                    [ Element.Fire
+                    [ ElementType.Fire
                     ]
                 |> Battler.applyStatus Target.Enemy Status.Burn (Duration.Rounds <| Battler.totalMagic a) 1
                 |> embedState state
@@ -245,7 +245,7 @@ applyFormula formula ( a, b, state ) =
         Formula.HalfIce ->
             ( a, b )
                 |> Battler.takeDamage Target.Enemy (2 * Battler.totalMagic a - Battler.totalMagicDefense b)
-                    [ Element.Ice
+                    [ ElementType.Ice
                     ]
                 |> Battler.applyStatus Target.Enemy Status.Burn (Duration.Rounds <| Battler.totalMagic a) 1
                 |> embedState state

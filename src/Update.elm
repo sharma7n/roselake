@@ -48,10 +48,6 @@ import Item exposing (Item)
 import Weapon exposing (Weapon)
 import Status exposing (Status)
 import Battle exposing (Battle)
-import BossPath exposing (BossPath)
-import BossPhase exposing (BossPhase)
-import BossState exposing (BossState)
-import BossScene exposing (BossScene)
 
 import EssentiaContainer exposing (EssentiaContainer)
 
@@ -299,16 +295,6 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedBossFight boss, Phase.ScenePhase _ _ _ ) ->
-            let
-                pathListGenerator =
-                    Util.randomDistinctList 3 ( BossPath.generator boss.bossBehavior )
-                
-                cmd =
-                    Random.generate (Msg.SystemGotBossInitialization boss) pathListGenerator
-            in
-            ( model, cmd )
-        
         ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.DungeonSelect _ _ ) ->
             let
                 pathListGenerator =
@@ -334,30 +320,7 @@ update msg model =
                         | ambient = SceneState.Delving delvePhase delve 
                     }
             in
-            ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, Cmd.none )
-        
-        ( Msg.SystemGotBossInitialization boss paths, Phase.ScenePhase scene sceneState character ) ->
-            let
-                bossState =
-                    { boss = boss
-                    , monster = Monster.new boss.monsterTemplate
-                    }
-                
-                newSceneState =
-                    { sceneState 
-                        | ambient = SceneState.BossFight ( BossPhase.ExplorationPhase paths ) bossState 
-                    }
-                
-                newPhase =
-                    Phase.ScenePhase scene newSceneState character
-                
-                newModel =
-                    { model
-                        | phase = newPhase
-                    }
-            in
-            ( newModel, Cmd.none )
-            
+            ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, Cmd.none )  
         
         ( Msg.UserSelectedDungeonPath path, Phase.ScenePhase Scene.ExploreDungeon _ _) ->
             let
@@ -391,48 +354,6 @@ update msg model =
                         
                     in
                     ( { model | phase = Phase.ScenePhase Scene.ExploreDungeon newSceneState character }, cmd )
-                
-                _ ->
-                    ( model, Cmd.none )
-        
-        ( Msg.UserSelectedBossPath path, Phase.ScenePhase _ _ _ ) ->
-            let
-                cmd =
-                    Random.generate Msg.SystemGotBossScene (Distribution.random path.sceneDistribution)
-            in
-            ( model, cmd )
-        
-        ( Msg.SystemGotBossScene bossScene, Phase.ScenePhase scene sceneState character ) ->
-            case sceneState.ambient of
-                SceneState.BossFight phase state ->
-                    let
-                        newBattle =
-                            Battle.new state.monster
-
-                        cmd =
-                            case bossScene of
-                                BossScene.BattleBoss ->
-                                    let
-                                        behaviorGenerator =
-                                            Battle.chooseMonsterAction newBattle
-                                    in
-                                    Random.generate Msg.SystemGotBossMonsterIntent behaviorGenerator
-                                
-                                _ ->
-                                    Cmd.none
-                        
-                        newSceneState =
-                            { sceneState
-                                | ambient = SceneState.BossFight (BossPhase.ActionPhase bossScene) state
-                            }
-
-                        newPhase =
-                            Phase.ScenePhase scene newSceneState character
-                        
-                        newModel =
-                            { model | phase = newPhase }           
-                    in
-                    ( newModel, cmd )
                 
                 _ ->
                     ( model, Cmd.none )
@@ -480,29 +401,6 @@ update msg model =
                     Phase.ScenePhase Scene.BattleMonster newSceneState character
             in
             ( { model | phase = newPhase }, Cmd.none )
-
-        ( Msg.SystemGotBossMonsterIntent intent, Phase.ScenePhase scene sceneState character ) ->
-            case sceneState.ambient of
-                SceneState.BossFight phase state ->
-                    let
-                        newBattle =
-                            Battle.new state.monster
-                        
-                        newBossPhase =
-                            BossPhase.ActionPhase ( BossScene.BattleBossOngoing newBattle intent )
-                        
-                        newSceneState =
-                            { sceneState
-                                | ambient = SceneState.BossFight newBossPhase state
-                            }
-                        
-                        newModel =
-                            { model | phase = Phase.ScenePhase scene newSceneState character }
-                    in
-                    ( newModel, Cmd.none )
-                
-                _ ->
-                    ( model, Cmd.none )
         
         ( Msg.SystemGotObject object, Phase.ScenePhase (Scene.ExploreDungeon) sceneState character ) ->
             case sceneState.ambient of
@@ -553,16 +451,6 @@ update msg model =
             in
             ( model, cmd )
         
-        ( Msg.UserSelectedContinueBossFight boss, _ ) ->
-            let
-                pathListGenerator =
-                    Util.randomDistinctList 3 ( BossPath.generator boss.bossBehavior )
-
-                cmd =
-                    Random.generate Msg.SystemGotBossFightContinuation pathListGenerator
-            in
-            ( model, cmd )
-        
         ( Msg.SystemGotDungeonContinuation paths, Phase.ScenePhase _ sceneState character ) ->
             case sceneState.ambient of
                 SceneState.Delving delvePhase delve ->
@@ -591,23 +479,6 @@ update msg model =
                             SceneState.new (SceneState.Delving newDelvePhase newDelve)
                     in 
                     ( { model | phase = Phase.ScenePhase newScene newSceneState character }, cmd )
-                
-                _ ->
-                    ( model, Cmd.none )
-        
-        ( Msg.SystemGotBossFightContinuation paths, Phase.ScenePhase scene sceneState character ) ->
-            case sceneState.ambient of
-                SceneState.BossFight phase state ->
-                    let
-                        cmd =
-                            Cmd.none
-                        
-                        newSceneState =
-                            { sceneState
-                                | ambient = SceneState.BossFight (BossPhase.ExplorationPhase paths) state
-                            }
-                    in 
-                    ( { model | phase = Phase.ScenePhase scene newSceneState character }, cmd )
                 
                 _ ->
                     ( model, Cmd.none )
@@ -701,9 +572,6 @@ update msg model =
         
         ( Msg.DevSelectedCharacterCreationConfirmation, Phase.CharacterCreationPhase characterCreationModel ) ->
             updateDevCharacterCreationConfirmation model characterCreationModel
-        
-        ( Msg.UserSelectedOnyxTower, Phase.ScenePhase _ sceneState character ) ->
-            ( { model | phase = Phase.ScenePhase Scene.OnyxTower sceneState character }, Cmd.none )
         
         _ ->
             ( model, Cmd.none )
@@ -813,22 +681,8 @@ updateBattleAction model action scene sceneState character =
                     newBattle.monster
                 
                 newSceneState =
-                    case sceneState.ambient of
-                        SceneState.Rest ->
-                            sceneState
-                                |> SceneState.setBattle newBattle
-                        
-                        SceneState.Delving delvePhase delve ->
-                            sceneState
-                                |> SceneState.setBattle newBattle
-
-                        SceneState.BossFight bossPhase bossState ->
-                            let
-                                newBossState =
-                                    { bossState | monster = newMonster }
-                            in
-                            SceneState.new (SceneState.BossFight bossPhase newBossState)
-                                |> SceneState.setBattle newBattle
+                    sceneState
+                        |> SceneState.setBattle newBattle
                 
                 next =
                     if newBattle.state == Battle.Done then

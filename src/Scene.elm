@@ -20,6 +20,3 @@ type Scene
     | GameOver
     | Escaped
     | Town
-    | OnyxTower
-    | BossSelect
-    | BossFight

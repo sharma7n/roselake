@@ -1,6 +1,5 @@
 module Avatar exposing
     ( Avatar
-    , description
     )
 
 import HairStyle exposing (HairStyle)
@@ -18,18 +17,3 @@ type alias Avatar =
     , height : Height
     , build : Build
     }
-
-description : Avatar -> String
-description a =
-    (Height.toString a.height) 
-    ++ " and " 
-    ++ (Build.toString a.build) 
-    ++ " frame | "
-    ++ (Complexion.toString a.complexion)
-    ++ " complexion | "
-    ++ (HairColor.toString a.hairColor) 
-    ++ ", " 
-    ++ (HairStyle.toString a.hairStyle)
-    ++ " hair | "
-    ++ (EyeColor.toString a.eyeColor)
-    ++ " eyes"

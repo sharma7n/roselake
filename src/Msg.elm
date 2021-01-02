@@ -18,9 +18,6 @@ import MonsterTemplate exposing (MonsterTemplate)
 import Object exposing (Object)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
-import Boss exposing (Boss)
-import BossPath exposing (BossPath)
-import BossScene exposing (BossScene)
 import Weapon exposing (Weapon)
 
 import EssentiaContainer exposing (EssentiaContainer)
@@ -48,7 +45,6 @@ type Msg
     | SystemGotShop Shop
     | UserSelectedRest
     | UserSelectedOpenChest
-    | UserSelectedOnyxTower
     -- CHARACTER CREATION
     | UserSelectedCharacterCreationSettingSelection CharacterCreationSettingSelection
     | UserSelectedModifyCharacterCreationAttribute Attribute Int
@@ -64,14 +60,6 @@ type Msg
     | UserSelectedContinueDungeon
     | SystemGotDungeonContinuation (List DungeonPath.Path)
     | UserSelectedExitDungeon
-    -- BOSS
-    | UserSelectedBossFight Boss
-    | SystemGotBossInitialization Boss (List BossPath)
-    | UserSelectedBossPath BossPath
-    | SystemGotBossScene BossScene
-    | UserSelectedContinueBossFight Boss
-    | SystemGotBossFightContinuation (List BossPath)
-    | SystemGotBossMonsterIntent Action
     -- BATTLE
     | SystemGotMonsterIntent Action
     | UserSelectedBattleAction Action

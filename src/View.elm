@@ -76,6 +76,8 @@ import Element.Keyed
 import Element.Lazy
 import Element.Region
 
+import Palette
+
 view : Model -> Html Msg
 view model =
     Element.layout
@@ -122,77 +124,114 @@ viewCharacterCreationPhase model =
             [ Element.width Element.fill
             , Element.spacing 10
             ]
-            [ Element.Input.text
-                []
-                { onChange = (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection)
-                , text = FormResult.fold (\e -> "") (\a -> a) (\e -> "") model.settings.name
-                , placeholder = Nothing
-                , label =
-                    Element.Input.labelLeft
+            [ Element.row
+                [ Element.width Element.fill
+                , Element.Background.color <| Palette.lightBlue
+                , Element.padding 10
+                ]
+                [ Element.el
+                    [ Element.alignLeft
+                    ]
+                    ( Element.text "Name" )
+                , Element.el
+                    [ Element.alignRight
+                    ]
+                    ( Element.Input.text
                         []
-                        ( Element.text "Name" )
-                }
-            , radioButtons 
+                        { onChange = (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.NameSelection)
+                        , text = FormResult.fold (\e -> "") (\a -> a) (\e -> "") model.settings.name
+                        , placeholder = Nothing
+                        , label =
+                            Element.Input.labelHidden "Name"
+                        }
+                    )
+                ]
+            , radioButtons
+                "Hair Style"
                 HairStyle.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairStyleSelection) 
                 HairStyle.all 
                 model.settings.hairStyle
-            , radioButtons 
+            , radioButtons
+                "Hair Color"
                 HairColor.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HairColorSelection) 
                 HairColor.all 
                 model.settings.hairColor
-            , radioButtons 
+            , radioButtons
+                "Eye Color"
                 EyeColor.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.EyeColorSelection) 
                 EyeColor.all 
                 model.settings.eyeColor
-            , radioButtons 
+            , radioButtons
+                "Complexion"
                 Complexion.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.ComplexionSelection) 
                 Complexion.all 
                 model.settings.complexion
-            , radioButtons 
+            , radioButtons
+                "Height"
                 Height.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.HeightSelection) 
                 Height.all 
                 model.settings.height
-            , radioButtons 
+            , radioButtons
+                "Build"
                 Build.toString 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.BuildSelection) 
                 Build.all 
                 model.settings.build
             , radioButtons 
+                "Starting Weapon"
                 .name 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingWeaponSelection) 
                 Weapon.listStarting 
                 model.settings.startingWeapon
-            , radioButtons 
+            , radioButtons
+                "Starting Essentia"
                 .name 
                 (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingEssentiaSelection) 
                 Essentia.listStarting 
                 model.settings.startingEssentia
             ]
         , Element.column
-            []
+            [ Element.padding 10
+            , Element.spacing 10
+            ]
             [ Element.text <| "Attribute Points: " ++ String.fromInt model.attributePoints
             , attributeElement Attribute.Strength model.strength
             , attributeElement Attribute.Vitality model.vitality
             , attributeElement Attribute.Agility model.agility
             , attributeElement Attribute.Intellect model.intellect
             ]
-        , button "Randomize" Msg.UserSelectedRandomCharacterCreation
-        , button "Create" Msg.UserSelectedCharacterCreationConfirmation
-        , button "Dev Create" Msg.DevSelectedCharacterCreationConfirmation
+        , Element.row
+            [ Element.spacing 10
+            ]
+            [ button "Randomize" Msg.UserSelectedRandomCharacterCreation
+            , button "Create" Msg.UserSelectedCharacterCreationConfirmation
+            , button "Dev Create" Msg.DevSelectedCharacterCreationConfirmation
+            ]
         ]
 
 attributeElement : Attribute -> Int -> Element Msg
 attributeElement attr value =
-    Element.column
-        []
-        [ Element.text <| Attribute.toShortString attr ++ ": " ++ String.fromInt value
-        , button "-" (Msg.UserSelectedModifyCharacterCreationAttribute attr (-1))
-        , button "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1)
+    Element.row
+        [ Element.spacing 10
+        , Element.width <| Element.px 200
+        ]
+        [ Element.el
+            [ Element.alignLeft
+            ]
+            ( coloredButton Palette.lightRed "-" (Msg.UserSelectedModifyCharacterCreationAttribute attr (-1)) )
+        , Element.el
+            [ Element.centerX
+            ]
+            ( Element.text <| Attribute.toShortString attr ++ ": " ++ String.fromInt value )
+        , Element.el
+            [ Element.alignRight
+            ]
+            ( coloredButton Palette.lightGreen "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1) )
         ]
 
 textListItem : String -> Element Msg
@@ -303,32 +342,47 @@ buttonBar items =
             button label msg
     in
     Element.row
-        []
+        [ Element.spacing 10
+        ]
         ( List.map itemFn items )
 
-radioButtons : (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Element Msg
-radioButtons toString toMsg items currentItem =
-    Element.Input.radioRow
-        []
-        { onChange = toMsg
-        , options =
-            items
-                |> List.map (\i ->
-                    Element.Input.option
-                        i
-                        ( Element.text <| toString i )
-                )
-        , selected = FormResult.toMaybe currentItem
-        , label =
-            Element.Input.labelLeft
-                []
-                ( currentItem
-                    |> FormResult.toMaybe
-                    |> Maybe.map toString
-                    |> Maybe.withDefault ""
-                    |> Element.text
-                )
-        }
+radioButtons : String -> (a -> String) -> (a -> Msg) -> List a -> FormResult e a -> Element Msg
+radioButtons labelText toString toMsg items currentItem =
+    Element.row
+        [ Element.width Element.fill
+        , Element.Background.color <| Palette.lightBlue
+        , Element.padding 10
+        , Element.spacing 100
+        ]
+        [ Element.el
+            [ Element.alignLeft
+            ]
+            ( Element.text labelText )
+        , Element.el
+            [ Element.alignRight
+            ]
+            ( Element.Input.radioRow
+                [ Element.spacing 10
+                ]
+                { onChange = toMsg
+                , options =
+                    items
+                        |> List.map (\i ->
+                            Element.Input.option
+                                i
+                                ( Element.text <| toString i )
+                        )
+                , selected = FormResult.toMaybe currentItem
+                , label =
+                    Element.Input.labelHidden
+                        ( currentItem
+                            |> FormResult.toMaybe
+                            |> Maybe.map toString
+                            |> Maybe.withDefault ""
+                        )
+                }
+            )
+        ]
     
 
 viewCharacter : Scene -> SceneState -> Character -> Element Msg
@@ -974,7 +1028,19 @@ viewTownScene m =
 button : String -> Msg -> Element Msg
 button labelText msg =
     Element.Input.button
-        []
+        [ Element.Background.color Palette.lightGray
+        , Element.padding 10
+        ]
+        { onPress = Just msg
+        , label = Element.text labelText
+        }
+
+coloredButton : Element.Color -> String -> Msg -> Element Msg
+coloredButton color labelText msg =
+    Element.Input.button
+        [ Element.Background.color color
+        , Element.padding 10
+        ]
         { onPress = Just msg
         , label = Element.text labelText
         }
@@ -982,7 +1048,8 @@ button labelText msg =
 disabledButton : String -> Element Msg
 disabledButton labelText =
     Element.Input.button
-        []
+        [ Element.padding 10
+        ]
         { onPress = Nothing
         , label = Element.text labelText
         }

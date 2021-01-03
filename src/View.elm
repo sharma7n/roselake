@@ -77,6 +77,7 @@ import Element.Lazy
 import Element.Region
 
 import Palette
+import Html exposing (p)
 
 view : Model -> Html Msg
 view model =
@@ -249,26 +250,14 @@ statusSetListItem statusSet =
 viewScenePhase : Scene -> SceneState -> Character -> Element Msg
 viewScenePhase scene sceneState character =
     Element.column
-        []
-        [ Element.row
-            []
-            [ Element.column
-                []
-                [ Element.text <| character.name
-                , Element.text <| "G: " ++ String.fromInt character.gold
-                , Element.text <| "LV: " ++ String.fromInt character.level
-                , Element.text <| "EXP: " ++ String.fromInt character.experience ++ " / " ++ String.fromInt (levelUpExperience character.level)
-                , Element.text <| "AP: " ++ String.fromInt character.freeAbilityPoints ++ " / " ++ String.fromInt character.totalAbilityPoints
-                , Element.text <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
-                , Element.text <| "MP: " ++ String.fromInt character.magicPoints ++ " / " ++ String.fromInt character.maxMagicPoints
-                ]
-            , Element.column
-                []
-                [ Element.text <| "Build: " ++ Height.toString character.avatar.height ++ " & " ++ Build.toString character.avatar.build
-                , Element.text <| "Complexion: " ++ Complexion.toString character.avatar.complexion
-                , Element.text <| "Hair: " ++ HairStyle.toString character.avatar.hairStyle ++ " & " ++ HairColor.toString character.avatar.hairColor
-                , Element.text <| "Eye Color: " ++ EyeColor.toString character.avatar.eyeColor
-                ]
+        [ Element.spacing 10
+        ]
+        [ viewName character.name
+        , Element.row
+            [ Element.spacing 10
+            ]
+            [ viewAvatar character.avatar
+            , viewQuickStats character
             , viewStatusSet character.statusSet
             ]
         , case scene of
@@ -291,6 +280,79 @@ viewScenePhase scene sceneState character =
         , viewInventory character.inventory
         ]
 
+viewName : String -> Element Msg
+viewName name =
+    Element.el
+        [ Element.Font.heavy
+        ]
+        ( Element.text name )
+
+viewQuickStats : Character -> Element Msg
+viewQuickStats character =
+    Element.column
+        [ Element.spacing 5
+        , Element.padding 10
+        , Element.Background.color Palette.veryLightBlue
+        ]
+        [ textPair "LV" (String.fromInt character.level)
+        , textPair "EXP" (ratio character.experience (levelUpExperience character.level))
+        , textPair "AP" (ratio character.freeAbilityPoints character.totalAbilityPoints)
+        , textPair "HP" (ratio character.hitPoints (Battler.totalMaxHitPoints character))
+        , textPair "MP" (ratio character.magicPoints character.maxMagicPoints)
+        , textPair "G" (String.fromInt character.gold)
+        ]
+
+textPair : String -> String -> Element Msg
+textPair key value =
+    Element.row
+        [ Element.width Element.fill
+        , Element.spacing 25
+        ]
+        [ Element.el
+            [ Element.alignLeft
+            ]
+            ( Element.text key )
+        , Element.el
+            [ Element.alignRight
+            ]
+            ( Element.text value )
+        ]
+
+ratio : Int -> Int -> String
+ratio top bot =
+    String.fromInt top ++ " / " ++ String.fromInt bot
+
+viewAvatar : Avatar -> Element Msg
+viewAvatar avatar =
+    Element.column
+        [ Element.spacing 5
+        , Element.padding 10
+        , Element.alignTop
+        , Element.Background.color Palette.veryLightBlue
+        ]
+        [ Element.text <| "Build: " ++ Height.toString avatar.height ++ " & " ++ Build.toString avatar.build
+        , Element.text <| "Complexion: " ++ Complexion.toString avatar.complexion
+        , Element.text <| "Hair: " ++ HairStyle.toString avatar.hairStyle ++ " & " ++ HairColor.toString avatar.hairColor
+        , Element.text <| "Eye Color: " ++ EyeColor.toString avatar.eyeColor
+        ]
+
+viewStatusSet : StatusSet -> Element Msg
+viewStatusSet s =
+    viewStatusData (StatusSet.toList s)
+
+viewStatusData : List StatusSet.Data -> Element Msg
+viewStatusData data =
+    let
+        viewOneStatusData datum =
+            Element.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
+    in
+    Element.column
+        [ Element.Background.color Palette.veryLightBlue
+        , Element.spacing 5
+        , Element.padding 10
+        ]
+        ( List.map viewOneStatusData data )
+
 viewInventory : Inventory -> Element Msg
 viewInventory i =
     let
@@ -308,8 +370,11 @@ viewInventory i =
                 |> List.filter (\(_, q) -> q > 0)
     in
     Element.column
-        []
-        [ Element.text "Inventory:"
+        [ Element.padding 10
+        , Element.spacing 10
+        , Element.Background.color Palette.veryLightBlue
+        ]
+        [ viewName "Inventory"
         , Element.column
             []
             ( List.map itemQtyFn visibleItemQtys )
@@ -322,7 +387,10 @@ textList items =
             Element.text item
     in
     Element.column
-        []
+        [ Element.padding 10
+        , Element.spacing 10
+        , Element.Background.color Palette.veryLightPurple
+        ]
         ( List.map itemFn items )
 
 buttonList : List ( String, Msg ) -> Element Msg
@@ -390,36 +458,36 @@ viewCharacter scene sceneState character =
     case scene of
         Scene.Player ->
             Element.column
-                []
-                [ Element.column
-                    []
-                    [ Element.text "Attributes"
-                    , textList
-                        [ "STR: " ++ String.fromInt character.strength
-                        , "VIT: " ++ String.fromInt character.vitality
-                        , "AGI: " ++ String.fromInt character.agility
-                        , "INT: " ++ String.fromInt character.intellect
-                        ]
-                    , Element.text "Equipment"
-                    , textList
-                        [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
-                        , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
-                        ]
-                    , Element.text "Passives"
-                    , textList
-                        ( character.learnedPassives
-                            |> Set.toList
-                            |> List.map Passive.byId
-                            |> List.map .name
-                        )
-                    , Element.text "Actions"
-                    , textList
-                        ( character.learned
-                            |> Set.toList
-                            |> List.map Action.byId
-                            |> List.map .name
-                        )
+                [ Element.padding 10
+                , Element.spacing 10
+                , Element.Background.color Palette.veryLightBlue
+                ]
+                [ viewName "Attributes"
+                , textList
+                    [ "STR: " ++ String.fromInt character.strength
+                    , "VIT: " ++ String.fromInt character.vitality
+                    , "AGI: " ++ String.fromInt character.agility
+                    , "INT: " ++ String.fromInt character.intellect
                     ]
+                , viewName "Equipment"
+                , textList
+                    [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
+                    , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
+                    ]
+                , viewName "Passives"
+                , textList
+                    ( character.learnedPassives
+                        |> Set.toList
+                        |> List.map Passive.byId
+                        |> List.map .name
+                    )
+                , viewName "Actions"
+                , textList
+                    ( character.learned
+                        |> Set.toList
+                        |> List.map Action.byId
+                        |> List.map .name
+                    )
                 ]
         
         Scene.Essentia ->
@@ -896,20 +964,6 @@ monsterTable monsters =
         []
         ( List.map monsterFn monsters )
 
-viewStatusSet : StatusSet -> Element Msg
-viewStatusSet s =
-    viewStatusData (StatusSet.toList s)
-
-viewStatusData : List StatusSet.Data -> Element Msg
-viewStatusData data =
-    let
-        viewOneStatusData datum =
-            Element.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
-    in
-    Element.column
-        []
-        ( List.map viewOneStatusData data )
-
 viewEssentiaScene : List Essentia -> EssentiaContainer -> Element Msg
 viewEssentiaScene e c =
     let
@@ -1030,6 +1084,7 @@ button labelText msg =
     Element.Input.button
         [ Element.Background.color Palette.lightGray
         , Element.padding 10
+        , Element.Border.rounded 100
         ]
         { onPress = Just msg
         , label = Element.text labelText
@@ -1040,6 +1095,7 @@ coloredButton color labelText msg =
     Element.Input.button
         [ Element.Background.color color
         , Element.padding 10
+        , Element.Border.rounded 100
         ]
         { onPress = Just msg
         , label = Element.text labelText
@@ -1049,6 +1105,7 @@ disabledButton : String -> Element Msg
 disabledButton labelText =
     Element.Input.button
         [ Element.padding 10
+        , Element.Border.rounded 100
         ]
         { onPress = Nothing
         , label = Element.text labelText

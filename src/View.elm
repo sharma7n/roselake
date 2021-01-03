@@ -77,7 +77,8 @@ import Element.Lazy
 import Element.Region
 
 import Palette
-import Html exposing (p)
+import Html
+import Button
 
 view : Model -> Html Msg
 view model =
@@ -209,9 +210,9 @@ viewCharacterCreationPhase model =
         , Element.row
             [ Element.spacing 10
             ]
-            [ button "Randomize" Msg.UserSelectedRandomCharacterCreation
-            , button "Create" Msg.UserSelectedCharacterCreationConfirmation
-            , button "Dev Create" Msg.DevSelectedCharacterCreationConfirmation
+            [ Button.button "Randomize" Msg.UserSelectedRandomCharacterCreation
+            , Button.button "Create" Msg.UserSelectedCharacterCreationConfirmation
+            , Button.button "Dev Create" Msg.DevSelectedCharacterCreationConfirmation
             ]
         ]
 
@@ -224,7 +225,7 @@ attributeElement attr value =
         [ Element.el
             [ Element.alignLeft
             ]
-            ( coloredButton Palette.lightRed "-" (Msg.UserSelectedModifyCharacterCreationAttribute attr (-1)) )
+            ( Button.coloredButton Palette.lightRed "-" (Msg.UserSelectedModifyCharacterCreationAttribute attr (-1)) )
         , Element.el
             [ Element.centerX
             ]
@@ -232,7 +233,7 @@ attributeElement attr value =
         , Element.el
             [ Element.alignRight
             ]
-            ( coloredButton Palette.lightGreen "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1) )
+            ( Button.coloredButton Palette.lightGreen "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1) )
         ]
 
 textListItem : String -> Element Msg
@@ -361,7 +362,7 @@ viewInventory i =
                 []
                 [ Element.text <| item.name ++ ": "
                 , Element.text <| String.fromInt qty ++ " "
-                , button "Use" (Msg.UserSelectedUseItem item)
+                , Button.button "Use" (Msg.UserSelectedUseItem item)
                 ]
         
         visibleItemQtys =
@@ -397,7 +398,7 @@ buttonList : List ( String, Msg ) -> Element Msg
 buttonList items =
     let
         itemFn ( label, msg ) =
-            button label msg
+            Button.button label msg
     in
     Element.column
         []
@@ -407,7 +408,7 @@ buttonBar : List ( String, Msg ) -> Element Msg
 buttonBar items =
     let
         itemFn ( label, msg ) =
-            button label msg
+            Button.button label msg
     in
     Element.row
         [ Element.spacing 10
@@ -504,7 +505,7 @@ viewCharacter scene sceneState character =
                             Element.column
                                 []
                                 [ Element.text <| "Weapon: " ++ weapon.name
-                                , button "Un-Equip" (Msg.UserSelectedUnEquipWeapon weapon)
+                                , Button.button "Un-Equip" (Msg.UserSelectedUnEquipWeapon weapon)
                                 ]
                         
                         Nothing ->
@@ -519,7 +520,7 @@ viewCharacter scene sceneState character =
                             Element.column
                                 []
                                 [ Element.text <| "Armor: " ++ armor.name
-                                , button "Un-Equip" (Msg.UserSelectedUnEquipArmor armor)
+                                , Button.button "Un-Equip" (Msg.UserSelectedUnEquipArmor armor)
                                 ]
                         
                         Nothing ->
@@ -540,7 +541,7 @@ viewCharacter scene sceneState character =
                         Element.column
                             []
                             [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
-                            , button "Equip" (Msg.UserSelectedEquipWeapon w)
+                            , Button.button "Equip" (Msg.UserSelectedEquipWeapon w)
                             ]
                   in
                   Element.column
@@ -552,7 +553,7 @@ viewCharacter scene sceneState character =
                         Element.column
                             []
                             [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
-                            , button "Equip" (Msg.UserSelectedEquipArmor w)
+                            , Button.button "Equip" (Msg.UserSelectedEquipArmor w)
                             ]
                   in
                   Element.column
@@ -710,7 +711,7 @@ viewExploreDungeon character delvePhase delve =
                         Element.column
                             []
                             [ Element.text "You find a treasure chest!"
-                            , button "Open" Msg.UserSelectedOpenChest
+                            , Button.button "Open" Msg.UserSelectedOpenChest
                             , continueButton
                             ]
                     
@@ -730,11 +731,11 @@ viewExploreDungeon character delvePhase delve =
         ]
 continueButton : Element Msg
 continueButton =
-    button "Continue" Msg.UserSelectedContinueDungeon
+    Button.button "Continue" Msg.UserSelectedContinueDungeon
 
 exitButtonDungeon : Element Msg
 exitButtonDungeon =
-    button "Exit Dungeon" Msg.UserSelectedExitDungeon
+    Button.button "Exit Dungeon" Msg.UserSelectedExitDungeon
 
 pathTable : Character -> List DungeonPath.Path -> Element Msg
 pathTable m paths =
@@ -836,7 +837,7 @@ shopTable shops =
             Element.column
                 []
                 [ Element.text shop.name
-                , button "Go" (Msg.UserSelectedShop shop)
+                , Button.button "Go" (Msg.UserSelectedShop shop)
                 ]
     in
     Element.column
@@ -880,7 +881,7 @@ viewBattleMonster character battle intent =
             , Element.text <| "Block: " ++ String.fromInt character.block
             ]
         , actionTable character.actionPoints character.actionStates
-        , button "End Turn" (Msg.UserSelectedEndBattleTurn)
+        , Button.button "End Turn" (Msg.UserSelectedEndBattleTurn)
         ]
 
 actionTable : Int -> List ActionState -> Element Msg
@@ -890,7 +891,7 @@ actionTable actionPoints actions =
             let
                 buttonElement =
                     if ActionState.canUse actionPoints actionState then
-                        button "Go" (Msg.UserSelectedBattleAction actionState.action)
+                        Button.button "Go" (Msg.UserSelectedBattleAction actionState.action)
                     else
                         Element.text ""
             in
@@ -917,7 +918,7 @@ viewShopScene character shop =
                 []
                 [ Element.text <| b.name ++ " | "
                 , Element.text <| String.fromInt b.cost ++ " "
-                , button "Buy" (Msg.UserSelectedBuy b)
+                , Button.button "Buy" (Msg.UserSelectedBuy b)
                 ]
     in
     Element.column
@@ -940,7 +941,7 @@ dungeonTable dungeons =
             Element.row
                 []
                 [ Element.text <| dungeon.name
-                , button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
+                , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
                 ]
         
     in
@@ -957,7 +958,7 @@ monsterTable monsters =
                 [ Element.text <| monsterTemplate.name
                 , Element.text <| " | HP: " ++ String.fromInt monsterTemplate.hitPoints
                 , Element.text <| " | EXP: " ++ String.fromInt monsterTemplate.experience ++ " "
-                , button "Fight" (Msg.UserSelectedMonsterTemplate monsterTemplate)
+                , Button.button "Fight" (Msg.UserSelectedMonsterTemplate monsterTemplate)
                 ]
     in
     Element.column
@@ -973,7 +974,7 @@ viewEssentiaScene e c =
                     Element.column
                         []
                         [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
-                        , button "Un-Equip" (Msg.UserSelectedUnEquipEssentia slotIndex essentia)
+                        , Button.button "Un-Equip" (Msg.UserSelectedUnEquipEssentia slotIndex essentia)
                         ]
                 
                 Nothing ->
@@ -983,7 +984,7 @@ viewEssentiaScene e c =
                         ]
 
         equipEssentiaButtonFn esn listIdx slotIndex =
-            button ("Equip in Slot " ++ EssentiaContainer.indexToString slotIndex) (Msg.UserSelectedEquipEssentia slotIndex listIdx esn)
+            Button.button ("Equip in Slot " ++ EssentiaContainer.indexToString slotIndex) (Msg.UserSelectedEquipEssentia slotIndex listIdx esn)
 
         essentiaFn listIdx esn =
            Element.column
@@ -1019,9 +1020,9 @@ viewLearnScene m =
                         Element.text "Learned"
                     else
                         if a.learnCost <= m.freeAbilityPoints then
-                            button ("Learn (" ++ String.fromInt a.learnCost ++ " AP)") (Msg.UserSelectedLearnSkill a)
+                            Button.button ("Learn (" ++ String.fromInt a.learnCost ++ " AP)") (Msg.UserSelectedLearnSkill a)
                         else
-                            disabledButton ("Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)")
+                            Button.disabledButton ("Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)")
             in
             Element.column
                 []
@@ -1036,9 +1037,9 @@ viewLearnScene m =
                         Element.text "Learned"
                     else
                         if p.learnCost <= m.freeAbilityPoints then
-                            button ("Learn (" ++ String.fromInt p.learnCost ++ " AP)") (Msg.UserSelectedLearnPassive p)
+                            Button.button ("Learn (" ++ String.fromInt p.learnCost ++ " AP)") (Msg.UserSelectedLearnPassive p)
                         else
-                            disabledButton ("Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)")
+                            Button.disabledButton ("Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)")
             in
             Element.column
                 []
@@ -1069,44 +1070,12 @@ viewTownScene m =
         [ Element.row
             []
             [ Element.text "Home"
-            , button "Go" (Msg.UserSelectedScene Scene.Home)
+            , Button.button "Go" (Msg.UserSelectedScene Scene.Home)
             ]
         , Element.row
             []
             [ Element.text "Potion Shop"
-            , button "Go" (Msg.UserSelectedShop (Shop.byId "potionshop"))
+            , Button.button "Go" (Msg.UserSelectedShop (Shop.byId "potionshop"))
             ]
 
         ]
-
-button : String -> Msg -> Element Msg
-button labelText msg =
-    Element.Input.button
-        [ Element.Background.color Palette.lightGray
-        , Element.padding 10
-        , Element.Border.rounded 100
-        ]
-        { onPress = Just msg
-        , label = Element.text labelText
-        }
-
-coloredButton : Element.Color -> String -> Msg -> Element Msg
-coloredButton color labelText msg =
-    Element.Input.button
-        [ Element.Background.color color
-        , Element.padding 10
-        , Element.Border.rounded 100
-        ]
-        { onPress = Just msg
-        , label = Element.text labelText
-        }
-
-disabledButton : String -> Element Msg
-disabledButton labelText =
-    Element.Input.button
-        [ Element.padding 10
-        , Element.Border.rounded 100
-        ]
-        { onPress = Nothing
-        , label = Element.text labelText
-        }

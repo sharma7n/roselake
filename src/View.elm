@@ -79,6 +79,9 @@ import Element.Region
 import Palette
 import Html
 import Button
+import Ui
+import Ui
+import Ui
 
 view : Model -> Html Msg
 view model =
@@ -236,10 +239,6 @@ attributeElement attr value =
             ( Button.coloredButton Palette.lightGreen "+" (Msg.UserSelectedModifyCharacterCreationAttribute attr 1) )
         ]
 
-textListItem : String -> Element Msg
-textListItem text =
-    Element.text text
-
 statusSetListItem : StatusSet -> Element Msg
 statusSetListItem statusSet =
     Element.column
@@ -274,11 +273,11 @@ viewScenePhase scene sceneState character =
                     , ( "Essentia", Msg.UserSelectedScene Scene.Essentia )
                     , ( "Learn", Msg.UserSelectedScene Scene.LearnSelect )
                     , ( "Equip", Msg.UserSelectedScene Scene.Equip )
+                    , ( "Inventory", Msg.UserSelectedScene Scene.Inventory )
                     , ( "Town", Msg.UserSelectedScene Scene.Town )
                     , ( "Explore", Msg.UserSelectedScene Scene.DungeonSelect )
                     ]
         , viewCharacter scene sceneState character
-        , viewInventory character.inventory
         ]
 
 viewName : String -> Element Msg
@@ -293,7 +292,7 @@ viewQuickStats character =
     Element.column
         [ Element.spacing 5
         , Element.padding 10
-        , Element.Background.color Palette.veryLightBlue
+        , Element.Background.color Palette.lightBlue
         ]
         [ textPair "LV" (String.fromInt character.level)
         , textPair "EXP" (ratio character.experience (levelUpExperience character.level))
@@ -329,7 +328,7 @@ viewAvatar avatar =
         [ Element.spacing 5
         , Element.padding 10
         , Element.alignTop
-        , Element.Background.color Palette.veryLightBlue
+        , Element.Background.color Palette.lightBlue
         ]
         [ Element.text <| "Build: " ++ Height.toString avatar.height ++ " & " ++ Build.toString avatar.build
         , Element.text <| "Complexion: " ++ Complexion.toString avatar.complexion
@@ -347,39 +346,21 @@ viewStatusData data =
         viewOneStatusData datum =
             Element.text <| Status.toString datum.status ++ ": " ++ String.fromInt datum.stacks
     in
-    Element.column
-        [ Element.Background.color Palette.veryLightBlue
-        , Element.spacing 5
-        , Element.padding 10
-        ]
+    Ui.column
         ( List.map viewOneStatusData data )
 
 viewInventory : Inventory -> Element Msg
 viewInventory i =
-    let
-        itemQtyFn ( item, qty ) =
-            Element.column
-                []
+    i
+        |> Inventory.listItems
+        |> List.filter (\(_, q) -> q > 0)
+        |> table (\( item, qty ) ->
+            Ui.row
                 [ Element.text <| item.name ++ ": "
                 , Element.text <| String.fromInt qty ++ " "
                 , Button.button "Use" (Msg.UserSelectedUseItem item)
                 ]
-        
-        visibleItemQtys =
-            i
-                |> Inventory.listItems
-                |> List.filter (\(_, q) -> q > 0)
-    in
-    Element.column
-        [ Element.padding 10
-        , Element.spacing 10
-        , Element.Background.color Palette.veryLightBlue
-        ]
-        [ viewName "Inventory"
-        , Element.column
-            []
-            ( List.map itemQtyFn visibleItemQtys )
-        ]
+        )
 
 textList : List String -> Element Msg
 textList items =
@@ -387,11 +368,7 @@ textList items =
         itemFn item =
             Element.text item
     in
-    Element.column
-        [ Element.padding 10
-        , Element.spacing 10
-        , Element.Background.color Palette.veryLightPurple
-        ]
+    Ui.column
         ( List.map itemFn items )
 
 buttonList : List ( String, Msg ) -> Element Msg
@@ -461,7 +438,7 @@ viewCharacter scene sceneState character =
             Element.column
                 [ Element.padding 10
                 , Element.spacing 10
-                , Element.Background.color Palette.veryLightBlue
+                , Element.Background.color Palette.lightBlue
                 ]
                 [ viewName "Attributes"
                 , textList
@@ -502,23 +479,20 @@ viewCharacter scene sceneState character =
                 equippedWeaponElement =
                     case character.equippedWeapon of
                         Just weapon ->
-                            Element.column
-                                []
+                            Ui.column
                                 [ Element.text <| "Weapon: " ++ weapon.name
                                 , Button.button "Un-Equip" (Msg.UserSelectedUnEquipWeapon weapon)
                                 ]
                         
                         Nothing ->
-                            Element.column
-                                []
+                            Ui.column
                                 [ Element.text <| "Weapon: - "
                                 ]
                 
                 equippedArmorElement =
                     case character.equippedArmor of
                         Just armor ->
-                            Element.column
-                                []
+                            Ui.column
                                 [ Element.text <| "Armor: " ++ armor.name
                                 , Button.button "Un-Equip" (Msg.UserSelectedUnEquipArmor armor)
                                 ]
@@ -526,11 +500,9 @@ viewCharacter scene sceneState character =
                         Nothing ->
                             Element.text <| "Armor: - "
             in
-            Element.column
-                []
+            Ui.column
                 [ Element.text "Equipped"
-                , Element.column
-                    []
+                , Ui.column
                     [ equippedWeaponElement
                     , equippedArmorElement
                     ]
@@ -538,33 +510,27 @@ viewCharacter scene sceneState character =
                 , let
 
                     equipableFn (w, q) =
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
                             , Button.button "Equip" (Msg.UserSelectedEquipWeapon w)
                             ]
                   in
-                  Element.column
-                    []
+                  Ui.column
                     (List.map equipableFn (Inventory.listWeapons character.inventory))
                 , let
 
                     equipableFn (w, q) =
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text <| w.name ++ " (" ++ String.fromInt q ++ ")"
                             , Button.button "Equip" (Msg.UserSelectedEquipArmor w)
                             ]
                   in
-                  Element.column
-                    []
+                  Ui.column
                     (List.map equipableFn (Inventory.listArmors character.inventory))
                 ]
         
         Scene.Home ->
-            buttonList
-                [ ( "Rest", Msg.UserSelectedHomeRest )
-                ]
+            viewHome
         
         Scene.ShopSelect ->
             shopTable
@@ -635,14 +601,12 @@ viewCharacter scene sceneState character =
                     in
                     case sceneState.ambient of
                         SceneState.Rest ->
-                            Element.column
-                                []
+                            Ui.column
                                 [ victoryMessage
                                 ]
                         
                         SceneState.Delving _ _ ->
-                            Element.column
-                                []
+                            Ui.column
                                 [ victoryMessage
                                 , continueButton
                                 ]
@@ -661,11 +625,13 @@ viewCharacter scene sceneState character =
             textList
                 [ "Escaped..."
                 ]
+        
+        Scene.Inventory ->
+            viewInventory character.inventory
 
 viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg
 viewExploreDungeon character delvePhase delve =
-    Element.column
-        []
+    Ui.column
         [ textList
             [ "Exploring: " ++ delve.dungeon.name
             , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
@@ -687,8 +653,7 @@ viewExploreDungeon character delvePhase delve =
                             ]
                     
                     DungeonScene.TrapDoor ->
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text "A trap door!"
                             , exitButtonDungeon
                             ]
@@ -697,8 +662,7 @@ viewExploreDungeon character delvePhase delve =
                         Element.text "Loading goal..."
                     
                     DungeonScene.Goal reward ->
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text "Goal!"
                             , viewReward reward
                             , exitButtonDungeon
@@ -708,23 +672,20 @@ viewExploreDungeon character delvePhase delve =
                         Element.text "Loading shop..."
                     
                     DungeonScene.Treasure ->
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text "You find a treasure chest!"
                             , Button.button "Open" Msg.UserSelectedOpenChest
                             , continueButton
                             ]
                     
                     DungeonScene.Shopping shop ->
-                        Element.column
-                            []
+                        Ui.column
                             [ viewShopScene character shop
                             , continueButton
                             ]
                     
                     _ ->
-                        Element.column
-                            []
+                        Ui.column
                             [ Element.text <| DungeonScene.toString scene
                             , continueButton
                             ]
@@ -739,8 +700,8 @@ exitButtonDungeon =
 
 pathTable : Character -> List DungeonPath.Path -> Element Msg
 pathTable m paths =
-    let
-        pathFn path =
+    paths
+        |> table (\path ->
             let
                 can =
                     m
@@ -760,17 +721,13 @@ pathTable m paths =
                     else
                         Nothing
                 , label =
-                    Element.column
-                        []
+                    Ui.column
                         [ Element.text path.description
                         , viewRequirements path.requirements
                         , explainSceneDistribution path.sceneDistribution
                         ]
                 }
-    in
-    Element.column
-        []
-        ( List.map pathFn paths )
+        )
 
 viewRequirements : List Requirement -> Element Msg
 viewRequirements l =
@@ -778,8 +735,7 @@ viewRequirements l =
         viewOneRequirement r =
             Element.text <| "Requires: " ++ Requirement.toString r
     in
-    Element.column
-        []
+    Ui.column
         ( List.map viewOneRequirement l )
 
 viewReward : Reward -> Element Msg
@@ -811,8 +767,7 @@ viewReward r =
                 oneItemReward ( item, qty )=
                     Element.text <| "Got: " ++ String.fromInt qty ++ "x " ++ item.name ++ "!"
               in
-              Element.column
-                []
+              Ui.column
                 ( List.map oneItemReward relevant )
             , List.length relevant > 0
             )
@@ -826,23 +781,18 @@ viewReward r =
                 |> List.filter (\(_, vis) -> vis)
                 |> List.map (\(d,_) -> d)            
     in
-    Element.column
-        []
+    Ui.column
         display
 
 shopTable : List Shop -> Element Msg
 shopTable shops =
-    let
-        shopFn shop =
-            Element.column
-                []
+    shops
+        |> table (\shop ->
+            Ui.column
                 [ Element.text shop.name
                 , Button.button "Go" (Msg.UserSelectedShop shop)
                 ]
-    in
-    Element.column
-        []
-        ( List.map shopFn shops )
+        )
     
 explainSceneDistribution : Distribution DungeonScene.Scene -> Element Msg
 explainSceneDistribution d =
@@ -857,13 +807,11 @@ viewBattleMonster character battle intent =
     let
         monster = battle.monster
     in
-    Element.column
-        []
+    Ui.column
         [ textList
             [ "Round: " ++ String.fromInt battle.round
             ]
-        , Element.column
-            []
+        , Ui.column
             [ Element.text <| "Enemy"
             , Element.text <| monster.name
             , viewStatusSet <| monster.statusSet
@@ -871,8 +819,7 @@ viewBattleMonster character battle intent =
             , Element.text <| "Intent: " ++ intent.name
             , Element.text <| "Block: " ++ String.fromInt monster.block
             ]
-        , Element.column
-            []
+        , Ui.column
             [ Element.text <| "Player"
             , Element.text <| character.name
             , viewStatusSet <| character.statusSet
@@ -885,9 +832,9 @@ viewBattleMonster character battle intent =
         ]
 
 actionTable : Int -> List ActionState -> Element Msg
-actionTable actionPoints actions =
-    let
-        actionFn actionState =
+actionTable actionPoints actionStates =
+    actionStates
+        |> table (\actionState ->
             let
                 buttonElement =
                     if ActionState.canUse actionPoints actionState then
@@ -895,8 +842,7 @@ actionTable actionPoints actions =
                     else
                         Element.text ""
             in
-            Element.column
-                []
+            Ui.column
                 [ Element.text <| actionState.action.name
                 , Element.text " | "
                 , Element.text <| "AP: " ++ String.fromInt actionState.action.actionPointCost
@@ -905,29 +851,23 @@ actionTable actionPoints actions =
                 , Element.text " | "
                 , buttonElement
                 ]
-    in
-    Element.column
-        []
-        ( List.map actionFn actions )
+        )
 
 viewShopScene : Character -> Shop -> Element Msg
 viewShopScene character shop =
     let
         buyableFn b =
-            Element.column
-                []
+            Ui.column
                 [ Element.text <| b.name ++ " | "
                 , Element.text <| String.fromInt b.cost ++ " "
                 , Button.button "Buy" (Msg.UserSelectedBuy b)
                 ]
     in
-    Element.column
-        []
+    Ui.column
         [ textList
             [ "Shop: " ++ shop.name
             ]
-        , Element.column
-            []
+        , Ui.column
             ( List.map buyableFn shop.stock )
         ]
 levelUpExperience : Int -> Int
@@ -936,34 +876,25 @@ levelUpExperience n =
 
 dungeonTable : List Dungeon -> Element Msg
 dungeonTable dungeons =
-    let
-        dungeonFn dungeon =
-            Element.row
-                []
+    dungeons
+        |> table (\dungeon ->
+            Ui.row
                 [ Element.text <| dungeon.name
                 , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
                 ]
-        
-    in
-    Element.column
-        []
-        ( List.map dungeonFn dungeons )
+        )
 
 monsterTable : List MonsterTemplate -> Element Msg
-monsterTable monsters =
-    let
-        monsterFn monsterTemplate =
-            Element.column
-                []
+monsterTable monsterTemplates =
+    monsterTemplates
+        |> table (\monsterTemplate ->
+            Ui.column
                 [ Element.text <| monsterTemplate.name
                 , Element.text <| " | HP: " ++ String.fromInt monsterTemplate.hitPoints
                 , Element.text <| " | EXP: " ++ String.fromInt monsterTemplate.experience ++ " "
                 , Button.button "Fight" (Msg.UserSelectedMonsterTemplate monsterTemplate)
                 ]
-    in
-    Element.column
-        []
-        ( List.map monsterFn monsters )
+        )
 
 viewEssentiaScene : List Essentia -> EssentiaContainer -> Element Msg
 viewEssentiaScene e c =
@@ -971,15 +902,13 @@ viewEssentiaScene e c =
         containerSlotFn ( slotIndex, slot ) =
             case slot of
                 Just essentia ->
-                    Element.column
-                        []
+                    Ui.column
                         [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
                         , Button.button "Un-Equip" (Msg.UserSelectedUnEquipEssentia slotIndex essentia)
                         ]
                 
                 Nothing ->
-                    Element.column
-                        []
+                    Ui.column
                         [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": -"
                         ]
 
@@ -987,21 +916,17 @@ viewEssentiaScene e c =
             Button.button ("Equip in Slot " ++ EssentiaContainer.indexToString slotIndex) (Msg.UserSelectedEquipEssentia slotIndex listIdx esn)
 
         essentiaFn listIdx esn =
-           Element.column
-                []
+           Ui.column
                 ( Element.text esn.name
                 :: ( List.map (equipEssentiaButtonFn esn listIdx) EssentiaContainer.listIndices )
                 )
     in
-    Element.column
-        []
+    Ui.column
         [ Element.text "Equipped"
-        , Element.column
-            []
+        , Ui.column
             ( List.map containerSlotFn (EssentiaContainer.toList c))
         , Element.text "Equipable"
-        , Element.column
-            []
+        , Ui.column
             ( List.indexedMap essentiaFn e )
         ]
 
@@ -1024,8 +949,7 @@ viewLearnScene m =
                         else
                             Button.disabledButton ("Learn (" ++ String.fromInt a.learnCost ++ " AP) (Insufficient)")
             in
-            Element.column
-                []
+            Ui.column
                 [ Element.text a.name
                 , learnElement
                 ]
@@ -1041,41 +965,60 @@ viewLearnScene m =
                         else
                             Button.disabledButton ("Learn (" ++ String.fromInt p.learnCost ++ " AP) (Insufficient)")
             in
-            Element.column
-                []
+            Ui.column
                 [ Element.text p.name
                 , learnElement
                 ]
         
         viewLearnOneEssentia e =
-            Element.column
-                []
+            Ui.column
                 [ Element.text e.name
-                , Element.column
-                    []
+                , Ui.column
                     ( List.map viewLearnOneAction e.actions )
-                , Element.column
-                    []
+                , Ui.column
                     ( List.map viewLearnOnePassive e.passives )
                 ]
     in
-    Element.row
-        []
+    Ui.row
         ( List.map viewLearnOneEssentia learnableEssentia )
 
 viewTownScene : Character -> Element Msg
 viewTownScene m =
-    Element.column
-        []
-        [ Element.row
-            []
+    Ui.column
+        [ Ui.row
             [ Element.text "Home"
             , Button.button "Go" (Msg.UserSelectedScene Scene.Home)
             ]
-        , Element.row
-            []
+        , Ui.row
             [ Element.text "Potion Shop"
             , Button.button "Go" (Msg.UserSelectedShop (Shop.byId "potionshop"))
             ]
 
+        ]
+
+table : (a -> Element msg) -> List a -> Element msg
+table toElement xs =
+    Ui.column
+        ( List.map toElement xs )
+
+viewHome : Element Msg
+viewHome =
+    Ui.column
+        [ viewName "Home"
+        , Element.text """
+It's your home! It's small and basic, but it's yours.
+        """
+        , Ui.row
+            [ Ui.column
+                [ viewName "Rest"
+                , Element.text "Catch some z's!"
+                ]
+            , Ui.column
+                [ viewName "Effects"
+                , Element.text "Restore 100% of Max HP"
+                , Element.text "Restore 100% of Max MP"
+                ]
+            , Button.button "Rest" Msg.UserSelectedHomeRest
+            ]
+        , Button.button "Back to Town" (Msg.UserSelectedScene Scene.Town)
         ]

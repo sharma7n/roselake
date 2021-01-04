@@ -20,3 +20,4 @@ type Scene
     | GameOver
     | Escaped
     | Town
+    | Inventory

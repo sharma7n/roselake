@@ -31,7 +31,7 @@ type Msg
     | UserSelectedLearnPassive Passive
     | UserSelectedHomeRest
     | UserSelectedShop Shop
-    | UserSelectedBuy Item
+    | UserSelectedBuy Object
     | UserSelectedUseItem Item
     | UserSelectedEquipWeapon Weapon
     | UserSelectedUnEquipWeapon Weapon

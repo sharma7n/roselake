@@ -1,7 +1,10 @@
 module Object exposing
     ( Object(..)
+    , ObjectType(..)
+    , byId
     , generator
-    , toString
+    , name
+    , cost
     )
 
 import Random
@@ -19,6 +22,34 @@ type ObjectType
     = ItemType
     | WeaponType
     | ArmorType
+
+fold : (Item -> a) -> (Weapon -> a) -> (Armor -> a) -> Object -> a
+fold fromItem fromWeapon fromArmor o =
+    case o of
+        Item i ->
+            fromItem i
+        
+        Weapon w ->
+            fromWeapon w
+        
+        Armor a ->
+            fromArmor a
+
+new : (a -> Item) -> (a -> Weapon) -> (a -> Armor) -> ObjectType -> a -> Object
+new toItem toWeapon toArmor objectType x =
+    case objectType of
+        ItemType ->
+            Item <| toItem x
+        
+        WeaponType ->
+            Weapon <| toWeapon x
+        
+        ArmorType ->
+            Armor <| toArmor x
+
+byId : ObjectType -> String -> Object
+byId =
+    new Item.byId Weapon.byId Armor.byId
 
 objectTypeGenerator : Random.Generator ObjectType
 objectTypeGenerator =
@@ -43,14 +74,10 @@ generator =
                     Random.map Armor Armor.generator
         )
 
-toString : Object -> String
-toString o =
-    case o of
-        Item i ->
-            i.name
-        
-        Weapon w ->
-            w.name
-        
-        Armor a ->
-            a.name
+name : Object -> String
+name =
+    fold .name .name .name
+
+cost : Object -> Int
+cost =
+    fold .cost .cost .cost

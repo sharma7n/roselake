@@ -259,23 +259,23 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
                
-        ( Msg.UserSelectedShop shop, Phase.ScenePhase scene sceneState character ) ->
+        ( Msg.UserSelectedShop shop, Phase.ScenePhase _ sceneState character ) ->
             let
                 newSceneState =
                     sceneState
                         |> SceneState.setShop shop
             in
-            ( { model | phase = Phase.ScenePhase scene newSceneState character }, Cmd.none )
+            ( { model | phase = Phase.ScenePhase Scene.Shop newSceneState character }, Cmd.none )
         
-        ( Msg.UserSelectedBuy item, Phase.ScenePhase scene sceneState character ) ->
+        ( Msg.UserSelectedBuy object, Phase.ScenePhase scene sceneState character ) ->
             let
                 newCharacter =
-                    if item.cost <= character.gold then
+                    if Object.cost object <= character.gold then
                         { character
-                            | gold = max 0 (character.gold - item.cost)
+                            | gold = max 0 (character.gold - Object.cost object)
                             , inventory =
                                 character.inventory
-                                    |> Inventory.modifyItemQuantity item 1
+                                    |> Inventory.modifyObjectQuantity object 1
                         }
                     else
                         character

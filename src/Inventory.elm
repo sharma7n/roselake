@@ -4,6 +4,7 @@ module Inventory exposing
     , modifyItemQuantity
     , modifyWeaponQuantity
     , modifyArmorQuantity
+    , modifyObjectQuantity
     , listItems
     , listWeapons
     , listArmors
@@ -14,6 +15,7 @@ import Dict exposing (Dict)
 import Armor exposing (Armor)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
+import Object exposing (Object)
 
 type Inventory
     = Inventory Data
@@ -78,6 +80,18 @@ modifyWeaponQuantity =
 modifyArmorQuantity : Armor -> Int -> Inventory -> Inventory
 modifyArmorQuantity =
     modifyQuantity ArmorSlot
+
+modifyObjectQuantity : Object -> Int -> Inventory -> Inventory
+modifyObjectQuantity o =
+    case o of
+        Object.Item item ->
+            modifyItemQuantity item
+        
+        Object.Weapon weapon ->
+            modifyWeaponQuantity weapon
+        
+        Object.Armor armor ->
+            modifyArmorQuantity armor
 
 listItems : Inventory -> List ( Item, Int )
 listItems (Inventory data) =

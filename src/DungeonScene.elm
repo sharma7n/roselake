@@ -76,7 +76,7 @@ toString s =
             "Treasure"
         
         ReceiveTreasure o ->
-            "Got: " ++ Object.toString o
+            "Got: " ++ Object.name o
         
         Event ->
             "Event"

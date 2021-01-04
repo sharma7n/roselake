@@ -6,11 +6,12 @@ module Shop exposing
 
 import Random
 
-import Item exposing (Item)
+import Object exposing (Object)
+
 type alias Shop =
     { id : String
     , name : String
-    , stock : List Item
+    , stock : List Object
     }
 
 byId : String -> Shop
@@ -20,7 +21,7 @@ byId id =
             { id = "potionshop"
             , name = "Potion Shop"
             , stock =
-                [ Item.byId "potion"
+                [ Object.byId Object.ItemType "potion"
                 ]
             }
         
@@ -32,16 +33,16 @@ byId id =
 
 generator : Random.Generator Shop
 generator =
-    Random.list 10 Item.generator
-        |> Random.andThen (\items ->
+    Random.list 10 Object.generator
+        |> Random.andThen (\objects ->
             let
                 unique =
-                    List.foldl (\item -> \l ->
-                        if List.member item l then
+                    List.foldl (\object -> \l ->
+                        if List.member object l then
                             l
                         else
-                            item :: l
-                    ) [] items
+                            object :: l
+                    ) [] objects
             in
             Random.constant <|
                 { id = "dungeonshop"

@@ -435,38 +435,7 @@ viewCharacter : Scene -> SceneState -> Character -> Element Msg
 viewCharacter scene sceneState character =
     case scene of
         Scene.Player ->
-            Element.column
-                [ Element.padding 10
-                , Element.spacing 10
-                , Element.Background.color Palette.lightBlue
-                ]
-                [ viewName "Attributes"
-                , textList
-                    [ "STR: " ++ String.fromInt character.strength
-                    , "VIT: " ++ String.fromInt character.vitality
-                    , "AGI: " ++ String.fromInt character.agility
-                    , "INT: " ++ String.fromInt character.intellect
-                    ]
-                , viewName "Equipment"
-                , textList
-                    [ "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
-                    , "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
-                    ]
-                , viewName "Passives"
-                , textList
-                    ( character.learnedPassives
-                        |> Set.toList
-                        |> List.map Passive.byId
-                        |> List.map .name
-                    )
-                , viewName "Actions"
-                , textList
-                    ( character.learned
-                        |> Set.toList
-                        |> List.map Action.byId
-                        |> List.map .name
-                    )
-                ]
+            viewPlayer character
         
         Scene.Essentia ->
             viewEssentiaScene character.essentia character.essentiaContainer
@@ -549,9 +518,7 @@ viewCharacter scene sceneState character =
             viewTownScene character
         
         Scene.DungeonSelect ->
-            dungeonTable
-                [ Dungeon.byId "beginnerscave"
-                ]
+            viewDungeonSelect
         
         Scene.ExploreDungeon ->
             case sceneState.ambient of
@@ -629,67 +596,6 @@ viewCharacter scene sceneState character =
         Scene.Inventory ->
             viewInventory character.inventory
 
-viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg
-viewExploreDungeon character delvePhase delve =
-    Ui.column
-        [ textList
-            [ "Exploring: " ++ delve.dungeon.name
-            , "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
-            ]
-        , case delvePhase of
-            DelvePhase.ExplorationPhase paths ->
-                pathTable character paths
-            
-            DelvePhase.ActionPhase scene ->
-                case scene of
-                    DungeonScene.BattleMonster battle intent ->
-                        viewBattleMonster character battle intent
-                    
-                    DungeonScene.RestArea ->
-                        buttonList
-                            [ ( "Rest", Msg.UserSelectedRest )
-                            , ( "Continue", Msg.UserSelectedContinueDungeon )
-                            , ( "Exit Dungeon", Msg.UserSelectedExitDungeon )
-                            ]
-                    
-                    DungeonScene.TrapDoor ->
-                        Ui.column
-                            [ Element.text "A trap door!"
-                            , exitButtonDungeon
-                            ]
-                    
-                    DungeonScene.LoadingGoal ->
-                        Element.text "Loading goal..."
-                    
-                    DungeonScene.Goal reward ->
-                        Ui.column
-                            [ Element.text "Goal!"
-                            , viewReward reward
-                            , exitButtonDungeon
-                            ]
-                    
-                    DungeonScene.Shop ->
-                        Element.text "Loading shop..."
-                    
-                    DungeonScene.Treasure ->
-                        Ui.column
-                            [ Element.text "You find a treasure chest!"
-                            , Button.button "Open" Msg.UserSelectedOpenChest
-                            , continueButton
-                            ]
-                    
-                    DungeonScene.Shopping shop ->
-                        Ui.column
-                            [ viewShopScene character shop
-                            , continueButton
-                            ]
-                    
-                    _ ->
-                        Ui.column
-                            [ Element.text <| DungeonScene.toString scene
-                            , continueButton
-                            ]
-        ]
 continueButton : Element Msg
 continueButton =
     Button.button "Continue" Msg.UserSelectedContinueDungeon
@@ -853,36 +759,9 @@ actionTable actionPoints actionStates =
                 ]
         )
 
-viewShopScene : Character -> Shop -> Element Msg
-viewShopScene character shop =
-    let
-        buyableFn b =
-            Ui.column
-                [ Element.text <| b.name ++ " | "
-                , Element.text <| String.fromInt b.cost ++ " "
-                , Button.button "Buy" (Msg.UserSelectedBuy b)
-                ]
-    in
-    Ui.column
-        [ textList
-            [ "Shop: " ++ shop.name
-            ]
-        , Ui.column
-            ( List.map buyableFn shop.stock )
-        ]
 levelUpExperience : Int -> Int
 levelUpExperience n =
     10 * n * n
-
-dungeonTable : List Dungeon -> Element Msg
-dungeonTable dungeons =
-    dungeons
-        |> table (\dungeon ->
-            Ui.row
-                [ Element.text <| dungeon.name
-                , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
-                ]
-        )
 
 monsterTable : List MonsterTemplate -> Element Msg
 monsterTable monsterTemplates =
@@ -1021,4 +900,140 @@ It's your home! It's small and basic, but it's yours.
             , Button.button "Rest" Msg.UserSelectedHomeRest
             ]
         , Button.button "Back to Town" (Msg.UserSelectedScene Scene.Town)
+        ]
+
+viewShopScene : Character -> Shop -> Element Msg
+viewShopScene character shop =
+    let
+        objectRow object =
+            Ui.row
+                [ Ui.column
+                    [ viewName <| Object.name object
+                    , Element.text <| String.fromInt (Object.cost object) ++ "G"
+                    ]
+                , Ui.column
+                    [ viewName "Effects"
+                    ]
+                , Button.button "Buy" (Msg.UserSelectedBuy object)
+                ]  
+    in
+    Ui.column
+        ( [ viewName <| "Shop: " ++ shop.name
+          , Element.text """
+It's a shop!
+        """
+          ] ++
+          ( List.map objectRow shop.stock ) ++
+          [ Button.button "Back to Town" (Msg.UserSelectedScene Scene.Town)
+          ]
+        )
+
+viewDungeonSelect : Element Msg
+viewDungeonSelect =
+    let
+        dungeonSelectRow dungeon =
+            Ui.row
+                [ Ui.column
+                    [ viewName <| dungeon.name
+                    ]
+                , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
+                ]  
+    in
+    Ui.column
+        ( [ viewName "Dungeons"
+          , Element.text """
+Select a dungeon!
+          """
+          ] ++
+          ( List.map dungeonSelectRow
+            [ Dungeon.byId "beginnerscave"
+            ]
+          )
+        )
+
+viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg
+viewExploreDungeon character delvePhase delve =
+    Ui.column
+        [ viewName <| "Exploring: " ++ delve.dungeon.name
+        , viewName <| "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
+        , case delvePhase of
+            DelvePhase.ExplorationPhase paths ->
+                pathTable character paths
+            
+            DelvePhase.ActionPhase scene ->
+                case scene of
+                    DungeonScene.BattleMonster battle intent ->
+                        viewBattleMonster character battle intent
+                    
+                    DungeonScene.RestArea ->
+                        buttonList
+                            [ ( "Rest", Msg.UserSelectedRest )
+                            , ( "Continue", Msg.UserSelectedContinueDungeon )
+                            , ( "Exit Dungeon", Msg.UserSelectedExitDungeon )
+                            ]
+                    
+                    DungeonScene.TrapDoor ->
+                        Ui.column
+                            [ Element.text "A trap door!"
+                            , exitButtonDungeon
+                            ]
+                    
+                    DungeonScene.Goal reward ->
+                        Ui.column
+                            [ Element.text "Goal!"
+                            , viewReward reward
+                            , exitButtonDungeon
+                            ]
+                    
+                    DungeonScene.Treasure ->
+                        Ui.column
+                            [ Element.text "You find a treasure chest!"
+                            , Button.button "Open" Msg.UserSelectedOpenChest
+                            , continueButton
+                            ]
+                    
+                    DungeonScene.Shopping shop ->
+                        Ui.column
+                            [ viewShopScene character shop
+                            , continueButton
+                            ]
+                    
+                    _ ->
+                        Ui.column
+                            [ Element.text <| DungeonScene.toString scene
+                            , continueButton
+                            ]
+        ]
+
+viewPlayer : Character -> Element Msg
+viewPlayer character =
+    Ui.column
+        [ viewName "Attributes"
+        , Ui.column
+            [ Element.text <| "STR: " ++ String.fromInt character.strength
+            , Element.text <| "VIT: " ++ String.fromInt character.vitality
+            , Element.text <| "AGI: " ++ String.fromInt character.agility
+            , Element.text <| "INT: " ++ String.fromInt character.intellect
+            ]
+        , viewName "Equipment"
+        , Ui.column
+            [ Element.text <| "Weapon: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedWeapon)
+            , Element.text <| "Armor: " ++ Maybe.withDefault " - " (Maybe.map .name character.equippedArmor)
+            ]
+        , viewName "Passives"
+        , Ui.column
+            ( character.learnedPassives
+                |> Set.toList
+                |> List.map Passive.byId
+                |> List.map .name
+                |> List.map Element.text
+            )
+        , viewName "Actions"
+        , Ui.column
+            ( character.learned
+                |> Set.toList
+                |> List.map Action.byId
+                |> List.map .name
+                |> List.map Element.text
+            )
         ]

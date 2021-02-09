@@ -34,5 +34,6 @@ type SubRegion =
   | PrismaticDepths
   | DragonsCove
 
-  -- Verterra (Grass/Ground/Bug???)
+  -- Verterra (Grass/Ground/Illusion/Time/Bug???)
   | GiantJungle
+  | EonsZiggurat

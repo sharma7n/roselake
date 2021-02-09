@@ -24,6 +24,11 @@ byId id =
             , depth = 10
             }
         
+        "onyxpalace" ->
+            { name = "Ultima's Atelier"
+            , depth = 66
+            }
+        
         _ ->
             { name = "Null Dungeon"
             , depth = 0

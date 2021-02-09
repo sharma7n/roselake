@@ -296,10 +296,12 @@ viewQuickStats character =
         ]
         [ textPair "LV" (String.fromInt character.level)
         , textPair "EXP" (ratio character.experience (levelUpExperience character.level))
-        , textPair "AP" (ratio character.freeAbilityPoints character.totalAbilityPoints)
+        , textPair "AbP" (ratio character.freeAbilityPoints character.totalAbilityPoints)
         , textPair "HP" (ratio character.hitPoints (Battler.totalMaxHitPoints character))
         , textPair "MP" (ratio character.magicPoints character.maxMagicPoints)
         , textPair "G" (String.fromInt character.gold)
+        , textPair "AcP" (ratio character.actionPoints character.maxActionPoints)
+        , textPair "Block" (String.fromInt character.block)
         ]
 
 textPair : String -> String -> Element Msg
@@ -604,37 +606,6 @@ exitButtonDungeon : Element Msg
 exitButtonDungeon =
     Button.button "Exit Dungeon" Msg.UserSelectedExitDungeon
 
-pathTable : Character -> List DungeonPath.Path -> Element Msg
-pathTable m paths =
-    paths
-        |> table (\path ->
-            let
-                can =
-                    m
-                        |> Character.satisfiesRequirements path.requirements
-                
-                onClick =
-                    if can then
-                        [ Html.Events.onClick <| Msg.UserSelectedDungeonPath path ]
-                    else
-                        [ Html.Attributes.disabled True ]
-            in
-            Element.Input.button
-                []
-                { onPress =
-                    if can then
-                        Just <| Msg.UserSelectedDungeonPath path
-                    else
-                        Nothing
-                , label =
-                    Ui.column
-                        [ Element.text path.description
-                        , viewRequirements path.requirements
-                        , explainSceneDistribution path.sceneDistribution
-                        ]
-                }
-        )
-
 viewRequirements : List Requirement -> Element Msg
 viewRequirements l =
     let
@@ -725,39 +696,9 @@ viewBattleMonster character battle intent =
             , Element.text <| "Intent: " ++ intent.name
             , Element.text <| "Block: " ++ String.fromInt monster.block
             ]
-        , Ui.column
-            [ Element.text <| "Player"
-            , Element.text <| character.name
-            , viewStatusSet <| character.statusSet
-            , Element.text <| "HP: " ++ String.fromInt character.hitPoints ++ " / " ++ String.fromInt (Battler.totalMaxHitPoints character)
-            , Element.text <| "AP: " ++ String.fromInt character.actionPoints ++ " / " ++ String.fromInt character.maxActionPoints
-            , Element.text <| "Block: " ++ String.fromInt character.block
-            ]
-        , actionTable character.actionPoints character.actionStates
+        , viewActions character.actionPoints character.actionStates
         , Button.button "End Turn" (Msg.UserSelectedEndBattleTurn)
         ]
-
-actionTable : Int -> List ActionState -> Element Msg
-actionTable actionPoints actionStates =
-    actionStates
-        |> table (\actionState ->
-            let
-                buttonElement =
-                    if ActionState.canUse actionPoints actionState then
-                        Button.button "Go" (Msg.UserSelectedBattleAction actionState.action)
-                    else
-                        Element.text ""
-            in
-            Ui.column
-                [ Element.text <| actionState.action.name
-                , Element.text " | "
-                , Element.text <| "AP: " ++ String.fromInt actionState.action.actionPointCost
-                , Element.text " | "
-                , Element.text <| ActionState.stateToString actionState.state
-                , Element.text " | "
-                , buttonElement
-                ]
-        )
 
 levelUpExperience : Int -> Int
 levelUpExperience n =
@@ -947,6 +888,7 @@ Select a dungeon!
           ] ++
           ( List.map dungeonSelectRow
             [ Dungeon.byId "beginnerscave"
+            , Dungeon.byId "onyxpalace"
             ]
           )
         )
@@ -958,7 +900,7 @@ viewExploreDungeon character delvePhase delve =
         , viewName <| "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
         , case delvePhase of
             DelvePhase.ExplorationPhase paths ->
-                pathTable character paths
+                viewDungeonPaths character paths
             
             DelvePhase.ActionPhase scene ->
                 case scene of
@@ -1037,3 +979,67 @@ viewPlayer character =
                 |> List.map Element.text
             )
         ]
+
+viewDungeonPaths : Character -> List DungeonPath.Path -> Element Msg
+viewDungeonPaths m paths =
+    let
+        viewDungeonPath path =
+            let
+                can =
+                    m
+                        |> Character.satisfiesRequirements path.requirements
+                
+                buttonEl =
+                    if can then
+                        Button.button "Explore" (Msg.UserSelectedDungeonPath path)
+                    else
+                        Ui.column
+                            [ viewName "Locked"
+                            , viewRequirements path.requirements
+                            ]
+            in
+            Ui.row
+                [ Ui.column
+                    [ viewName path.description
+                    ]
+                , Ui.column
+                    [ viewName "Effects"
+                    , explainSceneDistribution path.sceneDistribution
+                    ]
+                , buttonEl
+                ]
+    in
+    Ui.column
+        ( List.map viewDungeonPath paths )
+
+viewActions : Int -> List ActionState -> Element Msg
+viewActions actionPoints actionStates =
+    let
+        viewOneAction actionState =
+            let
+                buttonEl =
+                    if ActionState.canUse actionPoints actionState then
+                        Button.button "Go" (Msg.UserSelectedBattleAction actionState.action)
+                    else
+                        Ui.column
+                            [ viewName "State"
+                            , Element.text <| ActionState.stateToString actionState.state
+                            ]
+            in
+            Ui.row
+                [ Ui.column
+                    [ viewName actionState.action.name
+                    ]
+                , Ui.column
+                    [ viewName "AP"
+                    , Element.text <| String.fromInt actionState.action.actionPointCost
+                    ]
+                , buttonEl
+                ]
+        
+    in
+    column actionStates viewOneAction
+
+column : List a -> (a -> Element msg) -> Element msg
+column xs f =
+    Ui.column (List.map f xs)

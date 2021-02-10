@@ -17,12 +17,12 @@ type SubRegion =
   -- Himin (Fire/Ghost/Moon)
   | BurningPlains
   | AncientCemetary
-  | LunarPalace
+  | BloodMoonPalace
 
-  -- Mintera (Dark/Poison/Luck/Psychic)
-  | PyschoBayou
-  | NoxiousAlley
-  | RoyalePrison
+  -- Mintera (Luck/Psychic/Chaos/Dark/Poison)
+  | PandemonicBayou
+  | OathbreakersAlley
+  | MisfortunesPrison
 
   -- Suryasen (Faerie/Light/Steel/Eletric/Magic/Tech)
   | FaerieWyld
@@ -30,10 +30,14 @@ type SubRegion =
   | MagitekAtelier
 
   -- Dragoceia (Water/Dragon/Prism)
-  | ArcwyrmArchipelago
+  | ArchwyrmArchipelago
   | PrismaticDepths
-  | DragonsCove
+  | DragonGodIsland
 
-  -- Verterra (Grass/Ground/Illusion/Time/Bug???)
+  -- Verterra (Grass/Ground/Illusion/Time/Bug/Dinosaur/???)
   | GiantJungle
+  | PrimevalRuins
   | EonsZiggurat
+
+  -- Other
+  | PhantomSkyship

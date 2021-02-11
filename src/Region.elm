@@ -8,4 +8,4 @@ type Region
   | Mintera
   | Suryasen
   | Dragoceia
-  | Verterra
+  | Sanarbol

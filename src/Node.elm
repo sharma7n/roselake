@@ -2,38 +2,22 @@ module Node exposing
   ( Node
   )
 
+import Array exposing (Array)
+
 import MonsterTemplate exposing (MonsterTemplate)
 import Shop exposing (Shop)
 import Event exposing (Event)
+import Terrain exposing (Terrain)
 
 type alias Node =
   { x : Int
   , y : Int
   , terrain : Terrain
-  , content : NodeContent
-  , terrainObjects : List TerrainObject
-  , staticObjects : List StaticObject
-  , dynamicObjects : List DynamicObject
+  , type_ : NodeType
+  , contents : Array NodeContent
   }
 
-type Terrain
-  = Plain
-  | Swamp
-  | Mountain
-  | Hill
-  | Cliff
-  | Volcano
-  | Island
-  | Stream
-  | River
-  | Pond
-  | Lake
-  | Sea
-  | Ocean
-  | Underwater
-  | Forest
-
-type NodeContent
+type NodeType
   = Land
   | Event Event
   | Shop Shop
@@ -41,3 +25,16 @@ type NodeContent
   | SavePoint
   | MonsterNest MonsterTemplate
   | Goal
+
+type alias NodeContent =
+  { usage : NodeContentUsage
+  , mobility : NodeContentMobility
+  }
+
+type NodeContentUsage
+  = Limited Int
+  | Unlimited
+
+type NodeContentMobility
+  = Mobile
+  | Immobile

@@ -21,7 +21,7 @@ button labelText msg =
     Element.Input.button
         [ Element.Background.color Palette.lightGray
         , Element.padding 10
-        , Element.Border.rounded 10
+        -- , Element.Border.rounded 10
         , Element.Border.width 1
         ]
         { onPress = Just msg
@@ -33,7 +33,7 @@ coloredButton color labelText msg =
     Element.Input.button
         [ Element.Background.color color
         , Element.padding 10
-        , Element.Border.rounded 10
+        -- , Element.Border.rounded 10
         , Element.Border.width 1
         ]
         { onPress = Just msg
@@ -44,7 +44,7 @@ disabledButton : String -> Element msg
 disabledButton labelText =
     Element.Input.button
         [ Element.padding 10
-        , Element.Border.rounded 10
+        -- , Element.Border.rounded 10
         ]
         { onPress = Nothing
         , label = Element.text labelText

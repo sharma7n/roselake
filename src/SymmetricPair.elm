@@ -2,7 +2,7 @@ module SymmetricPair exposing
   ( SymmetricPair
   , toPair
   , toString
-  , distinctPairs
+  , contains
   )
 
 type SymmetricPair a
@@ -24,6 +24,6 @@ toString aToString (T x y) =
     (aToString x ++ "|" ++ aToString y)
     (aToString y ++ "|" ++ aToString x)
 
-distinctPairs : (a -> String) -> List a -> List (SymmetricPair a)
-distinctPairs aToString la =
-  []
+contains : (a -> String) -> a -> SymmetricPair a -> Bool
+contains aToString a (T x y) =
+  aToString a == aToString x || aToString a == aToString y

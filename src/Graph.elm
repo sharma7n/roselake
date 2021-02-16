@@ -1,6 +1,7 @@
 module Graph exposing
   ( Graph
-  , isConnected
+  , getNode
+  , getEdges
   )
 
 import CustomDict exposing (CustomDict)
@@ -12,20 +13,11 @@ type alias Graph label n e =
   , edges : CustomDict (SymmetricPair label) e
   }
 
-isTwoNodesConnected : label -> label -> Graph label n e -> Bool
-isTwoNodesConnected _ _ _ =
-  -- TODO
-  True
-
-isConnected : (label -> String) -> Graph label n e -> Bool
-isConnected labelToString g =
+getNode : (label -> String) -> label -> Graph label n e -> Maybe n
+getNode labelToString label g =
   g.nodes
-    |> CustomDict.keys
-    |> SymmetricPair.distinctPairs
-    |> List.all (\p ->
-      let
-        ( n1, n2 ) =
-          SymmetricPair.toPair labelToString p
-      in
-      isTwoNodesConnected n1 n2 g
-    )
+    |> CustomDict.get labelToString label
+
+getEdges : (label -> String) -> label -> Graph label n e -> List e
+getEdges labelToString label g =
+  []

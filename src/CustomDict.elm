@@ -9,46 +9,36 @@ module CustomDict exposing
 import Dict exposing (Dict)
 
 type CustomDict a b
-  = T (Data a b)
+  = T (Dict String b)
 
-type alias Data a b =
-  { toString : a -> String
-  , fromString : String -> Maybe a
-  , inner : Dict String b
-  }
+new : CustomDict a b
+new =
+  T <| Dict.empty
 
-new : (a -> String) -> (String -> Maybe a) CustomDict a b
-new toString =
-  { toString = toString
-  , fromString = fromString
-  , inner = Dict.empty
-  }
-    |> T
-
-insert : a -> b -> CustomDict a b -> CustomDict a b
-insert key val (T d) =
+insert : (a -> String) -> a -> b -> CustomDict a b -> CustomDict a b
+insert aToString key val (T d) =
   let
     newInner =
       d.inner
-        |> Dict.insert (d.toString key) val
+        |> Dict.insert (aToString key) val
   in
   { d |
     inner = newInner
   }
     |> T
 
-get : a -> CustomDict a b -> Maybe b
-get key (T d) =
+get : (a -> String) -> a -> CustomDict a b -> Maybe b
+get aToString key (T d) =
   d
-    |> Dict.get (d.toString key)
+    |> Dict.get (aToString key)
 
-member : a -> CustomDict a b -> Maybe b
-member key (T d) =
+member : (a -> String) -> a -> CustomDict a b -> Maybe b
+member aToString key (T d) =
   d
-    |> Dict.member (d.toString key)
+    |> Dict.member (aToString key)
 
-keys : CustomDict a b -> List a
-keys (T d) =
+keys : (String -> Maybe a) -> CustomDict a b -> List a
+keys aFromString (T d) =
   d
     |> Dict.keys
-    |> List.filterMap d.fromString
+    |> List.filterMap aFromString

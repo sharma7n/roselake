@@ -10,7 +10,7 @@ import Random
 import SubRegion exposing (SubRegion)
 
 type Terrain
-  = NullTerrain
+  = Null
   | Plain
   | Swamp
   | Mountain
@@ -19,7 +19,7 @@ type Terrain
 
 all : List Terrain
 all =
-  [ NullTerrain
+  [ Null
   , Plain
   , Swamp
   , Mountain
@@ -30,7 +30,7 @@ all =
 toString : Terrain -> String
 toString t =
   case t of
-    NullTerrain ->
+    Null ->
       "Null Terrain"
     
     Plain ->
@@ -51,68 +51,68 @@ toString t =
 generator : SubRegion -> Random.Generator Terrain
 generator s =
   case s of
-    NullSubRegion ->
-      Random.constant NullTerrain
+    SubRegion.Null ->
+      Random.constant Null
 
-    MeteoriteHill ->
-      Random.constant NullTerrain
+    SubRegion.MeteoriteHill ->
+      Random.constant Null
     
-    RimefireCave ->
-      Random.constant NullTerrain
+    SubRegion.RimefireCave ->
+      Random.constant Null
     
-    SiderealPeak ->
-      Random.constant NullTerrain
+    SubRegion.SiderealPeak ->
+      Random.constant Null
     
-    BurningPlains ->
-      Random.constant NullTerrain
+    SubRegion.BurningPlains ->
+      Random.constant Null
     
-    AncientCemetary ->
-      Random.constant NullTerrain
+    SubRegion.AncientCemetary ->
+      Random.constant Null
     
-    BloodMoonPalace ->
-      Random.constant NullTerrain
+    SubRegion.BloodMoonPalace ->
+      Random.constant Null
     
-    PandemonicBayou ->
-      Random.constant NullTerrain
+    SubRegion.PandemonicBayou ->
+      Random.constant Null
     
-    OathbreakersAlley ->
-      Random.constant NullTerrain
+    SubRegion.OathbreakersAlley ->
+      Random.constant Null
     
-    MisfortunesStockade ->
-      Random.constant NullTerrain
+    SubRegion.MisfortunesStockade ->
+      Random.constant Null
     
-    FaerieWyld ->
-      Random.constant NullTerrain
+    SubRegion.FaerieWyld ->
+      Random.constant Null
     
-    CloudGarden ->
-      Random.constant NullTerrain
+    SubRegion.CloudGarden ->
+      Random.constant Null
     
-    MagitekAtelier ->
-      Random.constant NullTerrain
+    SubRegion.MagitekAtelier ->
+      Random.constant Null
     
-    ArchwyrmArchipelago ->
-      Random.constant NullTerrain
+    SubRegion.ArchwyrmArchipelago ->
+      Random.constant Null
     
-    PrismaticDepths ->
-      Random.constant NullTerrain
+    SubRegion.PrismaticDepths ->
+      Random.constant Null
     
-    DragonGodsCove ->
-      Random.constant NullTerrain
+    SubRegion.DragonGodsCove ->
+      Random.constant Null
     
-    GigantJungle ->
-      Random.constant NullTerrain
+    SubRegion.GigantJungle ->
+      Random.constant Null
     
-    ProtegeaRuins ->
-      Random.constant NullTerrain
+    SubRegion.ProtogeaRuins ->
+      Random.constant Null
     
-    EschatonsZiggurat ->
-      Random.constant NullTerrain
+    SubRegion.EschatonsZiggurat ->
+      Random.constant Null
     
-    StarRoad ->
-      Random.constant NullTerrain
+    SubRegion.StarRoad ->
+      Random.constant Null
     
-    RainbowRoad ->
-      Random.constant NullTerrain
+    SubRegion.RainbowRoad ->
+      Random.constant Null
     
-    SpecialZone ->
-      Random.constant NullTerrain
+    SubRegion.SpecialZone ->
+      Random.constant Null

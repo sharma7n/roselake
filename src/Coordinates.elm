@@ -1,13 +1,16 @@
 module Coordinates exposing
   ( Coordinates
+  , encoder
+  , decoder
   , toString
   , fromString
-  , newDict
   , adjacent
   , move
+  , fake
   )
 
-import Parser exposing (Parser)
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
 
 import CustomDict exposing (CustomDict)
 
@@ -18,25 +21,34 @@ type alias Coordinates =
   , y : Int
   }
 
+encoder : Coordinates -> Encode.Value
+encoder c =
+  Encode.object
+    [ ( "x", Encode.int c.x )
+    , ( "y", Encode.int c.y )
+    ]
+
+decoder : Decoder Coordinates
+decoder =
+  Decode.map2 Coordinates
+    (Decode.field "x" Decode.int)
+    (Decode.field "y" Decode.int)
+
+fake : Coordinates
+fake =
+  { x = -1
+  , y = -1
+  }
+
 toString : Coordinates -> String
 toString c =
-  String.fromInt c.x ++ "," ++ String.fromInt c.y
+  Encode.encode 0 (encoder c)
 
 fromString : String -> Maybe Coordinates
 fromString s =
-  let
-    coordinatesParser =
-      Parser.succeed Coordinates
-        Parser.(|=) Parser.int
-        Parser.(|=) (Parser.symbol ",")
-        Parser.(|=) Parser.int
-  in
-  Parser.run coordinatesParser s
+  s
+    |> Decode.decodeString decoder
     |> Result.toMaybe
-
-newDict : CustomDict Coordinates a
-newDict =
-  CustomDict.new toString
 
 adjacent : Coordinates -> Coordinates -> Bool
 adjacent p1 p2 =

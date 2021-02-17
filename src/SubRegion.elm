@@ -11,8 +11,8 @@ import CustomDict exposing (CustomDict)
 
 import Region exposing (Region)
 
-type SubRegion =
-  | NullSubRegion
+type SubRegion
+  = Null
 
   -- Estrel (Ice/Space)
   | MeteoriteHill
@@ -52,7 +52,7 @@ type SubRegion =
 
 all : List SubRegion
 all =
-  [ NullSubRegion
+  [ Null
   , MeteoriteHill
   , RimefireCave
   , SiderealPeak
@@ -69,7 +69,7 @@ all =
   , PrismaticDepths
   , DragonGodsCove
   , GigantJungle
-  , ProtegeaRuins
+  , ProtogeaRuins
   , EschatonsZiggurat
   , StarRoad
   , RainbowRoad
@@ -79,7 +79,7 @@ all =
 toString : SubRegion -> String
 toString s =
   case s of
-    NullSubRegion ->
+    Null ->
       "Null Sub-Region"
     
     MeteoriteHill ->
@@ -130,7 +130,7 @@ toString s =
     GigantJungle ->
       "Gigant Jungle"
     
-    ProtegeaRuins ->
+    ProtogeaRuins ->
       "Protogea Ruins"
     
     EschatonsZiggurat ->
@@ -145,10 +145,6 @@ toString s =
     SpecialZone ->
       "Special Zone"
 
-newCustomDict : CustomDict SubRegion a
-newCustomDict =
-  CustomDict.new toString
-
 generator : Region -> CustomDict SubRegion () -> Random.Generator SubRegion
 generator region unlocked =
   let
@@ -156,49 +152,49 @@ generator region unlocked =
       let
         available =
           rps
-            |> List.filter (\(r, p) -> Dict.member r unlocked)
+            |> List.filter (\(p, r) -> CustomDict.member toString r unlocked)
       in
-      Random.weighted ( 0, NullSubRegion ) rps
+      Random.weighted ( 0, Null ) rps
   in
   case region of
-    Estrel ->
+    Region.Estrel ->
       generateAvailable
-        [ ( MeteoriteHill, 70 )
-        , ( RimefireCave, 20 )
-        , ( SiderealPeak, 10 )
+        [ ( 70, MeteoriteHill )
+        , ( 20, RimefireCave )
+        , ( 10, SiderealPeak )
         ]
 
-    Himin ->
+    Region.Himin ->
       generateAvailable
-        [ ( BurningPlains, 70 )
-        , ( AncientCemetary, 20 )
-        , ( BloodMoonPalace, 10 )
+        [ ( 70, BurningPlains )
+        , ( 20, AncientCemetary )
+        , ( 10, BloodMoonPalace )
         ]
 
-    Mintera ->
+    Region.Mintera ->
       generateAvailable
-        [ ( PandemonicBayou, 70 )
-        , ( OathbreakersAlley, 20 )
-        , ( MisfortunesStockade, 10 )
+        [ ( 70, PandemonicBayou )
+        , ( 20, OathbreakersAlley )
+        , ( 10, MisfortunesStockade )
         ]
 
-    Suryasen ->
+    Region.Suryasen ->
       generateAvailable
-        [ ( FaerieWyld, 70 )
-        , ( CloudGarden, 20 )
-        , ( MagitekAtelier, 10 )
+        [ ( 70, FaerieWyld )
+        , ( 20, CloudGarden )
+        , ( 10, MagitekAtelier )
         ]
 
-    Dragoceia ->
+    Region.Dragoceia ->
       generateAvailable
-        [ ( ArchwyrmArchipelago, 70 )
-        , ( PrismaticDepths, 20 )
-        , ( DragonGodsCove, 10 )
+        [ ( 70, ArchwyrmArchipelago )
+        , ( 20, PrismaticDepths )
+        , ( 10, DragonGodsCove )
         ]
 
-    Sanarbol ->
+    Region.Sanarbol ->
       generateAvailable
-        [ ( GigantJungle, 70 )
-        , ( ProtegeaRuins, 20 )
-        , ( EschatonsZiggurat, 10 )
+        [ ( 70, GigantJungle )
+        , ( 20, ProtogeaRuins )
+        , ( 10, EschatonsZiggurat )
         ]

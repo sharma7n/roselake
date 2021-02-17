@@ -7,13 +7,20 @@ module Dungeon exposing
 
 import Random
 
+import Coordinates exposing (Coordinates)
+import Grid exposing (Grid)
+
 import Item exposing (Item)
 import MonsterTemplate exposing (MonsterTemplate)
 import Reward exposing (Reward)
+import Node exposing (Node)
+import Edge exposing (Edge)
 
 type alias Dungeon =
     { name : String
     , depth : Int
+    , grid : Grid Node Edge
+    , currentPosition : Coordinates
     }
 
 byId : String -> Dungeon
@@ -22,16 +29,22 @@ byId id =
         "beginnerscave" ->
             { name = "Beginner's Cave"
             , depth = 10
+            , grid = Grid.fake
+            , currentPosition = Coordinates.fake
             }
         
         "onyxpalace" ->
             { name = "Ultima's Atelier"
             , depth = 66
+            , grid = Grid.fake
+            , currentPosition = Coordinates.fake
             }
         
         _ ->
             { name = "Null Dungeon"
             , depth = 0
+            , grid = Grid.fake
+            , currentPosition = Coordinates.fake
             }
 
 generateMonsterTemplate : Dungeon -> Random.Generator MonsterTemplate

@@ -52,6 +52,7 @@ import Object exposing (Object)
 import Shop exposing (Shop)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
+import Map exposing (Map)
 import Status exposing (Status)
 import Essentia exposing (Essentia)
 
@@ -520,7 +521,7 @@ viewCharacter scene sceneState character =
             viewTownScene character
         
         Scene.DungeonSelect ->
-            viewDungeonSelect
+            viewDungeonSelect character.maps
         
         Scene.ExploreDungeon ->
             case sceneState.ambient of
@@ -869,15 +870,15 @@ It's a shop!
           ]
         )
 
-viewDungeonSelect : Element Msg
-viewDungeonSelect =
+viewDungeonSelect : List Map -> Element Msg
+viewDungeonSelect maps =
     let
-        dungeonSelectRow dungeon =
+        mapSelectRow map_ =
             Ui.row
                 [ Ui.column
-                    [ viewName <| dungeon.name
+                    [ viewName <| Map.name map_
                     ]
-                , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene dungeon)
+                , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene map_)
                 ]  
     in
     Ui.column
@@ -886,11 +887,7 @@ viewDungeonSelect =
 Select a dungeon!
           """
           ] ++
-          ( List.map dungeonSelectRow
-            [ Dungeon.byId "beginnerscave"
-            , Dungeon.byId "onyxpalace"
-            ]
-          )
+          ( List.map mapSelectRow maps )
         )
 
 viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg

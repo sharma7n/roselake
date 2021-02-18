@@ -20,7 +20,7 @@ column xs =
   Element.column
     [ Element.padding 10
     , Element.spacing 10
-    , Element.Background.color Palette.lightBlue
+    , Element.Background.color Palette.lightGray
     ]
     xs
 
@@ -29,6 +29,6 @@ row xs =
   Element.row
     [ Element.padding 10
     , Element.spacing 10
-    , Element.Background.color Palette.lightPurple
+    , Element.Background.color Palette.veryLightGray
     ]
     xs

@@ -43,6 +43,7 @@ import Monster exposing (Monster)
 import Reward exposing (Reward)
 import Inventory exposing (Inventory)
 import Object exposing (Object)
+import Map exposing (Map)
 import Shop exposing (Shop)
 import Item exposing (Item)
 import Weapon exposing (Weapon)
@@ -295,8 +296,11 @@ update msg model =
             in
             ( { model | phase = Phase.ScenePhase scene sceneState newCharacter }, Cmd.none )
         
-        ( Msg.UserSelectedExploreDungeonScene dungeon, Phase.ScenePhase Scene.DungeonSelect _ _ ) ->
+        ( Msg.UserSelectedExploreDungeonScene map_, _ ) ->
             let
+                dungeon =
+                    Dungeon.fromMap map_
+                
                 pathListGenerator =
                     Util.randomDistinctList 3 DungeonPath.generator
                 

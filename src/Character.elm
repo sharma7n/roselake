@@ -7,6 +7,7 @@ module Character exposing
     , satisfiesRequirements
     )
 
+import Random
 import Set exposing (Set)
 
 import Result.Extra
@@ -37,6 +38,8 @@ import Inventory exposing (Inventory)
 import Reward exposing (Reward)
 import Requirement exposing (Requirement)
 import Weapon exposing (Weapon)
+import Map exposing (Map)
+import SubRegion exposing (SubRegion)
 
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
@@ -73,6 +76,7 @@ type alias Character =
     , statusSet : StatusSet
     , actionStates : List ActionState
     , block : Int
+    , maps : List Map
     }
 
 getAttribute : Attribute -> Character -> Int
@@ -182,6 +186,23 @@ characterCreationModelToCharacter model =
             , statusSet = StatusSet.empty
             , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
+            , maps =
+                let
+                    meteoriteHill1 =
+                        { seed = Random.initialSeed 0
+                        , subRegion = SubRegion.MeteoriteHill
+                        , level = 1
+                        }
+                    
+                    rimefireCave2 =
+                        { seed = Random.initialSeed 1
+                        , subRegion = SubRegion.RimefireCave
+                        , level = 2
+                        }
+                in
+                [ meteoriteHill1
+                , rimefireCave2
+                ]
             }
     in
     Ok f

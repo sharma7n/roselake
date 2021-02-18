@@ -33,3 +33,7 @@ veryLightBlue =
 veryLightPurple : Element.Color
 veryLightPurple =
   Element.rgb255 255 240 255
+
+veryLightGray : Element.Color
+veryLightGray =
+  Element.rgb255 240 240 240

@@ -19,6 +19,7 @@ import Object exposing (Object)
 import Reward exposing (Reward)
 import Shop exposing (Shop)
 import Weapon exposing (Weapon)
+import Map exposing (Map)
 
 import EssentiaContainer exposing (EssentiaContainer)
 
@@ -53,7 +54,7 @@ type Msg
     | UserSelectedRandomCharacterCreation
     | DevSelectedCharacterCreationConfirmation
     -- DUNGEON
-    | UserSelectedExploreDungeonScene Dungeon
+    | UserSelectedExploreDungeonScene Map
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath DungeonPath.Path
     | SystemGotDungeonScene DungeonScene.Scene

@@ -1,6 +1,8 @@
 module Node exposing
   ( Node
   , generator
+  , fake
+  , toString
   )
 
 import Random
@@ -47,3 +49,14 @@ generator s =
     , type_ = Land
     , contents = Array.empty
     }
+
+fake : Node
+fake =
+  { terrain = Terrain.Plain
+  , type_ = Land
+  , contents = Array.empty
+  }
+
+toString : Node -> String
+toString n =
+  "Terrain: " ++ Terrain.toString n.terrain

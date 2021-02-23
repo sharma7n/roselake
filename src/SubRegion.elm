@@ -5,6 +5,8 @@ module SubRegion exposing
   , generator 
   )
 
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
 import Random
 
 import CustomDict exposing (CustomDict)
@@ -145,6 +147,12 @@ toString s =
     SpecialZone ->
       "Special Zone"
 
+encoder : SubRegion -> Encode.Value
+encoder s =
+  s
+    |> toString
+    |> Encode.string
+
 generator : Region -> CustomDict SubRegion () -> Random.Generator SubRegion
 generator region unlocked =
   let
@@ -152,7 +160,7 @@ generator region unlocked =
       let
         available =
           rps
-            |> List.filter (\(p, r) -> CustomDict.member toString r unlocked)
+            |> List.filter (\(p, r) -> CustomDict.member encoder r unlocked)
       in
       Random.weighted ( 0, Null ) rps
   in

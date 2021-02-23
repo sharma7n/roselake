@@ -3,6 +3,7 @@ module Dungeon exposing
     , fromMap
     , generateMonsterTemplate
     , generateReward
+    , describeCurrentPosition
     )
 
 import Random
@@ -26,9 +27,19 @@ type alias Dungeon =
 
 fromMap : Map -> Dungeon
 fromMap map =
+    let
+        node1 =
+            Node.fake
+        
+        node2 =
+            Node.fake
+        
+        edge =
+            Edge.fake
+    in
     { name = Map.name map
     , depth = 10
-    , grid = Grid.fake
+    , grid = Grid.fake node1 node2 edge
     , currentPosition = Coordinates.fake
     }
 
@@ -53,3 +64,15 @@ generateReward _ =
         , armors =
             []
         }
+
+describeCurrentPosition : Dungeon -> List String
+describeCurrentPosition d =
+    let
+        fromNode n =
+            "NODE OPTION"
+        
+        fromEdge e =
+            "EDGE OPTION"
+    in
+    d.grid
+        |> Grid.describeAt fromNode fromEdge d.currentPosition

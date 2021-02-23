@@ -9,37 +9,48 @@ module CustomDict exposing
   )
 
 import Dict exposing (Dict)
+import Json.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
 
 type CustomDict a b
   = T (Dict String b)
+
+aToString : (a -> Encode.Value) -> a -> String
+aToString aEncoder a =
+  Encode.encode 0 (aEncoder a)
+
+aFromString : Decoder a -> String -> Maybe a
+aFromString aDecoder s =
+  Decode.decodeString aDecoder s
+    |> Result.toMaybe
 
 new : CustomDict a b
 new =
   T <| Dict.empty
 
-insert : (a -> String) -> a -> b -> CustomDict a b -> CustomDict a b
-insert aToString key val (T d) =
+insert : (a -> Encode.Value) -> a -> b -> CustomDict a b -> CustomDict a b
+insert aEncoder key val (T d) =
   d
-    |> Dict.insert (aToString key) val
+    |> Dict.insert (aToString aEncoder key) val
     |> T
 
-get : (a -> String) -> a -> CustomDict a b -> Maybe b
-get aToString key (T d) =
+get : (a -> Encode.Value) -> a -> CustomDict a b -> Maybe b
+get aEncoder key (T d) =
   d
-    |> Dict.get (aToString key)
+    |> Dict.get (aToString aEncoder key)
 
-keys : (String -> Maybe a) -> CustomDict a b -> List a
-keys aFromString (T d) =
+keys : Decoder a -> CustomDict a b -> List a
+keys aDecoder (T d) =
   d
     |> Dict.keys
-    |> List.filterMap aFromString
+    |> List.filterMap (aFromString aDecoder)
 
-toList : (String -> Maybe a) -> CustomDict a b -> List ( a, b )
-toList aFromString (T d) =
+toList : Decoder a -> CustomDict a b -> List ( a, b )
+toList aDecoder (T d) =
   d
     |> Dict.toList
     |> List.filterMap (\(k, v) ->
-      case aFromString k of
+      case (aFromString aDecoder k) of
         Just a ->
           Just (a, v)
         
@@ -47,7 +58,7 @@ toList aFromString (T d) =
           Nothing
     )
 
-member : (a -> String) -> a -> CustomDict a b -> Bool
-member aToString a (T d) =
+member : (a -> Encode.Value) -> a -> CustomDict a b -> Bool
+member aEncoder a (T d) =
   d
-    |> Dict.member (aToString a)
+    |> Dict.member (aToString aEncoder a)

@@ -807,14 +807,13 @@ viewTownScene : Character -> Element Msg
 viewTownScene m =
     Ui.column
         [ Ui.row
-            [ Element.text "Home"
+            [ viewName "Home"
             , Button.button "Go" (Msg.UserSelectedScene Scene.Home)
             ]
         , Ui.row
-            [ Element.text "Potion Shop"
+            [ viewName "Potion Shop"
             , Button.button "Go" (Msg.UserSelectedShop (Shop.byId "potionshop"))
             ]
-
         ]
 
 table : (a -> Element msg) -> List a -> Element msg
@@ -875,9 +874,7 @@ viewDungeonSelect maps =
     let
         mapSelectRow map_ =
             Ui.row
-                [ Ui.column
-                    [ viewName <| Map.name map_
-                    ]
+                [ viewName <| Map.name map_
                 , Button.button "Explore" (Msg.UserSelectedExploreDungeonScene map_)
                 ]  
     in
@@ -897,7 +894,13 @@ viewExploreDungeon character delvePhase delve =
         , viewName <| "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
         , case delvePhase of
             DelvePhase.ExplorationPhase paths ->
-                viewDungeonPaths character paths
+                Ui.column
+                    [ viewDungeonPaths character paths
+                    , Ui.column (
+                        Dungeon.describeCurrentPosition delve.dungeon
+                            |> List.map Element.text
+                        )
+                    ]
             
             DelvePhase.ActionPhase scene ->
                 case scene of

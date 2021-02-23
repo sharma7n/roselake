@@ -1,5 +1,6 @@
 module SymmetricPair exposing
   ( SymmetricPair
+  , new
   , encoder
   , decoder
   , toPair
@@ -13,6 +14,13 @@ import Json.Decode as Decode exposing (Decoder)
 
 type SymmetricPair a
   = T a a
+
+new : (a -> Encode.Value) -> a -> a -> SymmetricPair a
+new aEncoder x y =
+  if aToString aEncoder x <= aToString aEncoder y then
+    T x y
+  else
+    T y x
 
 order : (a -> Encode.Value) -> SymmetricPair a -> b -> b -> b
 order aEncoder (T x y) l r =

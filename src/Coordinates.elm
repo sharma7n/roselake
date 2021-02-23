@@ -36,8 +36,8 @@ decoder =
 
 fake : Coordinates
 fake =
-  { x = -1
-  , y = -1
+  { x = 0
+  , y = 0
   }
 
 toString : Coordinates -> String

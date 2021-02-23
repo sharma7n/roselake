@@ -11,6 +11,7 @@ module Util exposing
     , betweenInclusive
     , betweenExclusive
     , randomDistinctList
+    , maybeToList
     )
 
 import Dict exposing (Dict)
@@ -103,3 +104,12 @@ randomDistinctList n gen =
     Random.constant Dict.empty
         |> loop 0
         |> Random.map Dict.values
+
+maybeToList : Maybe a -> List a
+maybeToList m =
+    case m of
+        Just a ->
+            [a]
+        
+        Nothing ->
+            []

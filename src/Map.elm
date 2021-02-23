@@ -15,4 +15,4 @@ type alias Map =
 
 name : Map -> String
 name m =
-  SubRegion.toString m.subRegion ++ " Lv. " ++ String.fromInt m.level
+    SubRegion.toString m.subRegion ++ " Lv. " ++ String.fromInt m.level

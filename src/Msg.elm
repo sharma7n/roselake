@@ -55,6 +55,7 @@ type Msg
     | DevSelectedCharacterCreationConfirmation
     -- DUNGEON
     | UserSelectedExploreDungeonScene Map
+    | SystemGotDungeon Dungeon
     | SystemGotDungeonInitialization Dungeon (List DungeonPath.Path)
     | UserSelectedDungeonPath DungeonPath.Path
     | SystemGotDungeonScene DungeonScene.Scene

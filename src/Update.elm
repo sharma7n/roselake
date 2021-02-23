@@ -298,9 +298,13 @@ update msg model =
         
         ( Msg.UserSelectedExploreDungeonScene map_, _ ) ->
             let
-                dungeon =
-                    Dungeon.fromMap map_
-                
+                cmd =
+                    Random.generate Msg.SystemGotDungeon (Dungeon.generator map_)
+            in
+            ( model, cmd )
+        
+        ( Msg.SystemGotDungeon dungeon, _ ) ->
+            let
                 pathListGenerator =
                     Util.randomDistinctList 3 DungeonPath.generator
                 

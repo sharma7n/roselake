@@ -1,7 +1,10 @@
 module MonsterTemplate exposing
     ( MonsterTemplate
     , byId
+    , generator
     )
+
+import Random
 
 import Util
 
@@ -60,7 +63,7 @@ byId =
         default =
             new "Null" Behavior.None (\x -> x)
     in
-    Util.getById all  default
+    Util.getById all default
 
 all : List MonsterTemplate
 all =
@@ -116,3 +119,9 @@ all =
                 , intellect = 8
             })
     ]
+
+generator : Random.Generator MonsterTemplate
+generator =
+    Random.weighted
+        ( 0, byId "null" )
+        ( List.map (\m -> ( 1, m )) all )

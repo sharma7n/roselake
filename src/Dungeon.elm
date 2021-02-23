@@ -1,5 +1,6 @@
 module Dungeon exposing
     ( Dungeon
+    , generator
     , fromMap
     , generateMonsterTemplate
     , generateReward
@@ -18,12 +19,30 @@ import Node exposing (Node)
 import Edge exposing (Edge)
 import Map exposing (Map)
 
+import SubRegion exposing (SubRegion)
+import Node
+
 type alias Dungeon =
-    { name : String
+    { map : Map
     , depth : Int
     , grid : Grid Node Edge
     , currentPosition : Coordinates
     }
+
+generator : Map -> Random.Generator Dungeon
+generator m =
+    Node.generator m
+        |> Random.andThen (\node1 ->
+            Node.generator m
+                |> Random.andThen (\node2 ->
+                    Random.constant <|
+                        { map = m
+                        , depth = 10
+                        , grid = Grid.fake node1 node2 Edge.fake
+                        , currentPosition = Coordinates.fake
+                        }
+                )
+        )
 
 fromMap : Map -> Dungeon
 fromMap map =
@@ -37,7 +56,7 @@ fromMap map =
         edge =
             Edge.fake
     in
-    { name = Map.name map
+    { map = map
     , depth = 10
     , grid = Grid.fake node1 node2 edge
     , currentPosition = Coordinates.fake
@@ -67,12 +86,9 @@ generateReward _ =
 
 describeCurrentPosition : Dungeon -> List String
 describeCurrentPosition d =
-    let
-        fromNode n =
-            "NODE OPTION"
-        
+    let 
         fromEdge e =
             "EDGE OPTION"
     in
     d.grid
-        |> Grid.describeAt fromNode fromEdge d.currentPosition
+        |> Grid.describeAt Node.toString fromEdge d.currentPosition

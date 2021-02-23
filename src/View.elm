@@ -890,7 +890,7 @@ Select a dungeon!
 viewExploreDungeon : Character -> DelvePhase -> Delve -> Element Msg
 viewExploreDungeon character delvePhase delve =
     Ui.column
-        [ viewName <| "Exploring: " ++ delve.dungeon.name
+        [ viewName <| "Exploring: " ++ Map.name delve.dungeon.map
         , viewName <| "Floor: " ++ String.fromInt delve.floor ++ " / " ++ String.fromInt delve.dungeon.depth
         , case delvePhase of
             DelvePhase.ExplorationPhase paths ->

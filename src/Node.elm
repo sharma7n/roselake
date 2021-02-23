@@ -14,20 +14,14 @@ import Event exposing (Event)
 import Terrain exposing (Terrain)
 import SubRegion exposing (SubRegion)
 
+import Map exposing (Map)
+import NodeType exposing (NodeType)
+
 type alias Node =
   { terrain : Terrain
   , type_ : NodeType
   , contents : Array NodeContent
   }
-
-type NodeType
-  = Land
-  | Event Event
-  | Shop Shop
-  | Inn Int
-  | SavePoint
-  | MonsterNest MonsterTemplate
-  | Goal
 
 type alias NodeContent =
   { usage : NodeContentUsage
@@ -42,21 +36,28 @@ type NodeContentMobility
   = Mobile
   | Immobile
 
-generator : SubRegion -> Random.Generator Node
-generator s =
-  Random.constant <|
-    { terrain = Terrain.Null
-    , type_ = Land
-    , contents = Array.empty
-    }
+generator : Map -> Random.Generator Node
+generator m =
+  Terrain.generator m.subRegion
+    |> Random.andThen (\terrain ->
+      NodeType.generator m
+        |> Random.andThen (\nodeType ->
+          Random.constant <|
+            { terrain = terrain
+            , type_ = nodeType
+            , contents = Array.empty
+            }
+        )
+    )
 
 fake : Node
 fake =
   { terrain = Terrain.Plain
-  , type_ = Land
+  , type_ = NodeType.Land
   , contents = Array.empty
   }
 
 toString : Node -> String
 toString n =
   "Terrain: " ++ Terrain.toString n.terrain
+  ++ " | NodeType: " ++ NodeType.toString n.type_

@@ -16,7 +16,7 @@ import Height exposing (Height)
 import Build exposing (Build)
 import Weapon exposing (Weapon)
 import Name
-import Essentia exposing (Essentia)
+import Class exposing (Class)
 
 type alias CharacterCreationSettings =
     { name : FormResult CharacterCreationError.Error String
@@ -27,7 +27,7 @@ type alias CharacterCreationSettings =
     , height : FormResult CharacterCreationError.Error Height
     , build : FormResult CharacterCreationError.Error Build
     , startingWeapon : FormResult CharacterCreationError.Error Weapon
-    , startingEssentia : FormResult CharacterCreationError.Error Essentia
+    , startingClass : FormResult CharacterCreationError.Error Class
     }
 
 check : CharacterCreationSettings -> CharacterCreationSettings
@@ -52,7 +52,7 @@ check settings =
     , height = FormResult.check settings.height
     , build = FormResult.check settings.build
     , startingWeapon = FormResult.check settings.startingWeapon
-    , startingEssentia = FormResult.check settings.startingEssentia
+    , startingClass = FormResult.check settings.startingClass
     }
 
 generator : Random.Generator CharacterCreationSettings
@@ -65,8 +65,8 @@ generator =
         |> Random.andThen (\complexion -> Height.generator
         |> Random.andThen (\height -> Build.generator
         |> Random.andThen (\build -> Weapon.generator
-        |> Random.andThen (\startingWeapon -> Essentia.generator
-        |> Random.andThen (\startingEssentia -> Random.constant <|
+        |> Random.andThen (\startingWeapon -> Class.generator
+        |> Random.andThen (\startingClass -> Random.constant <|
             { name = FormResult.FROk name
             , hairStyle = FormResult.FROk hairStyle
             , hairColor = FormResult.FROk hairColor
@@ -75,6 +75,6 @@ generator =
             , height = FormResult.FROk height
             , build = FormResult.FROk build
             , startingWeapon = FormResult.FROk startingWeapon
-            , startingEssentia = FormResult.FROk startingEssentia
+            , startingClass = FormResult.FROk startingClass
             }
         )))))))))

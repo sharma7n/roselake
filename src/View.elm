@@ -28,6 +28,7 @@ import Complexion exposing (Complexion)
 import Height exposing (Height)
 import Build exposing (Build)
 
+import Class exposing (Class)
 import SceneState exposing (SceneState)
 import Requirement exposing (Requirement)
 import Attribute exposing (Attribute)
@@ -54,7 +55,6 @@ import Item exposing (Item)
 import Weapon exposing (Weapon)
 import Map exposing (Map)
 import Status exposing (Status)
-import Essentia exposing (Essentia)
 
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
@@ -81,8 +81,7 @@ import Palette
 import Html
 import Button
 import Ui
-import Ui
-import Ui
+import Svg
 
 view : Model -> Html Msg
 view model =
@@ -195,11 +194,11 @@ viewCharacterCreationPhase model =
                 Weapon.listStarting 
                 model.settings.startingWeapon
             , radioButtons
-                "Starting Essentia"
-                .name 
-                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingEssentiaSelection) 
-                Essentia.listStarting 
-                model.settings.startingEssentia
+                "Starting Class"
+                .name
+                (Msg.UserSelectedCharacterCreationSettingSelection << CharacterCreationSettingSelection.StartingClassSelection)
+                Class.all
+                model.settings.startingClass
             ]
         , Element.column
             [ Element.padding 10
@@ -257,8 +256,8 @@ viewScenePhase scene sceneState character =
         , Element.row
             [ Element.spacing 10
             ]
-            [ viewAvatar character.avatar
-            , viewQuickStats character
+            [ viewQuickStats character
+            , viewAvatar character.avatar
             , viewStatusSet character.statusSet
             ]
         , case scene of
@@ -271,7 +270,6 @@ viewScenePhase scene sceneState character =
             _ ->
                  buttonBar
                     [ ( "Player", Msg.UserSelectedScene Scene.Player )
-                    , ( "Essentia", Msg.UserSelectedScene Scene.Essentia )
                     , ( "Learn", Msg.UserSelectedScene Scene.LearnSelect )
                     , ( "Equip", Msg.UserSelectedScene Scene.Equip )
                     , ( "Inventory", Msg.UserSelectedScene Scene.Inventory )
@@ -295,14 +293,13 @@ viewQuickStats character =
         , Element.padding 10
         , Element.Background.color Palette.lightBlue
         ]
-        [ textPair "LV" (String.fromInt character.level)
+        [ textPair "Class" character.class.name
+        , textPair "G" (String.fromInt character.gold)
+        , textPair "LV" (String.fromInt character.level)
         , textPair "EXP" (ratio character.experience (levelUpExperience character.level))
-        , textPair "AbP" (ratio character.freeAbilityPoints character.totalAbilityPoints)
+        , textPair "AP" (ratio character.freeAbilityPoints character.totalAbilityPoints)
         , textPair "HP" (ratio character.hitPoints (Battler.totalMaxHitPoints character))
         , textPair "MP" (ratio character.magicPoints character.maxMagicPoints)
-        , textPair "G" (String.fromInt character.gold)
-        , textPair "AcP" (ratio character.actionPoints character.maxActionPoints)
-        , textPair "Block" (String.fromInt character.block)
         ]
 
 textPair : String -> String -> Element Msg
@@ -337,6 +334,8 @@ viewAvatar avatar =
         , Element.text <| "Complexion: " ++ Complexion.toString avatar.complexion
         , Element.text <| "Hair: " ++ HairStyle.toString avatar.hairStyle ++ " & " ++ HairColor.toString avatar.hairColor
         , Element.text <| "Eye Color: " ++ EyeColor.toString avatar.eyeColor
+        , Element.html <|
+            Svg.svg [] [ Avatar.render avatar ]
         ]
 
 viewStatusSet : StatusSet -> Element Msg
@@ -439,9 +438,6 @@ viewCharacter scene sceneState character =
     case scene of
         Scene.Player ->
             viewPlayer character
-        
-        Scene.Essentia ->
-            viewEssentiaScene character.essentia character.essentiaContainer
         
         Scene.LearnSelect ->
             viewLearnScene character
@@ -716,40 +712,6 @@ monsterTable monsterTemplates =
                 , Button.button "Fight" (Msg.UserSelectedMonsterTemplate monsterTemplate)
                 ]
         )
-
-viewEssentiaScene : List Essentia -> EssentiaContainer -> Element Msg
-viewEssentiaScene e c =
-    let
-        containerSlotFn ( slotIndex, slot ) =
-            case slot of
-                Just essentia ->
-                    Ui.column
-                        [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": " ++ essentia.name
-                        , Button.button "Un-Equip" (Msg.UserSelectedUnEquipEssentia slotIndex essentia)
-                        ]
-                
-                Nothing ->
-                    Ui.column
-                        [ Element.text <| "Slot " ++ EssentiaContainer.indexToString slotIndex ++ ": -"
-                        ]
-
-        equipEssentiaButtonFn esn listIdx slotIndex =
-            Button.button ("Equip in Slot " ++ EssentiaContainer.indexToString slotIndex) (Msg.UserSelectedEquipEssentia slotIndex listIdx esn)
-
-        essentiaFn listIdx esn =
-           Ui.column
-                ( Element.text esn.name
-                :: ( List.map (equipEssentiaButtonFn esn listIdx) EssentiaContainer.listIndices )
-                )
-    in
-    Ui.column
-        [ Element.text "Equipped"
-        , Ui.column
-            ( List.map containerSlotFn (EssentiaContainer.toList c))
-        , Element.text "Equipable"
-        , Ui.column
-            ( List.indexedMap essentiaFn e )
-        ]
 
 viewLearnScene : Character -> Element Msg
 viewLearnScene m =

@@ -616,8 +616,8 @@ updateCharacterCreationSettingSelection model characterCreationModel selection =
                 CharacterCreationSettingSelection.StartingWeaponSelection startingWeapon ->
                     { settings | startingWeapon = FormResult.FROk startingWeapon }
                 
-                CharacterCreationSettingSelection.StartingEssentiaSelection startingEssentia ->
-                    { settings | startingEssentia = FormResult.FROk startingEssentia }
+                CharacterCreationSettingSelection.StartingClassSelection startingClass ->
+                    { settings | startingClass = FormResult.FROk startingClass }
     
         newCharacterCreationModel =
             { characterCreationModel | settings = newSettings }

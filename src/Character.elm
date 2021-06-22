@@ -40,6 +40,7 @@ import Requirement exposing (Requirement)
 import Weapon exposing (Weapon)
 import Map exposing (Map)
 import SubRegion exposing (SubRegion)
+import Class exposing (Class)
 
 import EssentiaContainer exposing (EssentiaContainer)
 import StatusSet exposing (StatusSet)
@@ -50,6 +51,7 @@ type alias Character =
     , gold : Int
     , inventory : Inventory
     , essentia : List Essentia
+    , class : Class
     , level : Int
     , experience : Int
     , freeAbilityPoints : Int
@@ -142,7 +144,7 @@ applyEffectsToCharacter effects m =
 characterCreationModelToCharacter : CharacterCreationModel -> Result (List CharacterCreationError.Error) Character
 characterCreationModelToCharacter model =
     let
-        f name hairStyle hairColor eyeColor complexion height build startingWeapon startingEssentia =
+        f name hairStyle hairColor eyeColor complexion height build startingWeapon startingClass =
             let
                 avatar =
                     { hairStyle = hairStyle
@@ -158,6 +160,7 @@ characterCreationModelToCharacter model =
             , gold = 0
             , inventory = Inventory.new
             , essentia = []
+            , class = startingClass
             , level = 1
             , experience = 0
             , freeAbilityPoints = 0
@@ -180,9 +183,6 @@ characterCreationModelToCharacter model =
             , passives = initPassives Set.empty
             , equippedWeapon = Just startingWeapon
             , equippedArmor = Just <| Armor.byId "cotton-shirt"
-            , essentiaContainer = 
-                EssentiaContainer.new
-                    |> EssentiaContainer.setSlot EssentiaContainer.Index1 startingEssentia
             , statusSet = StatusSet.empty
             , actionStates = initActionStates <| initActions (Just startingWeapon) Set.empty
             , block = 0
@@ -203,6 +203,8 @@ characterCreationModelToCharacter model =
                 [ meteoriteHill1
                 , rimefireCave2
                 ]
+            , essentiaContainer =
+                EssentiaContainer.new
             }
     in
     Ok f
@@ -214,7 +216,7 @@ characterCreationModelToCharacter model =
         |> Result.Extra.andMap (FormResult.toValidation model.settings.height)
         |> Result.Extra.andMap (FormResult.toValidation model.settings.build)
         |> Result.Extra.andMap (FormResult.toValidation model.settings.startingWeapon)
-        |> Result.Extra.andMap (FormResult.toValidation model.settings.startingEssentia)
+        |> Result.Extra.andMap (FormResult.toValidation model.settings.startingClass)
     
 
 applyReward : Reward -> Character -> Character

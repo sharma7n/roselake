@@ -4,7 +4,6 @@ module Scene exposing
 
 type Scene
     = Player
-    | Essentia
     | LearnSelect
     | Equip
     | Home
